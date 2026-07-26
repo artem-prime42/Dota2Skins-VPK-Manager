@@ -9,7 +9,7 @@
     Preview:
   </p>
 
-  <img src="https://i.postimg.cc/V619pVCP/dota2skins.png" alt="Preview" width="720">
+  <img src="https://i.postimg.cc/T1XvbHpd/izobrazenie.png" alt="Preview" width="720">
 </div>
 
 ---
