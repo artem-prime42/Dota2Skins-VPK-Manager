@@ -104,6 +104,7 @@ const UI_TEXT = {
     modsCount: 'модов',
     authorsCount: 'авторов',
     categoriesCount: 'категорий',
+    installedMods: 'установлено',
     noResults: 'Ничего не найдено',
     noNews: 'Новостей пока нет',
     searchText: 'Поиск:',
@@ -132,6 +133,17 @@ const UI_TEXT = {
     refreshNow: 'Обновить сейчас',
     source: 'Источник',
     about: 'О программе',
+    aboutHeroTitle: 'Dota2skins Manager',
+    aboutHeroIntro: 'Dota2skins Manager — официальный лаунчер проекта Dota2skins.',
+    aboutHeroBody: 'Автоматически загружает каталог модов, устанавливает, обновляет и управляет модами для Dota 2.',
+    community: 'Сообщество',
+    discordTitle: 'Discord Community',
+    discordDesc: 'Присоединяйтесь к нашему сообществу, получайте поддержку, обсуждайте моды и следите за новыми обновлениями.',
+    discordAction: 'Присоединиться',
+    telegramTitle: 'Telegram Channel',
+    telegramDesc: 'Новости проекта, новые моды, обновления лаунчера и важные объявления.',
+    telegramAction: 'Открыть Telegram',
+    thirdPartySoftware: 'Стороннее программное обеспечение',
     version: 'Версия',
     updatesNote: 'Обновления скачиваются автоматически из GitHub Releases — когда новая версия готова, появится кнопка установки.',
     dotaConnected: 'Dota 2 подключена',
@@ -212,7 +224,7 @@ const UI_TEXT = {
     run: 'Запустить',
     folder: 'Папка',
     ready: 'готов',
-    searchHeroes: 'Поиск героев…',
+    searchHeroes: 'Поиск',
     resultOne: 'результат',
     resultFew: 'результата',
     resultMany: 'результатов',
@@ -254,6 +266,7 @@ const UI_TEXT = {
     modsCount: 'mods',
     authorsCount: 'authors',
     categoriesCount: 'categories',
+    installedMods: 'installed',
     noResults: 'Nothing found',
     noNews: 'No news yet',
     searchText: 'Search:',
@@ -282,6 +295,17 @@ const UI_TEXT = {
     refreshNow: 'Refresh now',
     source: 'Source',
     about: 'About',
+    aboutHeroTitle: 'Dota2skins Manager',
+    aboutHeroIntro: 'Dota2skins Manager — the official launcher for the Dota2skins project.',
+    aboutHeroBody: 'It automatically loads the mod catalog, installs, updates, and manages mods for Dota 2.',
+    community: 'Community',
+    discordTitle: 'Discord Community',
+    discordDesc: 'Join our community for support, mod discussions, and the latest updates.',
+    discordAction: 'Join',
+    telegramTitle: 'Telegram Channel',
+    telegramDesc: 'Project news, new mods, launcher updates, and important announcements.',
+    telegramAction: 'Open Telegram',
+    thirdPartySoftware: 'Third-party software',
     version: 'Version',
     updatesNote: 'Updates are downloaded automatically from GitHub Releases — when a new version is ready, an install button appears.',
     dotaConnected: 'Dota 2 is connected',
@@ -362,7 +386,7 @@ const UI_TEXT = {
     run: 'Run',
     folder: 'Folder',
     ready: 'ready',
-    searchHeroes: 'Search heroes…',
+    searchHeroes: 'Search',
     resultOne: 'result',
     resultFew: 'results',
     resultMany: 'results',
@@ -393,6 +417,7 @@ const state = {
   activeCategory: 'all',
   search: '',
   filters: { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '' },
+  librarySearch: '',
   installedIndex: new Map(),
   installing: new Set(),
   modIndex: new Map(),
@@ -408,7 +433,11 @@ function esc(s) {
 
 function fmtMB(bytes) { return (bytes / 1024 / 1024).toFixed(1); }
 
-function getLang() { return state.settings?.appLanguage || 'ru'; }
+function getLang() {
+  if (state.settings?.appLanguage) return state.settings.appLanguage;
+  const locale = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  return locale.startsWith('ru') ? 'ru' : 'en';
+}
 function t(key) { return UI_TEXT[getLang()]?.[key] ?? UI_TEXT.ru?.[key] ?? key; }
 function trLabel(id) { return CAT_LABELS[getLang()]?.[id] ?? CAT_LABELS.ru?.[id] ?? id; }
 function trSortLabel(key) { return SORTS.find((s) => s.key === key)?.label?.[getLang()] ?? key; }
@@ -891,6 +920,7 @@ $('#globalSearch').addEventListener('input', (e) => {
     $('#clearSearch').classList.toggle('hidden', !state.search);
     if (state.view !== 'catalog') switchView('catalog');
     else renderCatalog();
+    $('#globalSearch')?.focus();
   }, 180);
 });
 $('#clearSearch').addEventListener('click', () => {
@@ -912,6 +942,7 @@ function render() {
     case 'authors': renderer = renderAuthors; break;
     case 'tools': renderer = renderTools; break;
     case 'settings': renderer = renderSettings; break;
+    case 'about': renderer = renderAbout; break;
   }
   renderer();
   translateUi(document);
@@ -944,11 +975,6 @@ function renderRail() {
     b.addEventListener('click', () => {
       state.activeCategory = b.dataset.cat;
       state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '' };
-      if (state.search) {
-        state.search = '';
-        $('#globalSearch').value = '';
-        $('#clearSearch').classList.add('hidden');
-      }
       renderCatalog();
     });
   });
@@ -1016,10 +1042,30 @@ function renderDashboard() {
   const totalMods = cats.reduce((n, c) => n + categoryMods(c.id).length, 0);
   const totalAuthors = 12;
   const categoriesCount = cats.length;
+  const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
   const recentMods = ((state.catalog?.mods?.recentlyAddedMods || [])
     .slice(0, 8)
     .map((m) => ({ ...m, _cat: m._cat || m.categoryId || m.category || 'other' })) || []);
   const updateItems = (getLang() === 'en' ? [
+    {
+      title: '1.1.0 launcher update',
+      date: '2026-07-28',
+      meta: 'Improvements and fixes',
+      changes: [
+        'Fixed library search focus and prevented input losing cursor after each keystroke.',
+        'Updated sort labels to show human-readable options across categories.',
+        
+        'Miscellaneous bug fixes and UI polish.'
+      ],
+    },
+    {
+      title: '1.0.9 launcher patch',
+      date: '2026-07-26',
+      meta: 'Bug fix',
+      changes: [
+        'Bug fix'
+      ],
+    },
     {
       title: '1.0.8 launcher polish',
       date: '2026-07-26',
@@ -1041,6 +1087,25 @@ function renderDashboard() {
       ],
     },
   ] : [
+    {
+      title: 'Версия 1.1.0',
+      date: '2026-07-28',
+      meta: 'Улучшения и исправления',
+      changes: [
+        'Исправлен фокус поиска в библиотеке — курсор больше не теряется при вводе.',
+        'Обновлены метки сортировки — корректный вывод опций во всех категориях.',
+        
+        'Различные исправления и полировка интерфейса.'
+      ],
+    },
+    {
+      title: 'Версия 1.0.9',
+      date: '2026-07-26',
+      meta: 'Баг фикс',
+      changes: [
+        'Баг фикс'
+      ],
+    },
     {
       title: 'Обновление 1.0.8',
       date: '2026-07-26',
@@ -1089,6 +1154,10 @@ function renderDashboard() {
           <div class="stats-card">
             <div class="stats-value">${categoriesCount}</div>
             <div class="stats-label">${t('categoriesCount')}</div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-value">${installedModsCount}</div>
+            <div class="stats-label">${t('installedMods')}</div>
           </div>
         </div>
       </aside>
@@ -1459,7 +1528,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
       <div class="select-wrap">
         <span class="ms">sort</span>
         <select id="sortSelect">
-          ${SORTS.map((s) => `<option value="${s.key}" ${f.sort === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
+          ${SORTS.map((s) => `<option value="${s.key}" ${f.sort === s.key ? 'selected' : ''}>${esc(trSortLabel(s.key))}</option>`).join('')}
         </select>
       </div>`);
   }
@@ -1468,7 +1537,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
     toolbarParts.push(`
       <div class="hero-search-wrap">
         <span class="ms">search</span>
-        <input type="text" id="heroSearchInput" placeholder="${t('searchText')} ${t('authors')}" value="${esc(f.heroSearch || '')}">
+        <input type="text" id="heroSearchInput" placeholder="${t('searchHeroes')}" value="${esc(f.heroSearch || '')}">
       </div>`);
   }
 
@@ -1684,13 +1753,6 @@ function openCatalogTarget(categoryId, heroSlug = '') {
   closeSlotModals();
   state.activeCategory = categoryId;
   state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: heroSlug, heroSearch: '' };
-  if (state.search) {
-    state.search = '';
-    const searchInput = $('#globalSearch');
-    if (searchInput) searchInput.value = '';
-    const clearSearch = $('#clearSearch');
-    if (clearSearch) clearSearch.classList.add('hidden');
-  }
   state.view = 'catalog';
   $('#main').scrollTop = 0;
   renderCatalog();
@@ -1969,69 +2031,86 @@ async function renderLibrary() {
       <h1 class="view-title">${t('library')}</h1>
     </div>
     <div class="lib-toolbar">
+      <input class="input lib-search" id="librarySearchInput" placeholder="${t('searchHeroes')}" value="${esc(state.librarySearch || '')}">
       <span class="lib-stats">${installed.length} ${plural(installed.length, 'мод', 'мода', 'модов', 'mod', 'mods')} · ${enabledCount} ${getLang() === 'en' ? 'enabled' : 'включено'}</span>
       <button class="btn btn-sm" id="enableAllBtn">${t('enableAll')}</button>
       <button class="btn btn-sm" id="disableAllBtn">${t('disableAll')}</button>
       <button class="btn btn-sm btn-danger" id="removeAllModsBtn">${t('removeAllMods')}</button>
       <button class="btn btn-sm" id="openFolderBtn2"><span class="ms">folder_open</span>${t('openModsFolder')}</button>
     </div>
-    <div class="lib-list" id="libList">
-      ${installed.length ? '' : `<div class="empty-note">${t('emptyLibrary')}</div>`}
-    </div>
+    <div class="lib-list" id="libList"></div>
     ${external.length ? `
       <div class="section-h" style="margin-top:26px"><span class="ms">folder_zip</span>${t('externalFiles')}</div>
       <div style="color:var(--text-muted);font-size:12.5px;margin-bottom:10px">${t('externalFilesNote')}</div>
       <div class="lib-list" id="extList"></div>` : ''}
   `;
 
-  const libList = $('#libList');
-  installed.forEach((rec, i) => {
-    const row = document.createElement('div');
-    row.className = `lib-row ${rec.enabled ? '' : 'disabled'}`;
-    row.style.setProperty('--i', Math.min(i, 20));
-    const prev = previewUrl(rec.categoryId, rec.preview);
-    const fileNames = rec.files.filter((f) => f.root === 'lang').map((f) => f.relPath);
-    row.innerHTML = `
-      ${prev && !isVideo(prev) ? `<img class="lib-thumb" src="${esc(prev)}" loading="lazy" alt="">` : `<div class="lib-thumb"></div>`}
-      <div class="lib-info">
-        <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
-        <div class="lib-meta">
-          <span>${esc(catName(rec.categoryId))}</span>
-          ${fileNames.length ? `<span>${esc(fileNames.slice(0, 3).join(', '))}${fileNames.length > 3 ? '…' : ''}</span>` : ''}
-          <span>${new Date(rec.installedAt).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru')}</span>
+  function updateLibraryList() {
+    const filteredInstalled = installed.filter((rec) => rec.name.toLowerCase().includes((state.librarySearch || '').trim().toLowerCase()));
+    const libList = $('#libList');
+    libList.innerHTML = '';
+
+    if (!filteredInstalled.length) {
+      libList.innerHTML = `<div class="empty-note">${t('emptyLibrary')}</div>`;
+      return;
+    }
+
+    filteredInstalled.forEach((rec, i) => {
+      const row = document.createElement('div');
+      row.className = `lib-row ${rec.enabled ? '' : 'disabled'}`;
+      row.style.setProperty('--i', Math.min(i, 20));
+      const prev = previewUrl(rec.categoryId, rec.preview);
+      const fileNames = rec.files.filter((f) => f.root === 'lang').map((f) => f.relPath);
+      row.innerHTML = `
+        ${prev && !isVideo(prev) ? `<img class="lib-thumb" src="${esc(prev)}" loading="lazy" alt="">` : `<div class="lib-thumb"></div>`}
+        <div class="lib-info">
+          <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
+          <div class="lib-meta">
+            <span>${esc(catName(rec.categoryId))}</span>
+            ${fileNames.length ? `<span>${esc(fileNames.slice(0, 3).join(', '))}${fileNames.length > 3 ? '…' : ''}</span>` : ''}
+            <span>${new Date(rec.installedAt).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru')}</span>
+          </div>
         </div>
-      </div>
-      <div class="lib-actions">
-        ${['fonts', 'cursors'].includes(rec.categoryId)
-          ? `<span style="font-size:11.5px;color:var(--text-muted)">${t('alwaysActive')}</span>`
-          : `<button class="toggle ${rec.enabled ? 'on' : ''}" data-id="${rec.id}" role="switch" aria-checked="${rec.enabled}" aria-label="${t('installed')}"></button>`}
-        <button class="btn btn-sm btn-danger" data-del="${rec.id}">${t('delete')}</button>
-      </div>
-    `;
-    libList.appendChild(row);
-  });
+        <div class="lib-actions">
+          ${['fonts', 'cursors'].includes(rec.categoryId)
+            ? `<span style="font-size:11.5px;color:var(--text-muted)">${t('alwaysActive')}</span>`
+            : `<button class="toggle ${rec.enabled ? 'on' : ''}" data-id="${rec.id}" role="switch" aria-checked="${rec.enabled}" aria-label="${t('installed')}"></button>`}
+          <button class="btn btn-sm btn-danger" data-del="${rec.id}">${t('delete')}</button>
+        </div>
+      `;
 
-  libList.querySelectorAll('.toggle').forEach((t) => {
-    t.addEventListener('click', async () => {
-      const rec = installed.find((m) => m.id === t.dataset.id);
-      const r = await window.api.mods.setEnabled(rec.id, !rec.enabled);
-      if (r.error) toast(r.error, 'error');
-      renderLibrary();
-      refreshInstalledIndex();
-    });
-  });
-  libList.querySelectorAll('[data-del]').forEach((b) => {
-    b.addEventListener('click', async () => {
-      const rec = installed.find((m) => m.id === b.dataset.del);
-      if (!await confirmDialog(t('removeConfirm').replace('{name}', rec.name))) return;
-      const r = await window.api.mods.remove(rec.id);
-      if (r.error) toast(r.error, 'error');
-      else toast(`${rec.name} ${t('removed')}`);
-      renderLibrary();
-      refreshInstalledIndex();
-    });
-  });
+      row.querySelectorAll('.toggle').forEach((t) => {
+        t.addEventListener('click', async () => {
+          const rec = installed.find((m) => m.id === t.dataset.id);
+          const r = await window.api.mods.setEnabled(rec.id, !rec.enabled);
+          if (r.error) toast(r.error, 'error');
+          renderLibrary();
+          refreshInstalledIndex();
+        });
+      });
 
+      row.querySelectorAll('[data-del]').forEach((b) => {
+        b.addEventListener('click', async () => {
+          const rec = installed.find((m) => m.id === b.dataset.del);
+          if (!await confirmDialog(t('removeConfirm').replace('{name}', rec.name))) return;
+          const r = await window.api.mods.remove(rec.id);
+          if (r.error) toast(r.error, 'error');
+          else toast(`${rec.name} ${t('removed')}`);
+          renderLibrary();
+          refreshInstalledIndex();
+        });
+      });
+
+      libList.appendChild(row);
+    });
+  }
+
+  updateLibraryList();
+
+  $('#librarySearchInput')?.addEventListener('input', (e) => {
+    state.librarySearch = e.target.value;
+    updateLibraryList();
+  });
   $('#enableAllBtn').addEventListener('click', () => bulkToggle(installed, true));
   $('#disableAllBtn').addEventListener('click', () => bulkToggle(installed, false));
   const removeAllBtn = $('#removeAllModsBtn');
@@ -2470,12 +2549,73 @@ function renderGuides() {
   });
 }
 
+// ===== About =====
+
+async function renderAbout() {
+  const appVersion = await window.api.update.version();
+
+  viewRoot.innerHTML = `
+    <div class="view-header">
+      <h1 class="view-title">${t('about')}</h1>
+    </div>
+
+    <div class="settings-block about-hero">
+      <div class="about-hero-head">
+        <div class="about-hero-badge">Dota2skins Manager</div>
+        <span class="about-hero-version">v${esc(appVersion)}</span>
+      </div>
+      <p>${t('aboutHeroIntro')}</p>
+      <p>${t('aboutHeroBody')}</p>
+    </div>
+
+    <div class="settings-block" style="animation-delay:60ms">
+      <h3>${t('community')}</h3>
+      <div class="about-community-grid">
+        <a class="about-community-card about-community-card--discord" href="https://discord.gg/UfNeE4Dy36" target="_blank" rel="noopener noreferrer">
+          <div class="about-community-icon">D</div>
+          <div class="about-community-copy">
+            <div class="about-community-title">${t('discordTitle')}</div>
+            <div class="about-community-desc">${t('discordDesc')}</div>
+          </div>
+          <span class="about-community-action">${t('discordAction')}</span>
+        </a>
+        <a class="about-community-card about-community-card--telegram" href="https://t.me/dota_free_skins" target="_blank" rel="noopener noreferrer">
+          <div class="about-community-icon">T</div>
+          <div class="about-community-copy">
+            <div class="about-community-title">${t('telegramTitle')}</div>
+            <div class="about-community-desc">${t('telegramDesc')}</div>
+          </div>
+          <span class="about-community-action">${t('telegramAction')}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="settings-block" style="animation-delay:120ms">
+      <h3>${t('thirdPartySoftware')}</h3>
+      <div class="about-third-party-body">
+        ${getLang() === 'en' ? 'This launcher contains code based on' : 'Этот лаунчер содержит код, основанный на'}
+        <strong>Dota 2 Mod Manager</strong> by TheFleece.<br>
+        ${getLang() === 'en' ? 'Licensed under GNU GPL v3.0.' : 'Лицензировано по GNU GPL v3.0.'}<br>
+        ${getLang() === 'en' ? 'Original project:' : 'Оригинальный проект:'}
+        <a href="https://github.com/TheFleece/dota2-mod-manager">https://github.com/TheFleece/dota2-mod-manager</a>
+      </div>
+    </div>
+  `;
+
+  viewRoot.querySelectorAll('a[href]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.api.misc.openExternal(a.href);
+    });
+  });
+}
+
 // ===== Settings =====
 
 async function renderSettings() {
   const s = await window.api.settings.get();
   state.settings = s;
-  document.documentElement.lang = s.appLanguage || 'ru';
+  document.documentElement.lang = s.appLanguage || (navigator.language?.toLowerCase().startsWith('ru') ? 'ru' : 'en');
   const cacheSize = await window.api.misc.cacheSize();
   const appVersion = await window.api.update.version();
 
@@ -2553,16 +2693,6 @@ async function renderSettings() {
       </div>
     </div>
 
-    <div class="settings-block" style="animation-delay:240ms">
-      <h3>${t('about')}</h3>
-      <div class="settings-row">
-        <span class="settings-label">${t('version')}</span>
-        <span style="font-variant-numeric:tabular-nums">${esc(appVersion)}</span>
-      </div>
-      <div style="font-size:12.5px;color:var(--text-muted)">
-        ${t('updatesNote')}
-      </div>
-    </div>
   `;
   $('#detectBtn').addEventListener('click', async () => {
     const found = await window.api.settings.detectDota();
@@ -2708,5 +2838,7 @@ async function loadCatalog(force = false) {
   if (maxed) $('#winMax').innerHTML = '<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="3.5" width="6.5" height="6.5" fill="none" stroke="currentColor" stroke-width="1.1" rx="1"/><path d="M4 3.5V2.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1" fill="none" stroke="currentColor" stroke-width="1.1"/></svg>';
   await refreshSidebarStatus();
   await refreshInstalledIndex();
-  await loadCatalog();
+  // On Linux, force catalog refresh at startup to avoid stale/empty catalog issues
+  const isLinux = (typeof process !== 'undefined' && process.platform === 'linux') || (navigator.platform || '').toLowerCase().includes('linux');
+  await loadCatalog(isLinux);
 })();

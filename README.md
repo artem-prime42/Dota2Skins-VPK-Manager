@@ -45,3 +45,14 @@ Mods load from a custom language folder (`game/dota_russian`, `dota_123`), so th
 ```
 
 Играешь на русском — используй `dota_russian` / `-language russian`: игра останется русской, моды будут работать. Шрифты и курсоры работают без параметра запуска.
+
+## Credits
+
+This project is based on and includes code from:
+
+- Dota 2 Mod Manager by TheFleece
+  https://github.com/TheFleece/dota2-mod-manager
+
+Licensed under the GNU General Public License v3.0 (GPL-3.0).
+
+The source code of this project is also available under the GPL-3.0 license.
