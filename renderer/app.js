@@ -3,17 +3,31 @@
 
 const RAW_BASE = 'https://dota2skins.vercel.app';
 
-const CAT_RU = {
-  heroes: 'Герои', 'item-effects': 'Эффекты предметов', 'hero-items': 'Предметы героев',
-  backgrounds: 'Фоны меню', cursors: 'Курсоры', 'mega-kill': 'Мега-килл', shaders: 'Шейдеры',
-  couriers: 'Курьеры', terrains: 'Ландшафты', creeps: 'Крипы', trees: 'Деревья', river: 'Река',
-  'ti-bp-effects': 'Паки эффектов', emblems: 'Эмблемы', 'creep-deny': 'Денай крипов',
-  music: 'Музыка', 'hero-sounds': 'Звуки героев', sounds: 'Звуки', 'ranged-attack': 'Дальние атаки',
-  other: 'Разное', ranks: 'Ранги', 'item-icons': 'Иконки предметов', 'versus-screens': 'Versus Screen',
-  announcers: 'Анонсеры', wards: 'Варды', pedestal: 'Пьедесталы', huds: 'HUD',
-  herofx: 'Эффекты героев', pings: 'Пинги', packs: 'Versus Screen', optimization: 'Оптимизация',
-  tormentor: 'Тормент', 'high-five': 'High Five', ancient: 'Древние', roshan: 'Рошан',
-  towers: 'Башни', fonts: 'Шрифты', sites: 'Сайты', guides: 'Гайды', news: 'Новости',
+const CAT_LABELS = {
+  ru: {
+    heroes: 'Герои', 'item-effects': 'Эффекты предметов', 'hero-items': 'Предметы героев',
+    backgrounds: 'Фоны меню', cursors: 'Курсоры', 'mega-kill': 'Мега-килл', shaders: 'Шейдеры',
+    couriers: 'Курьеры', terrains: 'Ландшафты', creeps: 'Крипы', trees: 'Деревья', river: 'Река',
+    'ti-bp-effects': 'Паки эффектов', emblems: 'Эмблемы', 'creep-deny': 'Денай крипов',
+    music: 'Музыка', 'hero-sounds': 'Звуки героев', sounds: 'Звуки', 'ranged-attack': 'Дальние атаки',
+    other: 'Разное', ranks: 'Ранги', 'item-icons': 'Иконки предметов', 'versus-screens': 'Versus Screen',
+    announcers: 'Анонсеры', wards: 'Варды', pedestal: 'Пьедесталы', huds: 'HUD',
+    herofx: 'Эффекты героев', pings: 'Пинги', packs: 'Versus Screen', optimization: 'Оптимизация',
+    tormentor: 'Тормент', 'high-five': 'High Five', ancient: 'Древние', roshan: 'Рошан',
+    towers: 'Башни', fonts: 'Шрифты', sites: 'Сайты', guides: 'Гайды', news: 'Новости',
+  },
+  en: {
+    heroes: 'Heroes', 'item-effects': 'Item effects', 'hero-items': 'Hero items',
+    backgrounds: 'Menu backgrounds', cursors: 'Cursors', 'mega-kill': 'Mega kill', shaders: 'Shaders',
+    couriers: 'Couriers', terrains: 'Terrains', creeps: 'Creeps', trees: 'Trees', river: 'River',
+    'ti-bp-effects': 'Effect packs', emblems: 'Emblems', 'creep-deny': 'Deny creeps',
+    music: 'Music', 'hero-sounds': 'Hero sounds', sounds: 'Sounds', 'ranged-attack': 'Ranged attacks',
+    other: 'Other', ranks: 'Ranks', 'item-icons': 'Item icons', 'versus-screens': 'Versus screen',
+    announcers: 'Announcers', wards: 'Wards', pedestal: 'Pedestals', huds: 'HUD',
+    herofx: 'Hero effects', pings: 'Pings', packs: 'Versus screen', optimization: 'Optimization',
+    tormentor: 'Tormentor', 'high-five': 'High five', ancient: 'Ancients', roshan: 'Roshan',
+    towers: 'Towers', fonts: 'Fonts', sites: 'Sites', guides: 'Guides', news: 'News',
+  }
 };
 
 const CAT_ICON = {
@@ -32,14 +46,24 @@ const CAT_ICON = {
 };
 
 // rail sections: [label, [categoryIds]]
-const RAIL_SECTIONS = [
-  ['Герои', ['heroes', 'hero-items', 'herofx', 'hero-sounds']],
-  ['Мир', ['terrains', 'trees', 'river', 'creeps', 'towers', 'roshan', 'ancient', 'tormentor', 'wards', 'couriers', 'pedestal', 'creep-deny']],
-  ['Эффекты', ['shaders', 'ti-bp-effects', 'item-effects', 'ranged-attack', 'high-five']],
-  ['Интерфейс', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors', 'fonts']],
-  ['Звук', ['announcers', 'mega-kill', 'music', 'sounds']],
-  ['Прочее', ['packs', 'optimization', 'other', 'sites']],
-];
+const RAIL_SECTIONS = {
+  ru: [
+    ['Герои', ['heroes', 'hero-items', 'herofx', 'hero-sounds']],
+    ['Мир', ['terrains', 'trees', 'river', 'creeps', 'towers', 'roshan', 'ancient', 'tormentor', 'wards', 'couriers', 'pedestal', 'creep-deny']],
+    ['Эффекты', ['shaders', 'ti-bp-effects', 'item-effects', 'ranged-attack', 'high-five']],
+    ['Интерфейс', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors', 'fonts']],
+    ['Звук', ['announcers', 'mega-kill', 'music', 'sounds']],
+    ['Прочее', ['packs', 'optimization', 'other', 'sites']],
+  ],
+  en: [
+    ['Heroes', ['heroes', 'hero-items', 'herofx', 'hero-sounds']],
+    ['World', ['terrains', 'trees', 'river', 'creeps', 'towers', 'roshan', 'ancient', 'tormentor', 'wards', 'couriers', 'pedestal', 'creep-deny']],
+    ['Effects', ['shaders', 'ti-bp-effects', 'item-effects', 'ranged-attack', 'high-five']],
+    ['Interface', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors', 'fonts']],
+    ['Audio', ['announcers', 'mega-kill', 'music', 'sounds']],
+    ['Other', ['packs', 'optimization', 'other', 'sites']],
+  ],
+};
 
 const CATALOG_EXCLUDE = ['tools'];
 
@@ -53,14 +77,317 @@ const HERO_PREVIEW_FALLBACKS = {
 };
 
 const SORTS = [
-  { key: 'default', label: 'По умолчанию' },
-  { key: 'date', label: 'Сначала новые' },
-  { key: 'name', label: 'По имени А-Я' },
-  { key: 'name-desc', label: 'По имени Я-А' },
+  { key: 'default', label: { ru: 'По умолчанию', en: 'Default' } },
+  { key: 'date', label: { ru: 'Сначала новые', en: 'Newest first' } },
+  { key: 'name', label: { ru: 'По имени А-Я', en: 'Name A-Z' } },
+  { key: 'name-desc', label: { ru: 'По имени Я-А', en: 'Name Z-A' } },
 ];
 
+const UI_TEXT = {
+  ru: {
+    appTitle: 'Dota2skins',
+    appSubtitle: 'Dota 2',
+    searchPlaceholder: 'Поиск модов…',
+    clear: 'Очистить',
+    minimize: 'Свернуть',
+    closeWindow: 'Закрыть',
+    home: 'Главная',
+    catalog: 'Каталог',
+    library: 'Библиотека',
+    presets: 'Пресеты',
+    authors: 'Авторы',
+    tools: 'Инструменты',
+    settings: 'Настройки',
+    launchDota: 'Запустить Dota 2',
+    dashboardNewsTitle: 'Новости лаунчера',
+    dashboardStatsTitle: 'Статистика лаунчера',
+    modsCount: 'модов',
+    authorsCount: 'авторов',
+    categoriesCount: 'категорий',
+    noResults: 'Ничего не найдено',
+    noNews: 'Новостей пока нет',
+    searchText: 'Поиск:',
+    loadingCatalog: 'Загрузка каталога…',
+    catalogLoadError: 'Не удалось загрузить каталог',
+    retry: 'Повторить',
+    categories: 'Категории',
+    allCategories: 'Все категории',
+    modsForDota2: 'Моды для Dota 2',
+    recentlyAdded: 'Недавно добавленные',
+    viewAll: 'Смотреть всё',
+    recentWeekTitle: 'Новые моды за неделю',
+    backToHome: 'Назад на главную',
+    updated: 'обновлён',
+    settingsTitle: 'Настройки',
+    languageLabel: 'Язык',
+    dotaPath: 'Путь к Dota 2',
+    detectAutomatically: 'Найти автоматически',
+    browseManually: 'Указать вручную',
+    langFolder: 'Языковая папка',
+    steamLaunchOption: 'Параметр запуска Steam',
+    copy: 'Копировать',
+    cacheSize: 'Размер',
+    clearCache: 'Очистить',
+    catalogTitle: 'Каталог',
+    refreshNow: 'Обновить сейчас',
+    source: 'Источник',
+    about: 'О программе',
+    version: 'Версия',
+    updatesNote: 'Обновления скачиваются автоматически из GitHub Releases — когда новая версия готова, появится кнопка установки.',
+    dotaConnected: 'Dota 2 подключена',
+    dotaNotFound: 'Dota 2 не найдена — укажи путь в настройках',
+    launchDota: 'Запустить Dota 2',
+    openModsFolder: 'Папка модов',
+    guides: 'Гайды',
+    searchingDota: 'Поиск Dota 2…',
+    close: 'Закрыть',
+    cancel: 'Отмена',
+    delete: 'Удалить',
+    installed: 'Установленные',
+    preview: 'Превью',
+    openLink: 'Открыть ссылку',
+    install: 'Установить',
+    uninstall: 'Удалить',
+    installing: 'Установка…',
+    download: 'Скачать',
+    downloading: 'Скачивание…',
+    save: 'Сохранить',
+    backToHeroes: 'Назад к героям',
+    noHeroes: 'Нет доступных героев',
+    noFilteredMods: 'Ничего не найдено — сбрось фильтры',
+    guide: 'Гайд',
+    openSite: 'Открыть сайт',
+    savePack: 'Сохранить пак',
+    deletePack: 'Удалить пак',
+    packSaved: 'Пак сохранён',
+    packEmpty: 'В паке не осталось модов',
+    enterPackName: 'Введи название пака',
+    packNameHint: 'Название своего пака…',
+    enableAll: 'Включить всё',
+    disableAll: 'Отключить всё',
+    removeAllMods: 'Удалить все моды',
+    removeAllConfirm: 'Удалить все установленные моды?',
+    removeAllDone: 'Удалено модов: {count}',
+    removeAllResult: 'Удалено модов: {removed}; ошибок: {failed}',
+    emptyLibrary: 'Пока ничего не установлено — загляни в Каталог',
+    customPack: 'свой пак',
+    notFoundInCatalog: 'не найден в каталоге',
+    restore: 'Вернуть',
+    removeFromPack: 'Убрать',
+    removeConfirm: 'Удалить «{name}»?',
+    removeFileConfirm: 'Удалить файл {name}?',
+    removed: 'удалён',
+    removePresetConfirm: 'Удалить пресет «{name}»?',
+    packInstallSummary: 'Пак «{name}»: установлено {ok}, пропущено {skip}{fail}',
+    packInstallErrors: ', ошибок {count}',
+    russian: 'Русский',
+    english: 'Английский',
+    modsFolderHint: 'Папка модов: dota_{lang}. Не забудь сменить параметр запуска!',
+    changeLaunchOption: 'Не забудь сменить параметр запуска!',
+    downloadingProgress: 'Скачивание: {label}',
+    stageProgress: '{label}: {stage}',
+    downloadingAutomatically: 'Скачиваю автоматически…',
+    installNoteFonts: 'Шрифт ставится в файлы игры (game\\dota\\panorama\\fonts) — параметр запуска не нужен. Оригиналы сохраняются автоматически.',
+    installNoteCursors: 'Курсор ставится в game\\dota\\resource\\cursor — параметр запуска не нужен. Оригиналы сохраняются автоматически.',
+    settingsSteamNote: 'Steam → Библиотека → ПКМ по Dota 2 → Свойства → Параметры запуска → вставь строку выше. Моды (кроме шрифтов и курсоров) работают только с этим параметром.',
+    settingsSteamWarning: 'В Dota2 теперь требуется указывать допустимый язык, поэтому такие параметры, как -language minify, -language foo, больше не работают. Вместо этого используйте другой допустимый язык.',
+    cacheInfoNote: 'Скачанные архивы модов. Нужны для быстрой переустановки — удаление ничего не сломает.',
+    externalFiles: 'Внешние файлы в папке модов',
+    externalFilesNote: 'Файлы, установленные не через менеджер',
+    alwaysActive: 'всегда активен',
+    externalFile: 'внешний файл',
+    presetsTitle: 'Пресеты',
+    presetDescription: 'Пресет запоминает, какие моды включены. Применение пресета включает его моды и выключает остальные.',
+    presetNamePlaceholder: 'Название пресета (напр. «Анимешный», «Минимал»)',
+    savePreset: 'Сохранить текущее состояние',
+    presetEmpty: 'Пресетов пока нет',
+    apply: 'Применить',
+    emptyPreset: 'пусто (всё будет выключено)',
+    noAuthorsFound: 'Авторы не найдены',
+    backToAuthors: 'Назад к авторам',
+    noAuthorMods: 'У этого автора пока нет модов',
+    authorSearchPlaceholder: 'Поиск модов…',
+    authorsTitle: 'Авторы',
+    authorSite: 'Сайт',
+    run: 'Запустить',
+    folder: 'Папка',
+    ready: 'готов',
+    searchHeroes: 'Поиск героев…',
+    resultOne: 'результат',
+    resultFew: 'результата',
+    resultMany: 'результатов',
+    updateAvailable: 'Доступно обновление',
+    updateReady: 'Обновление готово к установке',
+    later: 'Позже',
+    restartAndUpdate: 'Перезапустить и обновить',
+    noUpdates: 'Обновлений пока нет',
+    checkingUpdates: 'Проверка обновлений выполняется…',
+    failedUpdates: 'Не удалось проверить обновления',
+    refreshingCatalog: 'Обновляю каталог…',
+    catalogUpdated: 'Каталог обновлён',
+    pathSaved: 'Путь сохранён',
+    appLanguageSaved: 'Язык приложения сохранён',
+    copiedToClipboard: 'Скопировано в буфер',
+    cacheCleared: 'Кэш очищен',
+    foundDota: 'Dota 2 найдена: ',
+    autoDetectFailed: 'Не нашёл автоматически — укажи вручную',
+    updateDownload: 'Скачивание: ',
+    notFoundSettings: 'Сначала укажи путь к Dota 2 в настройках',
+  },
+  en: {
+    appTitle: 'Dota2skins',
+    appSubtitle: 'Dota 2',
+    searchPlaceholder: 'Search mods…',
+    clear: 'Clear',
+    minimize: 'Minimize',
+    closeWindow: 'Close',
+    home: 'Home',
+    catalog: 'Catalog',
+    library: 'Library',
+    presets: 'Presets',
+    authors: 'Authors',
+    tools: 'Tools',
+    settings: 'Settings',
+    launchDota: 'Launch Dota 2',
+    dashboardNewsTitle: 'Launcher news',
+    dashboardStatsTitle: 'Launcher statistics',
+    modsCount: 'mods',
+    authorsCount: 'authors',
+    categoriesCount: 'categories',
+    noResults: 'Nothing found',
+    noNews: 'No news yet',
+    searchText: 'Search:',
+    loadingCatalog: 'Loading catalog…',
+    catalogLoadError: 'Could not load catalog',
+    retry: 'Retry',
+    categories: 'Categories',
+    allCategories: 'All categories',
+    modsForDota2: 'Mods for Dota 2',
+    recentlyAdded: 'Recently added',
+    viewAll: 'View all',
+    recentWeekTitle: 'New mods this week',
+    backToHome: 'Back to home',
+    updated: 'updated',
+    settingsTitle: 'Settings',
+    languageLabel: 'Language',
+    dotaPath: 'Dota 2 path',
+    detectAutomatically: 'Detect automatically',
+    browseManually: 'Browse manually',
+    langFolder: 'Language folder',
+    steamLaunchOption: 'Steam launch option',
+    copy: 'Copy',
+    cacheSize: 'Size',
+    clearCache: 'Clear',
+    catalogTitle: 'Catalog',
+    refreshNow: 'Refresh now',
+    source: 'Source',
+    about: 'About',
+    version: 'Version',
+    updatesNote: 'Updates are downloaded automatically from GitHub Releases — when a new version is ready, an install button appears.',
+    dotaConnected: 'Dota 2 is connected',
+    dotaNotFound: 'Dota 2 not found — set the path in settings',
+    launchDota: 'Launch Dota 2',
+    openModsFolder: 'Mods folder',
+    guides: 'Guides',
+    searchingDota: 'Searching for Dota 2…',
+    close: 'Close',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    installed: 'Installed',
+    preview: 'Preview',
+    openLink: 'Open link',
+    install: 'Install',
+    uninstall: 'Uninstall',
+    installing: 'Installing…',
+    download: 'Download',
+    downloading: 'Downloading…',
+    save: 'Save',
+    backToHeroes: 'Back to heroes',
+    noHeroes: 'No heroes available',
+    noFilteredMods: 'Nothing found — reset the filters',
+    guide: 'Guide',
+    openSite: 'Open site',
+    savePack: 'Save pack',
+    deletePack: 'Delete pack',
+    packSaved: 'Pack saved',
+    packEmpty: 'No mods left in the pack',
+    enterPackName: 'Enter a pack name',
+    packNameHint: 'Your custom pack will appear in the Packs category',
+    enableAll: 'Enable all',
+    disableAll: 'Disable all',
+    removeAllMods: 'Remove all mods',
+    removeAllConfirm: 'Delete all installed mods?',
+    removeAllDone: 'Removed mods: {count}',
+    removeAllResult: 'Removed mods: {removed}; failures: {failed}',
+    emptyLibrary: 'Nothing is installed yet — open the Catalog',
+    customPack: 'custom pack',
+    notFoundInCatalog: 'not found in catalog',
+    restore: 'Restore',
+    removeFromPack: 'Remove',
+    removeConfirm: 'Delete «{name}»?',
+    removeFileConfirm: 'Delete file {name}?',
+    removed: 'removed',
+    removePresetConfirm: 'Delete preset «{name}»?',
+    packInstallSummary: 'Pack «{name}»: installed {ok}, skipped {skip}{fail}',
+    packInstallErrors: ', {count} error(s)',
+    russian: 'Russian',
+    english: 'English',
+    modsFolderHint: 'Mods folder: dota_{lang}. Don’t forget to change the launch option!',
+    changeLaunchOption: 'Don’t forget to change the launch option!',
+    downloadingProgress: 'Downloading: {label}',
+    stageProgress: '{label}: {stage}',
+    downloadingAutomatically: 'Downloading automatically…',
+    installNoteFonts: 'The font is installed into the game files (game\\dota\\panorama\\fonts) — no launch option is needed. Originals are saved automatically.',
+    installNoteCursors: 'The cursor is installed into game\\dota\\resource\\cursor — no launch option is needed. Originals are saved automatically.',
+    settingsSteamNote: 'Steam → Library → Right-click Dota 2 → Properties → Launch options → paste the string above. Mods (except fonts and cursors) only work with this option.',
+    settingsSteamWarning: 'Dota 2 now requires a valid language to be specified, so launch parameters such as -language minify or -language foo no longer work. Use another valid language instead.',
+    cacheInfoNote: 'Downloaded mod archives. They are used for quick reinstall — deleting them will not break anything.',
+    externalFiles: 'External files in the mods folder',
+    externalFilesNote: 'Files installed outside the manager',
+    alwaysActive: 'always active',
+    externalFile: 'external file',
+    presetsTitle: 'Presets',
+    presetDescription: 'A preset remembers which mods are enabled. Applying it turns on its mods and turns the rest off.',
+    presetNamePlaceholder: 'Preset name (for example “Anime” or “Minimal”)',
+    savePreset: 'Save current state',
+    presetEmpty: 'No presets yet',
+    apply: 'Apply',
+    emptyPreset: 'empty (everything will be disabled)',
+    noAuthorsFound: 'No authors found',
+    backToAuthors: 'Back to authors',
+    noAuthorMods: 'This author has no mods yet',
+    authorSearchPlaceholder: 'Search mods…',
+    authorsTitle: 'Authors',
+    authorSite: 'Website',
+    run: 'Run',
+    folder: 'Folder',
+    ready: 'ready',
+    searchHeroes: 'Search heroes…',
+    resultOne: 'result',
+    resultFew: 'results',
+    resultMany: 'results',
+    updateAvailable: 'Update available',
+    updateReady: 'Update is ready to install',
+    later: 'Later',
+    restartAndUpdate: 'Restart and update',
+    noUpdates: 'No updates yet',
+    checkingUpdates: 'Checking for updates…',
+    failedUpdates: 'Could not check for updates',
+    refreshingCatalog: 'Refreshing catalog…',
+    catalogUpdated: 'Catalog updated',
+    pathSaved: 'Path saved',
+    appLanguageSaved: 'App language saved',
+    copiedToClipboard: 'Copied to clipboard',
+    cacheCleared: 'Cache cleared',
+    foundDota: 'Dota 2 found: ',
+    autoDetectFailed: 'Could not detect automatically — set it manually',
+    updateDownload: 'Downloading: ',
+    notFoundSettings: 'Set the Dota 2 path in settings first',
+  }
+};
+
 const state = {
-  view: 'catalog',
+  view: 'home',
   catalog: null,
   settings: null,
   activeCategory: 'all',
@@ -80,6 +407,33 @@ function esc(s) {
 }
 
 function fmtMB(bytes) { return (bytes / 1024 / 1024).toFixed(1); }
+
+function getLang() { return state.settings?.appLanguage || 'ru'; }
+function t(key) { return UI_TEXT[getLang()]?.[key] ?? UI_TEXT.ru?.[key] ?? key; }
+function trLabel(id) { return CAT_LABELS[getLang()]?.[id] ?? CAT_LABELS.ru?.[id] ?? id; }
+function trSortLabel(key) { return SORTS.find((s) => s.key === key)?.label?.[getLang()] ?? key; }
+function translateUi(root = document) {
+  root.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.dataset.i18n;
+    if (key) el.textContent = t(key);
+  });
+  root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    const key = el.dataset.i18nPlaceholder;
+    if (key) el.placeholder = t(key);
+  });
+  root.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    const key = el.dataset.i18nAriaLabel;
+    if (key) el.setAttribute('aria-label', t(key));
+  });
+  root.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    const key = el.dataset.i18nTitle;
+    if (key) el.setAttribute('title', t(key));
+  });
+  root.querySelectorAll('[data-i18n-alt]').forEach((el) => {
+    const key = el.dataset.i18nAlt;
+    if (key) el.setAttribute('alt', t(key));
+  });
+}
 
 function parseDateValue(value) {
   if (value === null || value === undefined || value === '') return null;
@@ -105,18 +459,20 @@ function fmtDate(value) {
   if (ts === null) return '';
   const date = new Date(ts);
   if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('ru', { day: 'numeric', month: 'short', year: 'numeric' });
+  const locale = getLang() === 'en' ? 'en-US' : 'ru';
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function getModDateValue(mod) {
   return mod?.meta?.date || mod?.createdAt || mod?.created_at || mod?.date || null;
 }
 
-function plural(n, one, few, many) {
+function plural(n, ruOne, ruFew, ruMany, enOne = 'item', enMany = 'items') {
+  if (getLang() === 'en') return n === 1 ? enOne : enMany;
   const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return one;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
-  return many;
+  if (m10 === 1 && m100 !== 11) return ruOne;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return ruFew;
+  return ruMany;
 }
 
 function toast(msg, type = 'ok', ms = 4000) {
@@ -158,13 +514,38 @@ function resolveDownloadTarget(mod, style) {
 
 function isVideo(src) { return /\.(mp4|webm)$/i.test(src || ''); }
 function isAudio(src) { return /\.(mp3|wav|ogg)$/i.test(src || ''); }
+function isImage(src) { return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(src || ''); }
 function isMedia(src) { return isVideo(src) || isAudio(src); }
+function isYouTubeUrl(url) { return /(?:youtube\.com\/watch\?[^#]*v=|youtube\.com\/embed\/|youtu\.be\/)/i.test(url || ''); }
+function isVimeoUrl(url) { return /vimeo\.com\//i.test(url || ''); }
+function isEmbeddableVideoUrl(url) { return isYouTubeUrl(url) || isVimeoUrl(url); }
+function getEmbedUrl(url) {
+  if (!url) return null;
+  const trimmed = String(url).trim();
+  const ytMatch = trimmed.match(/(?:youtube\.com\/watch\?[^#]*v=|youtube\.com\/embed\/|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0`;
+  const vimeoMatch = trimmed.match(/vimeo\.com\/(\d+)/i);
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  return null;
+}
 
 // resolve a repo-relative or absolute link to a full URL
 function resolveUrl(url) {
   if (!url) return null;
   if (/^https?:\/\//i.test(url)) return url;
   return `${RAW_BASE}/${url.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+function resolvePreviewAction(categoryId, mod) {
+  const previewLink = (mod?.links || []).find((l) => l?.type === 'preview' && typeof l?.url === 'string' && l.url.trim());
+  if (!previewLink) return null;
+
+  const value = previewLink.url.trim();
+  const resolved = previewUrl(categoryId, value);
+  if (isMedia(resolved)) return { kind: isAudio(resolved) ? 'audio' : 'media', url: resolved };
+  const embedUrl = getEmbedUrl(value);
+  if (embedUrl) return { kind: 'embed', url: embedUrl, rawUrl: value };
+  return null;
 }
 
 function mediaHtml(url, { hoverPlay = false, autoplay = false, controls = false } = {}) {
@@ -183,7 +564,7 @@ function mediaHtml(url, { hoverPlay = false, autoplay = false, controls = false 
 
 // ---------- custom confirm dialog ----------
 
-function confirmDialog(message, { okLabel = 'Удалить', danger = true } = {}) {
+function confirmDialog(message, { okLabel = t('delete'), danger = true } = {}) {
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.className = 'confirm-overlay';
@@ -191,7 +572,7 @@ function confirmDialog(message, { okLabel = 'Удалить', danger = true } = 
       <div class="confirm-box">
         <div class="confirm-msg">${esc(message)}</div>
         <div class="confirm-actions">
-          <button class="btn" data-c="no">Отмена</button>
+          <button class="btn" data-c="no">${t('cancel')}</button>
           <button class="btn ${danger ? 'btn-danger-solid' : 'btn-primary'}" data-c="yes">${esc(okLabel)}</button>
         </div>
       </div>`;
@@ -212,13 +593,8 @@ function authorUrl(name) {
 
 // media preview a mod can play in the built-in player: a "preview"-type link, or a video preview file
 function modPreviewMedia(categoryId, mod) {
-  const link = (mod.links || []).find((l) => l.type === 'preview' && isMedia(l.url));
-  if (link) return resolveUrl(link.url);
-  const p = mod.preview || mod.styles?.[0]?.preview;
-  if (isMedia(p)) return previewUrl(categoryId, p);
-  const direct = mod.preview || mod.imageUrl || mod.thumbnail;
-  if (isMedia(direct)) return previewUrl(categoryId, direct);
-  return null;
+  const action = resolvePreviewAction(categoryId, mod);
+  return action?.url || null;
 }
 
 // ---------- built-in media player ----------
@@ -229,24 +605,32 @@ function fmtTime(s) {
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
-function openPlayer(url, title) {
-  const audio = isAudio(url);
+function openPlayer(urlOrAction, title) {
+  const action = typeof urlOrAction === 'string' ? { kind: isAudio(urlOrAction) ? 'audio' : 'media', url: urlOrAction } : urlOrAction;
+  const url = action?.url || '';
+  const audio = action?.kind === 'audio' || isAudio(url);
+  const embed = action?.kind === 'embed';
+  const image = action?.kind === 'image' || isImage(url);
   const overlay = document.createElement('div');
   overlay.className = 'player-overlay';
   overlay.innerHTML = `
     <div class="player-box ${audio ? 'audio' : ''}">
-      ${audio
-        ? `<div class="player-audio-visual"><span class="ms">graphic_eq</span></div><audio src="${esc(url)}" autoplay></audio>`
-        : `<video src="${esc(url)}" autoplay playsinline></video>`}
+      ${embed
+        ? `<div class="player-embed"><iframe src="${esc(url)}" title="${esc(title || '')}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`
+        : audio
+          ? `<div class="player-audio-visual"><span class="ms">graphic_eq</span></div><audio src="${esc(url)}" autoplay></audio>`
+          : image
+            ? `<div class="player-image"><img src="${esc(url)}" alt="${esc(title || '')}"></div>`
+            : `<video src="${esc(url)}" autoplay playsinline></video>`}
       <div class="player-title">${esc(title || '')}</div>
-      <button class="player-close" aria-label="Закрыть"><span class="ms">close</span></button>
-      <div class="player-controls">
+      <button class="player-close" aria-label="${t('close')}"><span class="ms">close</span></button>
+      ${embed ? '' : `<div class="player-controls">
         <button class="pl-btn" data-act="play" aria-label="Пауза"><span class="ms">pause</span></button>
         <div class="pl-progress"><div class="pl-fill"></div><div class="pl-knob"></div></div>
         <span class="pl-time">0:00 / 0:00</span>
         <button class="pl-btn" data-act="mute" aria-label="Звук"><span class="ms">volume_up</span></button>
-        ${audio ? '' : '<button class="pl-btn" data-act="fs" aria-label="На весь экран"><span class="ms">fullscreen</span></button>'}
-      </div>
+        ${audio || image ? '' : `<button class="pl-btn" data-act="fs" aria-label="${t('close')}"><span class="ms">fullscreen</span></button>`}
+      </div>`}
     </div>`;
   document.body.appendChild(overlay);
 
@@ -259,10 +643,10 @@ function openPlayer(url, title) {
   const timeEl = overlay.querySelector('.pl-time');
   const progress = overlay.querySelector('.pl-progress');
 
-  media.loop = true;
+  if (media) media.loop = true;
 
   const close = () => {
-    media.pause();
+    if (media) media.pause();
     overlay.remove();
     document.removeEventListener('keydown', onKey);
   };
@@ -386,8 +770,8 @@ function buildModIndex() {
 }
 
 function catName(id) {
-  if (id === 'all') return 'Все категории';
-  return CAT_RU[id] || state.catalog?.constants?.translations?.[id] || id;
+  if (id === 'all') return getLang() === 'en' ? 'All categories' : 'Все категории';
+  return trLabel(id) || state.catalog?.constants?.translations?.[id] || id;
 }
 
 function catIcon(id) { return CAT_ICON[id] || 'extension'; }
@@ -519,14 +903,18 @@ $('#clearSearch').addEventListener('click', () => {
 // ---------- views ----------
 
 function render() {
+  let renderer = renderCatalog;
   switch (state.view) {
-    case 'catalog': return renderCatalog();
-    case 'library': return renderLibrary();
-    case 'presets': return renderPresets();
-    case 'authors': return renderAuthors();
-    case 'tools': return renderTools();
-    case 'settings': return renderSettings();
+    case 'home': renderer = renderDashboard; break;
+    case 'catalog': renderer = renderCatalog; break;
+    case 'library': renderer = renderLibrary; break;
+    case 'presets': renderer = renderPresets; break;
+    case 'authors': renderer = renderAuthors; break;
+    case 'tools': renderer = renderTools; break;
+    case 'settings': renderer = renderSettings; break;
   }
+  renderer();
+  translateUi(document);
 }
 
 // ===== Category rail =====
@@ -538,9 +926,9 @@ function renderRail() {
   const catOrder = new Map(sortedCats.map((c, index) => [c.id, index]));
   let html = `
     <button class="rail-item ${state.activeCategory === 'all' ? 'active' : ''}" data-cat="all">
-      <span class="ms">apps</span>Все категории
+      <span class="ms">apps</span>${t('allCategories')}
     </button>`;
-  for (const [, ids] of RAIL_SECTIONS) {
+  for (const [, ids] of (RAIL_SECTIONS[getLang()] || RAIL_SECTIONS.ru)) {
     const present = ids.filter((id) => cats.has(id)).sort((a, b) => (catOrder.get(a) ?? 9999) - (catOrder.get(b) ?? 9999));
     if (!present.length) continue;
     for (const id of present) {
@@ -568,16 +956,46 @@ function renderRail() {
 
 // ===== Catalog =====
 
+function getRecentWeekMods() {
+  const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  const mods = [];
+  for (const cat of visibleCategories()) {
+    for (const mod of categoryMods(cat.id)) {
+      const ts = parseDateValue(getModDateValue(mod));
+      if (!ts || ts < cutoff) continue;
+      mods.push({ ...mod, _cat: cat.id });
+    }
+  }
+  return mods.sort((a, b) => (parseDateValue(getModDateValue(b)) || 0) - (parseDateValue(getModDateValue(a)) || 0));
+}
+
+function renderRecentWeekPage() {
+  const recentWeekMods = getRecentWeekMods();
+  viewRoot.innerHTML = `
+    <div class="view-header">
+      <div>
+        <button class="btn btn-ghost" id="recentWeekBackBtn"><span class="ms">arrow_back</span>${t('backToHome')}</button>
+        <h1 class="view-title">${t('recentWeekTitle')}</h1>
+      </div>
+      <span class="view-sub">${recentWeekMods.length} ${plural(recentWeekMods.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
+    </div>
+    <div class="grid" id="modGrid">
+      ${recentWeekMods.length ? recentWeekMods.map((m, i) => cardHtml(m, i, true)).join('') : `<div class="empty-note">${t('noResults')}</div>`}
+    </div>`;
+  $('#recentWeekBackBtn')?.addEventListener('click', () => render());
+  bindCards(viewRoot, recentWeekMods);
+}
+
 function renderCatalog() {
   if (!state.catalog) {
-    viewRoot.innerHTML = `<div class="empty-note">Загрузка каталога…</div>`;
+    viewRoot.innerHTML = `<div class="empty-note">${t('loadingCatalog')}</div>`;
     return;
   }
   if (state.catalog.error) {
     viewRoot.innerHTML = `
       <div class="empty-note">
-        Не удалось загрузить каталог: ${esc(state.catalog.error)}<br><br>
-        <button class="btn btn-primary" id="retryCat">Повторить</button>
+        ${t('catalogLoadError')}: ${esc(state.catalog.error)}<br><br>
+        <button class="btn btn-primary" id="retryCat">${t('retry')}</button>
       </div>`;
     $('#retryCat').addEventListener('click', () => loadCatalog(true));
     return;
@@ -593,27 +1011,134 @@ function renderCatalog() {
 
 // --- home (all categories) ---
 
-function renderHome() {
+function renderDashboard() {
   const cats = visibleCategories();
-  const recent = (state.catalog.mods.recentlyAddedMods || [])
-    .map((r) => {
-      const hit = state.modIndex.get(r.name.toLowerCase());
-      return hit && hit.categoryId === (r.category === 'effects-packs' ? 'ti-bp-effects' : r.category)
-        ? { ...hit.mod, _cat: hit.categoryId }
-        : (state.modIndex.get(r.name.toLowerCase()) ? { ...state.modIndex.get(r.name.toLowerCase()).mod, _cat: state.modIndex.get(r.name.toLowerCase()).categoryId } : null);
-    })
-    .filter(Boolean)
-    .slice(0, 12);
+  const totalMods = cats.reduce((n, c) => n + categoryMods(c.id).length, 0);
+  const totalAuthors = 12;
+  const categoriesCount = cats.length;
+  const recentMods = ((state.catalog?.mods?.recentlyAddedMods || [])
+    .slice(0, 8)
+    .map((m) => ({ ...m, _cat: m._cat || m.categoryId || m.category || 'other' })) || []);
+  const updateItems = (getLang() === 'en' ? [
+    {
+      title: '1.0.8 launcher polish',
+      date: '2026-07-26',
+      meta: 'New patch notes popups, smoother recent mods preview, and a cleaner launcher scrollbar.',
+      changes: [
+        'Added modal popups for patch notes with release date and detailed change log.',
+        'Added a “View all” button for the recent mods section.',
+        'Improved the launcher scrollbar styling for a cleaner look.'
+      ],
+    },
+    {
+      title: '1.0.7 launcher refresh',
+      date: '2026-07-25',
+      meta: 'New home dashboard, clearer navigation, and smoother library controls.',
+      changes: [
+        'Added a refreshed home dashboard with launcher statistics and recent mods.',
+        'Improved category browsing and the launcher search experience.',
+        'Added support for switching language from Settings without restarting the app.'
+      ],
+    },
+  ] : [
+    {
+      title: 'Обновление 1.0.8',
+      date: '2026-07-26',
+      meta: 'Новые всплывающие патч-ноты, улучшенный блок недавних модов и более аккуратный скроллбар.',
+      changes: [
+        'Добавлены модальные окна для патч-нотов с датой и подробным списком изменений.',
+        'Добавлена кнопка «Смотреть всё» для блока недавно добавленных модов.',
+        'Скроллбар лаунчера стал тоньше и аккуратнее.'
+      ],
+    },
+    {
+      title: 'Обновление 1.0.7',
+      date: '2026-07-25',
+      meta: 'Новый стартовый экран, понятнее навигация и удобнее управление библиотекой.',
+      changes: [
+        'Добавлен обновлённый главный экран с новостями, статистикой и новыми модами.',
+        'Улучшено переключение категорий и поиск по лаунчеру.',
+        'Добавлена возможность менять язык в настройках без перезапуска.'
+      ],
+    },
+  ]);
 
   viewRoot.innerHTML = `
-    <div class="home-hero">
-      <h1>Моды для Dota 2</h1>
-      <p>${cats.reduce((n, c) => n + categoryMods(c.id).length, 0)} модов в ${cats.length} категориях${state.catalog.fetchedAt ? ' · обновлён ' + new Date(state.catalog.fetchedAt).toLocaleDateString('ru') : ''}</p>
-    </div>
-    ${recent.length ? `
-      <div class="section-h"><span class="ms">new_releases</span>Недавно добавленные</div>
-      <div class="recent-row">${recent.map((m, i) => cardHtml(m, i, true)).join('')}</div>` : ''}
-    <div class="section-h"><span class="ms">apps</span>Категории</div>
+    <div class="dashboard-grid">
+      <section class="dashboard-news">
+        <div class="section-h"><span class="ms">new_releases</span>${t('dashboardNewsTitle')}</div>
+        <div class="news-list">
+          ${updateItems.map((item) => `
+            <article class="news-item" data-news-title="${esc(item.title)}" data-news-date="${esc(item.date)}" data-news-meta="${esc(item.meta)}" data-news-changes="${esc(item.changes.join(' | '))}">
+              <div class="news-item-title">${esc(item.title)}</div>
+              <div class="news-item-meta">${esc(item.meta)}</div>
+            </article>`).join('')}
+        </div>
+      </section>
+      <aside class="dashboard-stats">
+        <div class="section-h"><span class="ms">insights</span>${t('dashboardStatsTitle')}</div>
+        <div class="stats-grid">
+          <div class="stats-card">
+            <div class="stats-value">${totalMods}</div>
+            <div class="stats-label">${t('modsCount')}</div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-value">${totalAuthors}</div>
+            <div class="stats-label">${t('authorsCount')}</div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-value">${categoriesCount}</div>
+            <div class="stats-label">${t('categoriesCount')}</div>
+          </div>
+        </div>
+      </aside>
+      <section class="dashboard-recent">
+        <div class="section-h recent-section-head">
+          <span class="ms">auto_awesome</span>${t('recentlyAdded')}
+          <button class="btn btn-ghost recent-all-btn" id="recentWeekBtn">${t('viewAll')}</button>
+        </div>
+        <div class="recent-row">
+          ${recentMods.length ? recentMods.map((m, i) => cardHtml(m, i, true)).join('') : `<div class="empty-note">${t('noResults')}</div>`}
+        </div>
+      </section>
+    </div>`;
+  $('#recentWeekBtn')?.addEventListener('click', () => renderRecentWeekPage());
+  viewRoot.querySelectorAll('.news-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const title = item.dataset.newsTitle || '';
+      const rawDate = item.dataset.newsDate || '';
+      const meta = item.dataset.newsMeta || '';
+      const changes = (item.dataset.newsChanges || '').split(' | ').filter(Boolean);
+      const date = rawDate ? new Date(rawDate).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      const overlay = document.createElement('div');
+      overlay.className = 'slot-modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-box">
+          <div class="modal-header">
+            <h2 class="modal-title">${esc(title)}</h2>
+            <button class="modal-close" aria-label="${t('close')}"><span class="ms">close</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="news-modal-meta">${esc(meta)}</div>
+            <div class="news-modal-date">${esc(date)}</div>
+            <ul class="news-modal-list">
+              ${changes.map((change) => `<li>${esc(change)}</li>`).join('')}
+            </ul>
+          </div>
+        </div>`;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      overlay.querySelector('.modal-close')?.addEventListener('click', () => overlay.remove());
+      document.body.appendChild(overlay);
+    });
+  });
+  bindCards(viewRoot, recentMods);
+}
+
+function renderHome() {
+  const cats = visibleCategories();
+
+  viewRoot.innerHTML = `
+    <div class="section-h"><span class="ms">apps</span>${t('categories')}</div>
     <div class="cat-tiles">
         ${cats.map((c, i) => {
           const prev = c.preview ? previewUrl(c.id, c.preview) : null;
@@ -656,11 +1181,11 @@ function renderSearchResults() {
 
   viewRoot.innerHTML = `
     <div class="view-header">
-      <h1 class="view-title">Поиск: <span class="accent">${esc(state.search.trim())}</span></h1>
+      <h1 class="view-title">${t('searchText')} <span class="accent">${esc(state.search.trim())}</span></h1>
     </div>
     ${toolbarHtml(mods.length, { tags: [], groups: [] })}
     <div class="grid" id="modGrid">
-      ${mods.length ? mods.map((m, i) => cardHtml(m, i, true)).join('') : `<div class="empty-note">Ничего не найдено</div>`}
+      ${mods.length ? mods.map((m, i) => cardHtml(m, i, true)).join('') : `<div class="empty-note">${t('noResults')}</div>`}
     </div>
   `;
   bindToolbar();
@@ -670,29 +1195,55 @@ function renderSearchResults() {
 // --- single category ---
 
 const SLOT_LABELS = {
-  set: 'Набор',
-  default: 'Набор',
-  head: 'Голова',
-  headpiece: 'Голова',
-  mask: 'Маска',
-  shoulders: 'Плечи',
-  back: 'Спина',
-  cape: 'Плащ',
-  legs: 'Ноги',
-  boots: 'Ботинки',
-  weapon: 'Оружие',
-  offhand: 'Левая рука',
-  arm: 'Рука',
-  arms: 'Руки',
-  body: 'Тело',
-  chest: 'Грудь',
-  waist: 'Пояс',
-  pet: 'Питомец',
-  tail: 'Хвост',
-  item: 'Предмет',
-  voice: 'Голос',
-  misc: 'Разное',
-  default: 'Набор',
+  ru: {
+    set: 'Набор',
+    default: 'Набор',
+    head: 'Голова',
+    headpiece: 'Голова',
+    mask: 'Маска',
+    shoulders: 'Плечи',
+    back: 'Спина',
+    cape: 'Плащ',
+    legs: 'Ноги',
+    boots: 'Ботинки',
+    weapon: 'Оружие',
+    offhand: 'Левая рука',
+    arm: 'Рука',
+    arms: 'Руки',
+    body: 'Тело',
+    chest: 'Грудь',
+    waist: 'Пояс',
+    pet: 'Питомец',
+    tail: 'Хвост',
+    item: 'Предмет',
+    voice: 'Голос',
+    misc: 'Разное',
+    default: 'Набор',
+  },
+  en: {
+    set: 'Set',
+    default: 'Set',
+    head: 'Head',
+    headpiece: 'Head',
+    mask: 'Mask',
+    shoulders: 'Shoulders',
+    back: 'Back',
+    cape: 'Cape',
+    legs: 'Legs',
+    boots: 'Boots',
+    weapon: 'Weapon',
+    offhand: 'Off-hand',
+    arm: 'Arm',
+    arms: 'Arms',
+    body: 'Body',
+    chest: 'Chest',
+    waist: 'Waist',
+    pet: 'Pet',
+    tail: 'Tail',
+    item: 'Item',
+    voice: 'Voice',
+    misc: 'Misc',
+  },
 };
 const SLOT_ORDER = {
   set: 0,
@@ -720,7 +1271,7 @@ const SLOT_ORDER = {
 };
 function translateSlot(slot) {
   const key = (slot || 'default').toString().trim().toLowerCase();
-  return SLOT_LABELS[key] || slot || 'Набор';
+  return SLOT_LABELS[getLang()]?.[key] || SLOT_LABELS.ru?.[key] || slot || (getLang() === 'en' ? 'Set' : 'Набор');
 }
 function sortSlots(slots) {
   return [...new Set(slots.map((slot) => slot || 'default'))].sort((a, b) => {
@@ -773,12 +1324,12 @@ function renderCategory(categoryId) {
       }).join('');
       gridHtml = `
         <div class="hero-detail">
-          <button class="btn btn-ghost hero-back" id="heroBackBtn"><span class="ms">arrow_back</span>Назад к героям</button>
+          <button class="btn btn-ghost hero-back" id="heroBackBtn"><span class="ms">arrow_back</span>${t('backToHeroes')}</button>
           <div class="hero-detail-title">${esc(heroEntry?.name || selectedHero)}</div>
           <div class="hero-slots-grid">${slotCards}</div>
         </div>`;
     } else if (!filteredHeroes.length) {
-      gridHtml = '<div class="empty-note">Нет доступных героев</div>';
+      gridHtml = `<div class="empty-note">${t('noHeroes')}</div>`;
     } else {
       const heroCards = filteredHeroes.map((hero) => {
         const previewUrlValue = resolveHeroPreview(hero);
@@ -788,14 +1339,14 @@ function renderCategory(categoryId) {
             ${previewHtml}
             <div class="hero-card-content">
               <div class="hero-card-title">${esc(hero.name)}</div>
-              <div class="hero-card-meta">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов')}</div>
+              <div class="hero-card-meta">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
             </div>
           </div>`;
       }).join('');
       gridHtml = `<div class="hero-grid">${heroCards}</div>`;
     }
   } else if (!mods.length) {
-    gridHtml = '<div class="empty-note">Ничего не найдено — сбрось фильтры</div>';
+    gridHtml = `<div class="empty-note">${t('noFilteredMods')}</div>`;
   } else if (grouped) {
     let lastGroup = null;
     mods.forEach((m, i) => {
@@ -812,7 +1363,7 @@ function renderCategory(categoryId) {
   viewRoot.innerHTML = `
     <div class="view-header">
       <h1 class="view-title">${esc(catName(categoryId))}</h1>
-      <span class="view-sub">${all.length} ${plural(all.length, 'мод', 'мода', 'модов')}</span>
+      <span class="view-sub">${all.length} ${plural(all.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
     </div>
     ${toolbarHtml(mods.length, { tags, groups, heroes, categoryId })}
     <div class="grid" id="modGrid">${gridHtml}</div>
@@ -868,7 +1419,7 @@ function openSlotModal(slot, mods, heroName, categoryId) {
     <div class="modal-box">
       <div class="modal-header">
         <h2 class="modal-title">${esc(heroName)} — ${esc(translateSlot(slot))}</h2>
-        <button class="modal-close" aria-label="Закрыть"><span class="ms">close</span></button>
+        <button class="modal-close" aria-label="${t('close')}"><span class="ms">close</span></button>
       </div>
       <div class="modal-body">
         <div class="grid" id="slotModsGrid">
@@ -893,7 +1444,10 @@ function openSlotModal(slot, mods, heroName, categoryId) {
 
 // --- toolbar ---
 
-const GROUP_LABEL = { 'hero-items': 'Все герои', 'item-effects': 'Все предметы', creeps: 'Все крипы', towers: 'Все башни', 'creep-deny': 'Все типы' };
+const GROUP_LABEL = {
+  ru: { 'hero-items': 'Все герои', 'item-effects': 'Все предметы', creeps: 'Все крипы', towers: 'Все башни', 'creep-deny': 'Все типы' },
+  en: { 'hero-items': 'All heroes', 'item-effects': 'All items', creeps: 'All creeps', towers: 'All towers', 'creep-deny': 'All types' },
+};
 
 function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categoryId = null }) {
   const f = state.filters;
@@ -914,7 +1468,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
     toolbarParts.push(`
       <div class="hero-search-wrap">
         <span class="ms">search</span>
-        <input type="text" id="heroSearchInput" placeholder="Поиск героев..." value="${esc(f.heroSearch || '')}">
+        <input type="text" id="heroSearchInput" placeholder="${t('searchText')} ${t('authors')}" value="${esc(f.heroSearch || '')}">
       </div>`);
   }
 
@@ -923,7 +1477,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
       <div class="select-wrap">
         <span class="ms">${categoryId === 'hero-items' ? 'person' : catIcon(categoryId) || 'group'}</span>
         <select id="groupSelect">
-          <option value="">${GROUP_LABEL[categoryId] || 'Все группы'}</option>
+          <option value="">${GROUP_LABEL[getLang()]?.[categoryId] || GROUP_LABEL.ru[categoryId] || (getLang() === 'en' ? 'All groups' : 'Все группы')}</option>
           ${groups.map((g) => `<option value="${esc(g)}" ${f.group === g ? 'selected' : ''}>${esc(g)}</option>`).join('')}
         </select>
       </div>`);
@@ -933,7 +1487,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
     toolbarParts.push(`<div class="sep"></div>`);
     toolbarParts.push(`
       <button class="fchip ${f.installedOnly ? 'active' : ''}" id="installedChip">
-        <span class="ms">check_circle</span>Установленные
+        <span class="ms">check_circle</span>${t('installed')}
       </button>`);
   }
 
@@ -948,7 +1502,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
   return `
     <div class="toolbar">
       ${toolbarParts.join('')}
-      <span class="count">${resultCount} ${plural(resultCount, 'результат', 'результата', 'результатов')}</span>
+      <span class="count">${resultCount} ${plural(resultCount, 'результат', 'результата', 'результатов', 'result', 'results')}</span>
     </div>`;
 }
 
@@ -1005,24 +1559,21 @@ function cardHtml(m, i, withCat = false) {
   const tags = Object.entries(m.tags || {}).filter(([, v]) => v).map(([k]) => k).slice(0, 3);
   const author = (m.author || m.sender || '').trim();
   const hideAuthor = author && ['Unknown', 'Anonymous'].includes(author);
-  const playable = modPreviewMedia(cat, m);
+  const previewAction = resolvePreviewAction(cat, m);
   const authorProfile = (state.catalog?.constants?.AUTHOR_PROFILES || []).find((entry) => entry.displayName.toLowerCase() === author.toLowerCase() || entry.id.toLowerCase() === author.toLowerCase());
   const authorAvatar = authorProfile?.avatarUrl ? `<img class="author-chip-avatar" src="${esc(authorProfile.avatarUrl)}" alt="${esc(author)}">` : '<span class="ms">person</span>';
   return `
     <div class="card" data-key="${esc(keyOf(cat, m.name, null))}" style="--i:${Math.min(i, 28)}">
       <div class="card-media">
         ${mediaHtml(prev, { hoverPlay: true })}
+        ${previewAction ? `<button class="card-preview-btn" data-play="${esc(previewAction.url)}" data-kind="${esc(previewAction.kind)}" data-title="${esc(m.name)}" aria-label="${t('preview')}"><span class="ms">visibility</span></button>` : ''}
         <div class="media-tags">
-          ${installed ? '<span class="mtag ok">Установлен</span>' : ''}
-          ${isPack ? `<span class="mtag">Пак · ${(m.mods || []).length}</span>` : ''}
-          ${m._custom ? '<span class="mtag custom">Свой</span>' : ''}
-          ${external ? '<span class="mtag">Ссылка</span>' : ''}
+          ${installed ? `<span class="mtag ok">${t('installed')}</span>` : ''}
+          ${isPack ? `<span class="mtag">${t('pack') || 'Pack'} · ${(m.mods || []).length}</span>` : ''}
+          ${m._custom ? `<span class="mtag custom">${t('customPack')}</span>` : ''}
+          ${external ? `<span class="mtag">${t('link') || 'Link'}</span>` : ''}
           ${tags.map((t) => `<span class="mtag">${esc(tagLabel(cat, t))}</span>`).join('')}
         </div>
-        ${playable ? `
-          <button class="mtag-play" data-play="${esc(playable)}" data-title="${esc(m.name)}" aria-label="Смотреть превью">
-            <span class="ms">play_arrow</span>Превью
-          </button>` : ''}
         ${m.styles ? `
           <div class="media-swatches">
             ${m.styles.slice(0, 5).map((s) => `<span class="swatch-dot" style="background:${esc(s.color || '#a78bfa')}"></span>`).join('')}
@@ -1073,11 +1624,11 @@ function bindCards(root, modsList) {
         }
       });
     }
-    const playBtn = card.querySelector('.mtag-play');
-    if (playBtn) {
-      playBtn.addEventListener('click', (e) => {
+    const previewBtn = card.querySelector('.card-preview-btn');
+    if (previewBtn) {
+      previewBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openPlayer(playBtn.dataset.play, playBtn.dataset.title);
+        openPlayer({ kind: previewBtn.dataset.kind || 'media', url: previewBtn.dataset.play }, previewBtn.dataset.title);
       });
     }
   });
@@ -1116,13 +1667,33 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeModal();
 });
 
-const LINK_LABEL = { preview: 'Превью', source: 'Источник', author: 'Автор', bug: 'Баг', guide: 'Гайд' };
+const LINK_LABEL = {
+  ru: { preview: 'Превью', source: 'Источник', author: 'Автор', bug: 'Баг', guide: 'Гайд' },
+  en: { preview: 'Preview', source: 'Source', author: 'Author', bug: 'Bug', guide: 'Guide' },
+};
 
 function packMembers(mod) {
   return (mod.mods || []).map((name) => {
     const hit = state.modIndex.get(name.toLowerCase());
     return { name, hit };
   });
+}
+
+function openCatalogTarget(categoryId, heroSlug = '') {
+  closeModal();
+  closeSlotModals();
+  state.activeCategory = categoryId;
+  state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: heroSlug, heroSearch: '' };
+  if (state.search) {
+    state.search = '';
+    const searchInput = $('#globalSearch');
+    if (searchInput) searchInput.value = '';
+    const clearSearch = $('#clearSearch');
+    if (clearSearch) clearSearch.classList.add('hidden');
+  }
+  state.view = 'catalog';
+  $('#main').scrollTop = 0;
+  renderCatalog();
 }
 
 function drawModal() {
@@ -1139,7 +1710,7 @@ function drawModal() {
   const guide = mod.guideId && state.catalog?.guides?.[mod.guideId];
 
   const links = mod.links || [];
-  const playable = modPreviewMedia(categoryId, { ...mod, preview: cur.preview || mod.preview });
+  const previewAction = resolvePreviewAction(categoryId, { ...mod, preview: cur.preview || mod.preview });
   const mediaUrl = previewUrl(categoryId, cur.preview || mod.preview);
 
   // author: mod.author/sender field, or an "author"-type link whose url is a name or URL
@@ -1153,6 +1724,12 @@ function drawModal() {
   const authorAvatar = authorProfile?.avatarUrl ? `<img class="author-chip-avatar" src="${esc(authorProfile.avatarUrl)}" alt="${esc(authorName)}">` : '<span class="ms">person</span>';
 
   const otherLinks = links.filter((l) => !(l.type === 'preview' && isMedia(l.url)) && l.type !== 'author');
+  const heroSlug = (mod.hero || '').toString().trim();
+  const heroEntry = heroSlug ? (state.catalog?.constants?.HERO_CATALOG || []).find((entry) => {
+    const slug = (entry.slug || entry.id || '').toString().toLowerCase();
+    return slug === heroSlug.toLowerCase() || (entry.name || '').toLowerCase() === heroSlug.toLowerCase();
+  }) : null;
+  const heroLabel = heroEntry?.name || (heroSlug ? heroSlug.replace(/_/g, ' ') : '');
 
   // pack contents (with per-session exclusions)
   if (isPack && !modalState.packExcluded) modalState.packExcluded = new Set();
@@ -1163,9 +1740,9 @@ function drawModal() {
     <div class="modal-media">
       ${mediaHtml(mediaUrl, { autoplay: true })}
       <button class="modal-close" id="modalCloseBtn" aria-label="Закрыть"><span class="ms">close</span></button>
-      ${playable ? `
+      ${previewAction ? `
         <button class="preview-toggle" id="previewPlayBtn">
-          <span class="ms">play_circle</span>Смотреть превью
+          <span class="ms">play_circle</span>${t('preview')}
         </button>` : ''}
     </div>
     <div class="modal-body">
@@ -1173,9 +1750,10 @@ function drawModal() {
         <div class="modal-title">${esc(mod.name)}</div>
       </div>
       <div class="modal-sub">
-        <span>${esc(catName(categoryId))}</span>
+        <button class="modal-meta-chip" id="modalCategoryBtn" type="button">${esc(catName(categoryId))}</button>
+        ${heroLabel ? `<button class="modal-meta-chip" id="modalHeroBtn" type="button"><span class="ms">person</span>${esc(heroLabel)}</button>` : ''}
         ${mod._group ? `<span>· ${esc(mod._group)}</span>` : ''}
-        ${mod._custom ? '<span>· свой пак</span>' : ''}
+        ${mod._custom ? `<span>· ${t('customPack')}</span>` : ''}
         ${getModDateValue(mod) ? `<span>· ${fmtDate(getModDateValue(mod))}</span>` : ''}
         ${authorName && !hideAuthor ? `
           <button class="author-chip ${authorProfile ? 'clickable' : ''}" id="authorChip" ${authorProfile ? '' : 'disabled'} data-author-id="${esc(authorProfile?.id || '')}">
@@ -1200,40 +1778,55 @@ function drawModal() {
               ${thumb && !isVideo(thumb) ? `<img class="pack-thumb" src="${esc(thumb)}" loading="lazy" alt="">` : '<div class="pack-thumb"></div>'}
               <div class="pack-info">
                 <div class="pack-mod-name">${esc(x.name)}</div>
-                <div class="pack-mod-cat">${x.hit ? esc(catName(x.hit.categoryId)) : 'не найден в каталоге'}${inst ? ' · установлен' : ''}</div>
+                <div class="pack-mod-cat">${x.hit ? esc(catName(x.hit.categoryId)) : t('notFoundInCatalog')}${inst ? ` · ${t('installed')}` : ''}</div>
               </div>
-              <button class="pack-x" data-toggle="${esc(x.name)}" aria-label="${excluded ? 'Вернуть' : 'Убрать'}">
+              <button class="pack-x" data-toggle="${esc(x.name)}" aria-label="${excluded ? t('restore') : t('removeFromPack')}">
                 <span class="ms">${excluded ? 'add' : 'close'}</span>
               </button>
             </div>`;
           }).join('')}
         </div>
         <div class="pack-save-row">
-          <input class="input" id="packSaveName" placeholder="Название своего пака…" value="${mod._custom ? esc(mod.name) : ''}">
-          <button class="btn btn-sm" id="packSaveBtn"><span class="ms">bookmark_add</span>Сохранить пак</button>
-          ${mod._custom ? `<button class="btn btn-sm btn-danger" id="packDeleteBtn">Удалить пак</button>` : ''}
+          <input class="input" id="packSaveName" placeholder="${t('packNameHint')}" value="${mod._custom ? esc(mod.name) : ''}">
+          <button class="btn btn-sm" id="packSaveBtn"><span class="ms">bookmark_add</span>${t('savePack')}</button>
+          ${mod._custom ? `<button class="btn btn-sm btn-danger" id="packDeleteBtn">${t('deletePack')}</button>` : ''}
         </div>` : ''}
       <div class="modal-actions">
-        ${isPack ? `<button class="btn btn-primary" id="installPackBtn" ${activeCount ? '' : 'disabled'}><span class="ms">download</span>Установить пак (${activeCount})</button>` : ''}
+        ${isPack ? `<button class="btn btn-primary" id="installPackBtn" ${activeCount ? '' : 'disabled'}><span class="ms">download</span>${t('install')} (${activeCount})</button>` : ''}
         ${!isPack && target ? (installedRec
-          ? `<button class="btn btn-danger" id="uninstallBtn"><span class="ms">delete</span>Удалить</button>`
-          : `<button class="btn btn-primary" id="installBtn" ${busy ? 'disabled' : ''}><span class="ms">download</span>${busy ? 'Установка…' : 'Установить'}</button>`) : ''}
-        ${!isPack && !target && downloadTarget ? `<button class="btn" id="openLinkBtn"><span class="ms">open_in_new</span>Открыть ссылку</button>` : ''}
+          ? `<button class="btn btn-danger" id="uninstallBtn"><span class="ms">delete</span>${t('uninstall')}</button>`
+          : `<button class="btn btn-primary" id="installBtn" ${busy ? 'disabled' : ''}><span class="ms">download</span>${busy ? t('installing') : t('install')}</button>`) : ''}
+        ${!isPack && !target && downloadTarget ? `<button class="btn" id="openLinkBtn"><span class="ms">open_in_new</span>${t('openLink')}</button>` : ''}
       </div>
       ${otherLinks.length ? `
         <div class="modal-links">
-          ${otherLinks.map((l) => `<a data-link="${links.indexOf(l)}">${esc(LINK_LABEL[l.type] || l.type || 'ссылка')}</a>`).join('')}
+          ${otherLinks.map((l) => `<a data-link="${links.indexOf(l)}">${esc(LINK_LABEL[getLang()]?.[l.type] || LINK_LABEL.ru?.[l.type] || l.type || (getLang() === 'en' ? 'link' : 'ссылка'))}</a>`).join('')}
         </div>` : ''}
-      ${categoryId === 'fonts' ? `<div class="modal-note">Шрифт ставится в файлы игры (game\\dota\\panorama\\fonts) — параметр запуска не нужен. Оригиналы сохраняются автоматически.</div>` : ''}
-      ${categoryId === 'cursors' ? `<div class="modal-note">Курсор ставится в game\\dota\\resource\\cursor — параметр запуска не нужен. Оригиналы сохраняются автоматически.</div>` : ''}
+      ${categoryId === 'fonts' ? `<div class="modal-note">${t('installNoteFonts')}</div>` : ''}
+      ${categoryId === 'cursors' ? `<div class="modal-note">${t('installNoteCursors')}</div>` : ''}
     </div>
   `;
 
   $('#modalCloseBtn').addEventListener('click', closeModal);
 
+  const categoryBtn = $('#modalCategoryBtn');
+  if (categoryBtn) {
+    categoryBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openCatalogTarget(categoryId);
+    });
+  }
+  const heroBtn = $('#modalHeroBtn');
+  if (heroBtn) {
+    heroBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openCatalogTarget('heroes', heroSlug);
+    });
+  }
+
   const previewPlay = $('#previewPlayBtn');
   if (previewPlay) {
-    previewPlay.addEventListener('click', () => openPlayer(playable, mod.name));
+    previewPlay.addEventListener('click', () => openPlayer(previewAction, mod.name));
   }
 
   const authorChip = $('#authorChip');
@@ -1265,20 +1858,20 @@ function drawModal() {
   if (packSaveBtn) {
     packSaveBtn.addEventListener('click', () => {
       const name = $('#packSaveName').value.trim();
-      if (!name) { toast('Введи название пака', 'warn'); return; }
+      if (!name) { toast(t('enterPackName'), 'warn'); return; }
       const modNames = members.filter((x) => !modalState.packExcluded.has(x.name)).map((x) => x.name);
-      if (!modNames.length) { toast('В паке не осталось модов', 'warn'); return; }
+      if (!modNames.length) { toast(t('packEmpty'), 'warn'); return; }
       const packs = customPacks().filter((p) => p.name !== name && p.name !== (mod._custom ? mod.name : null));
       packs.push({ name, mods: modNames });
       saveCustomPacks(packs);
-      toast(`Пак «${name}» сохранён — он появился в категории Паки`);
+      toast(`${t('packSaved')}: ${name}`);
       if (state.view === 'catalog' && state.activeCategory === 'packs') { closeModal(); renderCatalog(); }
     });
   }
   const packDeleteBtn = $('#packDeleteBtn');
   if (packDeleteBtn) {
     packDeleteBtn.addEventListener('click', async () => {
-      if (!await confirmDialog(`Удалить пак «${mod.name}»?`)) return;
+      if (!await confirmDialog(`${t('delete')} «${mod.name}»?`)) return;
       saveCustomPacks(customPacks().filter((p) => p.name !== mod.name));
       closeModal();
       renderCatalog();
@@ -1299,10 +1892,10 @@ function drawModal() {
   const uninstallBtn = $('#uninstallBtn');
   if (uninstallBtn) {
     uninstallBtn.addEventListener('click', async () => {
-      if (!await confirmDialog(`Удалить «${mod.name}»?`)) return;
+      if (!await confirmDialog(`${t('delete')} «${mod.name}»?`)) return;
       const r = await window.api.mods.remove(installedRec.id);
       if (r.error) toast(r.error, 'error');
-      else toast(`${mod.name} удалён`);
+      else toast(`${mod.name} ${t('removed')}`);
       await refreshInstalledIndex();
       drawModal();
     });
@@ -1328,7 +1921,7 @@ async function doInstall(categoryId, mod, styleLabel, fileRef, preview) {
   const k = keyOf(categoryId, mod.name, styleLabel);
   if (state.installing.has(k)) return;
   if (!state.settings?.dotaPathValid && categoryId !== 'tools') {
-    toast('Сначала укажи путь к Dota 2 в настройках', 'warn');
+    toast(t('dotaNotFound'), 'warn');
     return;
   }
   state.installing.add(k);
@@ -1337,7 +1930,7 @@ async function doInstall(categoryId, mod, styleLabel, fileRef, preview) {
   const r = await window.api.mods.install({ categoryId, name: mod.name, styleLabel, fileRef: installTarget, preview });
   state.installing.delete(k);
   if (r.error && !r.already) toast(`${mod.name}: ${r.error}`, 'error', 6000);
-  else if (!r.error) toast(`${mod.name} установлен`);
+  else if (!r.error) toast(`${mod.name} ${t('installed').toLowerCase()}`);
   await refreshInstalledIndex();
   if (modalState) drawModal();
   return r;
@@ -1359,7 +1952,8 @@ async function installPack(pack) {
     const r = await doInstall(categoryId, mod, styleLabel, fileRef, mod.preview);
     if (r?.ok) ok++; else fail++;
   }
-  toast(`Пак «${pack.name}»: установлено ${ok}, пропущено ${skip}${fail ? `, ошибок ${fail}` : ''}`, fail ? 'warn' : 'ok', 7000);
+  const summary = t('packInstallSummary').replace('{name}', pack.name).replace('{ok}', ok).replace('{skip}', skip) + (fail ? t('packInstallErrors').replace('{count}', fail) : '');
+  toast(summary, fail ? 'warn' : 'ok', 7000);
   await refreshInstalledIndex();
   render();
 }
@@ -1372,20 +1966,21 @@ async function renderLibrary() {
 
   viewRoot.innerHTML = `
     <div class="view-header">
-      <h1 class="view-title">Библиотека</h1>
+      <h1 class="view-title">${t('library')}</h1>
     </div>
     <div class="lib-toolbar">
-      <span class="lib-stats">${installed.length} ${plural(installed.length, 'мод', 'мода', 'модов')} · ${enabledCount} включено</span>
-      <button class="btn btn-sm" id="enableAllBtn">Включить всё</button>
-      <button class="btn btn-sm" id="disableAllBtn">Отключить всё</button>
-      <button class="btn btn-sm" id="openFolderBtn2"><span class="ms">folder_open</span>Папка модов</button>
+      <span class="lib-stats">${installed.length} ${plural(installed.length, 'мод', 'мода', 'модов', 'mod', 'mods')} · ${enabledCount} ${getLang() === 'en' ? 'enabled' : 'включено'}</span>
+      <button class="btn btn-sm" id="enableAllBtn">${t('enableAll')}</button>
+      <button class="btn btn-sm" id="disableAllBtn">${t('disableAll')}</button>
+      <button class="btn btn-sm btn-danger" id="removeAllModsBtn">${t('removeAllMods')}</button>
+      <button class="btn btn-sm" id="openFolderBtn2"><span class="ms">folder_open</span>${t('openModsFolder')}</button>
     </div>
     <div class="lib-list" id="libList">
-      ${installed.length ? '' : '<div class="empty-note">Пока ничего не установлено — загляни в Каталог</div>'}
+      ${installed.length ? '' : `<div class="empty-note">${t('emptyLibrary')}</div>`}
     </div>
     ${external.length ? `
-      <div class="section-h" style="margin-top:26px"><span class="ms">folder_zip</span>Внешние файлы в папке модов</div>
-      <div style="color:var(--text-muted);font-size:12.5px;margin-bottom:10px">Файлы, установленные не через менеджер</div>
+      <div class="section-h" style="margin-top:26px"><span class="ms">folder_zip</span>${t('externalFiles')}</div>
+      <div style="color:var(--text-muted);font-size:12.5px;margin-bottom:10px">${t('externalFilesNote')}</div>
       <div class="lib-list" id="extList"></div>` : ''}
   `;
 
@@ -1403,14 +1998,14 @@ async function renderLibrary() {
         <div class="lib-meta">
           <span>${esc(catName(rec.categoryId))}</span>
           ${fileNames.length ? `<span>${esc(fileNames.slice(0, 3).join(', '))}${fileNames.length > 3 ? '…' : ''}</span>` : ''}
-          <span>${new Date(rec.installedAt).toLocaleDateString('ru')}</span>
+          <span>${new Date(rec.installedAt).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru')}</span>
         </div>
       </div>
       <div class="lib-actions">
         ${['fonts', 'cursors'].includes(rec.categoryId)
-          ? '<span style="font-size:11.5px;color:var(--text-muted)">всегда активен</span>'
-          : `<button class="toggle ${rec.enabled ? 'on' : ''}" data-id="${rec.id}" role="switch" aria-checked="${rec.enabled}" aria-label="Включить/выключить"></button>`}
-        <button class="btn btn-sm btn-danger" data-del="${rec.id}">Удалить</button>
+          ? `<span style="font-size:11.5px;color:var(--text-muted)">${t('alwaysActive')}</span>`
+          : `<button class="toggle ${rec.enabled ? 'on' : ''}" data-id="${rec.id}" role="switch" aria-checked="${rec.enabled}" aria-label="${t('installed')}"></button>`}
+        <button class="btn btn-sm btn-danger" data-del="${rec.id}">${t('delete')}</button>
       </div>
     `;
     libList.appendChild(row);
@@ -1428,10 +2023,10 @@ async function renderLibrary() {
   libList.querySelectorAll('[data-del]').forEach((b) => {
     b.addEventListener('click', async () => {
       const rec = installed.find((m) => m.id === b.dataset.del);
-      if (!await confirmDialog(`Удалить «${rec.name}»?`)) return;
+      if (!await confirmDialog(t('removeConfirm').replace('{name}', rec.name))) return;
       const r = await window.api.mods.remove(rec.id);
       if (r.error) toast(r.error, 'error');
-      else toast(`${rec.name} удалён`);
+      else toast(`${rec.name} ${t('removed')}`);
       renderLibrary();
       refreshInstalledIndex();
     });
@@ -1439,6 +2034,23 @@ async function renderLibrary() {
 
   $('#enableAllBtn').addEventListener('click', () => bulkToggle(installed, true));
   $('#disableAllBtn').addEventListener('click', () => bulkToggle(installed, false));
+  const removeAllBtn = $('#removeAllModsBtn');
+  removeAllBtn.disabled = !installed.length;
+  removeAllBtn.addEventListener('click', async () => {
+    if (!installed.length) return;
+    if (!await confirmDialog(t('removeAllConfirm'), { okLabel: t('removeAllMods') })) return;
+    let removed = 0;
+    let failed = 0;
+    for (const rec of installed) {
+      const r = await window.api.mods.remove(rec.id);
+      if (r?.error) failed += 1;
+      else removed += 1;
+    }
+    if (failed) toast(t('removeAllResult').replace('{removed}', removed).replace('{failed}', failed), 'warn');
+    else toast(t('removeAllDone').replace('{count}', removed), 'ok');
+    renderLibrary();
+    refreshInstalledIndex();
+  });
   $('#openFolderBtn2').addEventListener('click', () => window.api.misc.openLangFolder());
 
   if (external.length) {
@@ -1450,11 +2062,11 @@ async function renderLibrary() {
         <div class="lib-thumb"></div>
         <div class="lib-info">
           <div class="lib-name">${esc(f.name)}</div>
-          <div class="lib-meta"><span>${fmtMB(f.size)} MB</span><span>внешний файл</span></div>
+          <div class="lib-meta"><span>${fmtMB(f.size)} MB</span><span>${t('externalFile')}</span></div>
         </div>
         <div class="lib-actions">
           <button class="toggle ${f.enabled ? 'on' : ''}" data-ext="${esc(f.name)}" role="switch" aria-checked="${f.enabled}"></button>
-          <button class="btn btn-sm btn-danger" data-extdel="${esc(f.name)}">Удалить</button>
+          <button class="btn btn-sm btn-danger" data-extdel="${esc(f.name)}">${t('delete')}</button>
         </div>
       `;
       extList.appendChild(row);
@@ -1468,7 +2080,7 @@ async function renderLibrary() {
     });
     extList.querySelectorAll('[data-extdel]').forEach((b) => {
       b.addEventListener('click', async () => {
-        if (!await confirmDialog(`Удалить файл ${b.dataset.extdel}?`)) return;
+        if (!await confirmDialog(t('removeFileConfirm').replace('{name}', b.dataset.extdel))) return;
         await window.api.mods.externalRemove(b.dataset.extdel);
         renderLibrary();
       });
@@ -1493,16 +2105,16 @@ async function renderPresets() {
   const byId = new Map(installed.map((m) => [m.id, m]));
 
   viewRoot.innerHTML = `
-    <div class="view-header"><h1 class="view-title">Пресеты</h1></div>
+    <div class="view-header"><h1 class="view-title">${t('presetsTitle')}</h1></div>
     <div style="color:var(--text-muted);font-size:13px;margin-bottom:14px">
-      Пресет запоминает, какие моды включены. Применение пресета включает его моды и выключает остальные.
+      ${t('presetDescription')}
     </div>
     <div class="preset-new">
-      <input class="input" id="presetName" placeholder="Название пресета (напр. «Анимешный», «Минимал»)">
-      <button class="btn btn-primary" id="savePresetBtn"><span class="ms">save</span>Сохранить текущее состояние</button>
+      <input class="input" id="presetName" placeholder="${t('presetNamePlaceholder')}">
+      <button class="btn btn-primary" id="savePresetBtn"><span class="ms">save</span>${t('savePreset')}</button>
     </div>
     <div id="presetList">
-      ${presets.length ? '' : '<div class="empty-note">Пресетов пока нет</div>'}
+      ${presets.length ? '' : `<div class="empty-note">${t('presetEmpty')}</div>`}
     </div>
   `;
 
@@ -1515,20 +2127,20 @@ async function renderPresets() {
     card.innerHTML = `
       <div class="preset-head">
         <div class="preset-name">${esc(p.name)}</div>
-        <span style="font-size:12px;color:var(--text-muted)">${names.length} ${plural(names.length, 'мод', 'мода', 'модов')}</span>
-        <button class="btn btn-sm btn-primary" data-apply="${p.id}">Применить</button>
-        <button class="btn btn-sm btn-danger" data-pdel="${p.id}">Удалить</button>
+        <span style="font-size:12px;color:var(--text-muted)">${names.length} ${plural(names.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
+        <button class="btn btn-sm btn-primary" data-apply="${p.id}">${t('apply')}</button>
+        <button class="btn btn-sm btn-danger" data-pdel="${p.id}">${t('delete')}</button>
       </div>
-      <div class="preset-mods">${names.length ? esc(names.join(' · ')) : 'пусто (всё будет выключено)'}</div>
+      <div class="preset-mods">${names.length ? esc(names.join(' · ')) : t('emptyPreset')}</div>
     `;
     list.appendChild(card);
   });
 
   $('#savePresetBtn').addEventListener('click', async () => {
     const name = $('#presetName').value.trim();
-    if (!name) { toast('Введи название пресета', 'warn'); return; }
+    if (!name) { toast(t('enterPackName'), 'warn'); return; }
     await window.api.presets.save(name);
-    toast(`Пресет «${name}» сохранён`);
+    toast(`${t('presetsTitle')} «${name}» ${t('save')?.toLowerCase() || 'saved'}`);
     renderPresets();
   });
 
@@ -1536,14 +2148,14 @@ async function renderPresets() {
     b.addEventListener('click', async () => {
       const r = await window.api.presets.apply(b.dataset.apply);
       if (r.error) toast(r.error, 'error', 6000);
-      else toast('Пресет применён');
+      else toast(`${t('presetsTitle')} ${t('apply').toLowerCase()} ${t('ready')}`);
       refreshInstalledIndex();
     });
   });
   list.querySelectorAll('[data-pdel]').forEach((b) => {
     b.addEventListener('click', async () => {
       const p = presets.find((x) => x.id === b.dataset.pdel);
-      if (!await confirmDialog(`Удалить пресет «${p?.name || ''}»?`)) return;
+      if (!await confirmDialog(t('removePresetConfirm').replace('{name}', p?.name || ''))) return;
       await window.api.presets.delete(b.dataset.pdel);
       renderPresets();
     });
@@ -1616,23 +2228,53 @@ function getAuthorVisibleMods(author) {
   return withDate.map(({ _dateValue, ...mod }) => mod);
 }
 
+function getAuthorModsFromCatalog(author) {
+  const authorKey = (author.displayName || author.id || '').toString().trim().toLowerCase();
+  if (!authorKey) return [];
+  const result = [];
+  for (const categoryData of Object.values(state.catalog?.mods?.modsData || {})) {
+    const mods = Array.isArray(categoryData)
+      ? categoryData
+      : (categoryData.groups ? categoryData.groups.flatMap((g) => g.mods || []) : []);
+    for (const mod of mods) {
+      const modAuthor = ((mod.author || mod.sender || mod.authorName || '').toString().trim()).toLowerCase();
+      if (modAuthor === authorKey) {
+        result.push({ ...mod, categoryId: mod.categoryId || mod.category || 'other' });
+      }
+    }
+  }
+  return result;
+}
+
 function renderAuthorMods(author) {
-  const mods = getAuthorVisibleMods(author);
+  const modsFromProfile = getAuthorVisibleMods(author);
+  const fallbackMods = getAuthorModsFromCatalog(author);
+  const merged = [...new Map(
+    [...modsFromProfile, ...fallbackMods].map((m) => [keyOf(m.categoryId || 'other', m.name, null), m])
+  ).values()];
   const grid = $('#authorModsGrid');
   const meta = $('.author-profile-meta');
   if (meta) {
-    meta.textContent = `${mods.length} ${plural(mods.length, 'мод', 'мода', 'модов')}`;
+    meta.textContent = `${merged.length} ${plural(merged.length, 'мод', 'мода', 'модов', 'mod', 'mods')}`;
   }
   if (!grid) return;
-  grid.innerHTML = mods.length
-    ? mods.map((m, i) => cardHtml({ ...m, _cat: m.categoryId || 'other' }, i, true)).join('')
-    : '<div class="empty-note">У этого автора пока нет модов</div>';
-  bindCards(viewRoot, mods.map((m) => ({ ...m, _cat: m.categoryId || 'other' })));
+  grid.innerHTML = merged.length
+    ? merged.map((m, i) => cardHtml({ ...m, _cat: m.categoryId || 'other' }, i, true)).join('')
+    : `<div class="empty-note">${t('noAuthorMods')}</div>`;
+  bindCards(viewRoot, merged.map((m) => ({ ...m, _cat: m.categoryId || 'other' })));
 }
 
 function renderAuthors() {
   const authors = state.catalog?.constants?.AUTHOR_PROFILES || [];
   const selectedAuthor = state.authors?.selected || null;
+
+  function countAuthorMods(author) {
+    const profileMods = author.mods || [];
+    const catalogMods = getAuthorModsFromCatalog(author);
+    return [...new Map(
+      [...profileMods, ...catalogMods].map((m) => [keyOf(m.categoryId || m.category || 'other', m.name, null), m])
+    ).values()].length;
+  }
 
   if (selectedAuthor) {
     const author = authors.find((entry) => entry.id === selectedAuthor) || null;
@@ -1643,7 +2285,7 @@ function renderAuthors() {
 
     viewRoot.innerHTML = `
       <div class="view-header">
-        <button class="btn btn-ghost" id="authorBackBtn"><span class="ms">arrow_back</span>Назад к авторам</button>
+        <button class="btn btn-ghost" id="authorBackBtn"><span class="ms">arrow_back</span>${t('backToAuthors')}</button>
       </div>
       <div class="author-profile">
         <div class="author-profile-card">
@@ -1653,21 +2295,21 @@ function renderAuthors() {
             <div class="author-profile-meta"></div>
             <div class="author-links">
               ${Object.entries(author.links || {}).filter(([, url]) => url).map(([type, url]) => `<a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(type)}</a>`).join('')}
-              ${author.authorLink ? `<a href="${esc(author.authorLink)}" target="_blank" rel="noreferrer">Сайт</a>` : ''}
+              ${author.authorLink ? `<a href="${esc(author.authorLink)}" target="_blank" rel="noreferrer">${t('authorSite')}</a>` : ''}
             </div>
           </div>
         </div>
         <div class="author-profile-tools">
           <label class="author-profile-search" for="authorSearchInput">
             <span class="ms">search</span>
-            <input class="input" id="authorSearchInput" placeholder="Поиск модов…" value="${esc(state.authors?.search || '')}">
+            <input class="input" id="authorSearchInput" placeholder="${t('authorSearchPlaceholder')}" value="${esc(state.authors?.search || '')}">
           </label>
           <select class="input" id="authorSortSelect">
-            <option value="default" ${state.authors?.sort === 'default' ? 'selected' : ''}>По умолчанию</option>
-            <option value="date" ${state.authors?.sort === 'date' ? 'selected' : ''}>По дате новее</option>
-            <option value="date-asc" ${state.authors?.sort === 'date-asc' ? 'selected' : ''}>По дате старше</option>
-            <option value="name" ${state.authors?.sort === 'name' ? 'selected' : ''}>По названию от А-Я</option>
-            <option value="name-desc" ${state.authors?.sort === 'name-desc' ? 'selected' : ''}>По названию от Я-А</option>
+            <option value="default" ${state.authors?.sort === 'default' ? 'selected' : ''}>${getLang() === 'en' ? 'Default' : 'По умолчанию'}</option>
+            <option value="date" ${state.authors?.sort === 'date' ? 'selected' : ''}>${getLang() === 'en' ? 'Newest first' : 'По дате новее'}</option>
+            <option value="date-asc" ${state.authors?.sort === 'date-asc' ? 'selected' : ''}>${getLang() === 'en' ? 'Oldest first' : 'По дате старше'}</option>
+            <option value="name" ${state.authors?.sort === 'name' ? 'selected' : ''}>${getLang() === 'en' ? 'Name A-Z' : 'По названию от А-Я'}</option>
+            <option value="name-desc" ${state.authors?.sort === 'name-desc' ? 'selected' : ''}>${getLang() === 'en' ? 'Name Z-A' : 'По названию от Я-А'}</option>
           </select>
         </div>
         <div class="grid" id="authorModsGrid"></div>
@@ -1691,16 +2333,19 @@ function renderAuthors() {
   }
 
   viewRoot.innerHTML = `
-    <div class="view-header"><h1 class="view-title">Авторы</h1></div>
+    <div class="view-header"><h1 class="view-title">${t('authorsTitle')}</h1></div>
     ${authors.length ? `
       <div class="tool-grid">
-        ${authors.map((author, i) => `
+        ${authors.map((author, i) => {
+          const count = countAuthorMods(author);
+          return `
           <div class="tool-card author-card" style="--i:${i}" data-author-id="${esc(author.id)}">
             <div class="author-card-avatar">${author.avatarUrl ? `<img src="${esc(author.avatarUrl)}" alt="${esc(author.displayName)}">` : '<span class="ms">person</span>'}</div>
             <div class="tool-name">${esc(author.displayName)}</div>
-            <div style="color:var(--text-muted);font-size:12px">${author.mods.length} ${plural(author.mods.length, 'мод', 'мода', 'модов')}</div>
-          </div>`).join('')}
-      </div>` : '<div class="empty-note">Авторы не найдены</div>'}
+            <div style="color:var(--text-muted);font-size:12px">${count} ${plural(count, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+          </div>`;
+        }).join('')}
+      </div>` : `<div class="empty-note">${t('noAuthorsFound')}</div>`}
   `;
 
   viewRoot.querySelectorAll('.author-card').forEach((card) => {
@@ -1719,7 +2364,7 @@ async function renderTools() {
   const toolRecs = new Map(installed.filter((m) => m.categoryId === 'tools').map((m) => [m.name, m]));
 
   viewRoot.innerHTML = `
-    <div class="view-header"><h1 class="view-title">Инструменты</h1></div>
+    <div class="view-header"><h1 class="view-title">${t('tools')}</h1></div>
     <div class="tool-grid">
       ${tools.map((t, i) => {
         const dl = t.file && /\.(zip|exe)$/i.test(t.file);
@@ -1729,12 +2374,12 @@ async function renderTools() {
           <div class="tool-name">${esc(t.name)}</div>
           <div class="tool-actions">
             ${dl ? (rec
-              ? `<button class="btn btn-sm btn-primary" data-run="${esc(rec.files[0]?.relPath || '')}"><span class="ms">play_arrow</span>Запустить</button>
-                 <button class="btn btn-sm" data-open="${esc(rec.files[0]?.relPath || '')}">Папка</button>
-                 <button class="btn btn-sm btn-danger" data-tdel="${rec.id}">Удалить</button>`
-              : `<button class="btn btn-sm btn-primary" data-get="${i}"><span class="ms">download</span>Скачать</button>`)
-              : (t.file ? `<button class="btn btn-sm" data-url="${esc(t.file)}"><span class="ms">open_in_new</span>Открыть сайт</button>` : '')}
-            ${t.guideId && state.catalog?.guides?.[t.guideId] ? `<button class="btn btn-sm btn-ghost" data-guide="${esc(t.guideId)}">Гайд</button>` : ''}
+              ? `<button class="btn btn-sm btn-primary" data-run="${esc(rec.files[0]?.relPath || '')}"><span class="ms">play_arrow</span>${t('run')}</button>
+                 <button class="btn btn-sm" data-open="${esc(rec.files[0]?.relPath || '')}">${t('folder')}</button>
+                 <button class="btn btn-sm btn-danger" data-tdel="${rec.id}">${t('delete')}</button>`
+              : `<button class="btn btn-sm btn-primary" data-get="${i}"><span class="ms">download</span>${t('download')}</button>`)
+              : (t.file ? `<button class="btn btn-sm" data-url="${esc(t.file)}"><span class="ms">open_in_new</span>${t('openSite')}</button>` : '')}
+            ${t.guideId && state.catalog?.guides?.[t.guideId] ? `<button class="btn btn-sm btn-ghost" data-guide="${esc(t.guideId)}">${t('guide')}</button>` : ''}
           </div>
         </div>`;
       }).join('')}
@@ -1745,10 +2390,10 @@ async function renderTools() {
     b.addEventListener('click', async () => {
       const t = tools[Number(b.dataset.get)];
       b.disabled = true;
-      b.textContent = 'Скачивание…';
+      b.textContent = t('downloading');
       const r = await window.api.mods.install({ categoryId: 'tools', name: t.name, styleLabel: null, fileRef: t.file, preview: t.preview });
       if (r.error && !r.already) toast(`${t.name}: ${r.error}`, 'error', 6000);
-      else toast(`${t.name} готов`);
+      else toast(`${t.name} ${t('ready')}`);
       renderTools();
     });
   });
@@ -1790,9 +2435,9 @@ function renderGuideSteps(steps) {
 function renderGuides() {
   const guides = state.catalog?.guides || {};
   viewRoot.innerHTML = `
-    <div class="view-header"><h1 class="view-title">Гайды</h1></div>
+    <div class="view-header"><h1 class="view-title">${t('guides')}</h1></div>
     <div style="color:var(--text-muted);font-size:13px;margin-bottom:16px">
-      Гайды из репозитория Dota2PornFx. Менеджер делает бóльшую часть шагов автоматически — гайды пригодятся для ручной установки и решения проблем.
+      ${getLang() === 'en' ? 'Guides from the Dota2PornFx repository. The manager automates most steps — guides are useful for manual install and troubleshooting.' : 'Гайды из репозитория Dota2PornFx. Менеджер делает бóльшую часть шагов автоматически — гайды пригодятся для ручной установки и решения проблем.'}
     </div>
     ${Object.entries(guides).map(([id, g]) => {
       const content = g.content?.ru || g.content?.en || [];
@@ -1830,28 +2475,38 @@ function renderGuides() {
 async function renderSettings() {
   const s = await window.api.settings.get();
   state.settings = s;
+  document.documentElement.lang = s.appLanguage || 'ru';
   const cacheSize = await window.api.misc.cacheSize();
-  const appVersion = '1.0';
+  const appVersion = await window.api.update.version();
 
   viewRoot.innerHTML = `
-    <div class="view-header"><h1 class="view-title">Настройки</h1></div>
+    <div class="view-header">
+      <h1 class="view-title">${t('settingsTitle')}</h1>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--text-muted);font-size:13px">${t('languageLabel')}</span>
+        <select class="input" id="uiLangSelect" style="min-width:140px">
+          <option value="ru" ${s.appLanguage === 'ru' ? 'selected' : ''}>${t('russian')}</option>
+          <option value="en" ${s.appLanguage === 'en' ? 'selected' : ''}>${t('english')}</option>
+        </select>
+      </div>
+    </div>
 
     <div class="settings-block">
-      <h3>Путь к Dota 2</h3>
+      <h3>${t('dotaPath')}</h3>
       <div class="settings-row">
-        <span class="mono" style="flex:1">${esc(s.dotaGamePath || 'не найден')}</span>
+        <span class="mono" style="flex:1">${esc(s.dotaGamePath || (getLang() === 'en' ? 'not found' : 'не найден'))}</span>
         <span class="dot ${s.dotaPathValid ? 'ok' : 'bad'}"></span>
       </div>
       <div class="settings-row">
-        <button class="btn btn-sm" id="detectBtn">Найти автоматически</button>
-        <button class="btn btn-sm" id="browseBtn">Указать вручную</button>
+        <button class="btn btn-sm" id="detectBtn">${t('detectAutomatically')}</button>
+        <button class="btn btn-sm" id="browseBtn">${t('browseManually')}</button>
       </div>
     </div>
 
     <div class="settings-block" style="animation-delay:60ms">
-      <h3>Папка модов и параметры запуска</h3>
+      <h3>${t('langFolder')} и ${t('steamLaunchOption')}</h3>
       <div class="settings-row">
-        <span class="settings-label">Языковая папка</span>
+        <span class="settings-label">${t('langFolder')}</span>
         <div class="select-wrap">
           <span class="ms">folder</span>
           <select class="input" id="langSelect" style="padding-left:30px">
@@ -1860,86 +2515,87 @@ async function renderSettings() {
         </div>
       </div>
       <div class="settings-row">
-        <span class="settings-label">Параметр запуска Steam</span>
+        <span class="settings-label">${t('steamLaunchOption')}</span>
         <span class="launch-code">-language ${esc(s.langSuffix)}
-          <button class="btn btn-sm" id="copyLaunchBtn">Копировать</button>
+          <button class="btn btn-sm" id="copyLaunchBtn">${t('copy')}</button>
         </span>
       </div>
       <div style="font-size:12.5px;color:var(--text-muted);margin-top:8px">
-        Steam → Библиотека → ПКМ по Dota 2 → Свойства → Параметры запуска → вставь строку выше.
-        Моды (кроме шрифтов и курсоров) работают только с этим параметром.
+        ${t('settingsSteamNote')}
       </div>
       <div class="modal-note" style="margin-top:10px">
-        <b>Дота на русском?</b> Выбирай <code style="background:none;color:var(--primary-soft)">dota_russian</code> и параметр
-        <code style="background:none;color:var(--primary-soft)">-language russian</code> — тогда игра останется русской.
-        С <code style="background:none;color:var(--primary-soft)">-language 123</code> игра переключается на английский.
-        При смене папки установленные моды переезжают автоматически.
+        ${t('settingsSteamWarning')}
       </div>
     </div>
 
     <div class="settings-block" style="animation-delay:120ms">
-      <h3>Кэш загрузок</h3>
+      <h3>${t('cacheSize')}</h3>
       <div class="settings-row">
-        <span class="settings-label">Размер</span>
+        <span class="settings-label">${t('cacheSize')}</span>
         <span style="font-variant-numeric:tabular-nums">${fmtMB(cacheSize)} MB</span>
-        <button class="btn btn-sm" id="clearCacheBtn">Очистить</button>
+        <button class="btn btn-sm" id="clearCacheBtn">${t('clearCache')}</button>
       </div>
       <div style="font-size:12.5px;color:var(--text-muted)">
-        Скачанные архивы модов. Нужны для быстрой переустановки — удаление ничего не сломает.
+        ${t('cacheInfoNote')}
       </div>
     </div>
 
     <div class="settings-block" style="animation-delay:180ms">
-      <h3>Каталог</h3>
+      <h3>${t('catalogTitle')}</h3>
       <div class="settings-row">
-        <span class="settings-label">Обновлён</span>
-        <span>${state.catalog?.fetchedAt ? new Date(state.catalog.fetchedAt).toLocaleString('ru') : '—'}</span>
-        <button class="btn btn-sm" id="refreshCatBtn2">Обновить сейчас</button>
+        <span class="settings-label">${t('updated')}</span>
+        <span>${state.catalog?.fetchedAt ? new Date(state.catalog.fetchedAt).toLocaleString(getLang() === 'en' ? 'en-US' : 'ru') : '—'}</span>
+        <button class="btn btn-sm" id="refreshCatBtn2">${t('refreshNow')}</button>
       </div>
       <div class="settings-row">
-        <span class="settings-label">Источник</span>
+        <span class="settings-label">${t('source')}</span>
         <a style="color:var(--primary-soft);cursor:pointer;font-size:12.5px" id="srcLink">dota2skins.vercel.app</a>
       </div>
     </div>
 
     <div class="settings-block" style="animation-delay:240ms">
-      <h3>О программе</h3>
+      <h3>${t('about')}</h3>
       <div class="settings-row">
-        <span class="settings-label">Версия</span>
+        <span class="settings-label">${t('version')}</span>
         <span style="font-variant-numeric:tabular-nums">${esc(appVersion)}</span>
       </div>
       <div style="font-size:12.5px;color:var(--text-muted)">
-        Обновления скачиваются автоматически из GitHub Releases — когда новая версия готова, появится кнопка установки.
+        ${t('updatesNote')}
       </div>
     </div>
   `;
   $('#detectBtn').addEventListener('click', async () => {
     const found = await window.api.settings.detectDota();
-    if (found) toast('Dota 2 найдена: ' + found);
-    else toast('Не нашёл автоматически — укажи вручную', 'warn');
+    if (found) toast(t('foundDota') + found);
+    else toast(t('autoDetectFailed'), 'warn');
     renderSettings();
     refreshSidebarStatus();
   });
   $('#browseBtn').addEventListener('click', async () => {
     const r = await window.api.settings.browseDota();
     if (r?.error) toast(r.error, 'error');
-    if (r?.path) toast('Путь сохранён');
+    if (r?.path) toast(t('pathSaved'));
     renderSettings();
     refreshSidebarStatus();
   });
   $('#langSelect').addEventListener('change', async (e) => {
     await window.api.settings.set('langSuffix', e.target.value);
-    toast(`Папка модов: dota_${e.target.value}. Не забудь сменить параметр запуска!`, 'warn', 6000);
+    toast(t('modsFolderHint').replace('{lang}', e.target.value), 'warn', 6000);
     renderSettings();
     refreshSidebarStatus();
   });
+  $('#uiLangSelect').addEventListener('change', async (e) => {
+    await window.api.settings.set('appLanguage', e.target.value);
+    toast(t('appLanguageSaved'), 'success');
+    renderSettings();
+  });
   $('#copyLaunchBtn').addEventListener('click', () => {
     navigator.clipboard.writeText(`-language ${s.langSuffix}`);
-    toast('Скопировано в буфер');
+    toast(t('copiedToClipboard'));
   });
   $('#clearCacheBtn').addEventListener('click', async () => {
     await window.api.misc.clearCache();
-    toast('Кэш очищен');
+    toast(t('cacheCleared'));
     renderSettings();
   });
   $('#refreshCatBtn2').addEventListener('click', async () => {
@@ -1947,6 +2603,18 @@ async function renderSettings() {
     renderSettings();
   });
   $('#srcLink').addEventListener('click', () => window.api.misc.openExternal('https://dota2skins.vercel.app/'));
+  $('#checkUpdateBtn')?.addEventListener('click', async () => {
+    const result = await window.api.update.check();
+    if (result?.ok) {
+      toast(t('checkingUpdates'), 'ok', 4000);
+    } else {
+      toast(result?.error || t('failedUpdates'), 'warn', 5000);
+    }
+  });
+}
+
+function removeUpdateBar() {
+  document.querySelectorAll('.update-bar').forEach((bar) => bar.remove());
 }
 
 // ---------- status bar ----------
@@ -1958,10 +2626,10 @@ async function refreshSidebarStatus() {
   const txtEl = $('#dotaStatusText');
   if (s.dotaPathValid) {
     dotEl.className = 'dot ok';
-    txtEl.textContent = `Dota 2 подключена · dota_${s.langSuffix} · параметр: -language ${s.langSuffix}`;
+    txtEl.textContent = `${t('dotaConnected')} · dota_${s.langSuffix} · ${t('steamLaunchOption')}: -language ${s.langSuffix}`;
   } else {
     dotEl.className = 'dot bad';
-    txtEl.textContent = 'Dota 2 не найдена — укажи путь в настройках';
+    txtEl.textContent = t('dotaNotFound');
   }
 }
 
@@ -1972,7 +2640,7 @@ window.api.onProgress((evt) => {
   const bar = $('#progressBar');
   if (evt.type === 'download') {
     bar.classList.remove('hidden');
-    $('#progressLabel').textContent = `Скачивание: ${evt.label}`;
+    $('#progressLabel').textContent = t('downloadingProgress').replace('{label}', evt.label);
     if (evt.total > 0) {
       $('#progressSize').textContent = `${fmtMB(evt.loaded)} / ${fmtMB(evt.total)} MB`;
       $('#progressFill').style.width = `${(evt.loaded / evt.total) * 100}%`;
@@ -1982,7 +2650,7 @@ window.api.onProgress((evt) => {
     }
     clearTimeout(progressHideTimer);
   } else if (evt.type === 'stage') {
-    $('#progressLabel').textContent = `${evt.label}: ${evt.stage}`;
+    $('#progressLabel').textContent = t('stageProgress').replace('{label}', evt.label).replace('{stage}', evt.stage);
     $('#progressFill').style.width = '95%';
   } else if (evt.type === 'done' || evt.type === 'error') {
     $('#progressFill').style.width = '100%';
@@ -1994,32 +2662,45 @@ window.api.onProgress((evt) => {
 // ---------- auto-update ----------
 
 window.api.update.onUpdate((evt) => {
+  removeUpdateBar();
   if (evt.type === 'available') {
-    toast(`Найдено обновление v${evt.version} — скачиваю в фоне…`, 'ok', 6000);
+    const bar = document.createElement('div');
+    bar.className = 'update-bar';
+    bar.innerHTML = `
+      <span class="ms">system_update_alt</span>
+      <span>${t('updateAvailable')} <b>v${esc(evt.version)}</b>. ${t('downloadingAutomatically')}</span>
+      <button class="btn btn-sm btn-ghost" id="updateLaterBtn">${t('later')}</button>`;
+    document.body.appendChild(bar);
+    bar.querySelector('#updateLaterBtn').addEventListener('click', () => bar.remove());
   } else if (evt.type === 'downloaded') {
     const bar = document.createElement('div');
     bar.className = 'update-bar';
     bar.innerHTML = `
       <span class="ms">system_update_alt</span>
-      <span>Обновление <b>v${esc(evt.version)}</b> готово к установке</span>
-      <button class="btn btn-sm btn-primary" id="updateNowBtn">Перезапустить и обновить</button>
-      <button class="btn btn-sm btn-ghost" id="updateLaterBtn">Позже</button>`;
+      <span>${t('updateReady')} <b>v${esc(evt.version)}</b></span>
+      <button class="btn btn-sm btn-primary" id="updateNowBtn">${t('restartAndUpdate')}</button>
+      <button class="btn btn-sm btn-ghost" id="updateLaterBtn">${t('later')}</button>`;
     document.body.appendChild(bar);
     bar.querySelector('#updateNowBtn').addEventListener('click', () => window.api.update.install());
     bar.querySelector('#updateLaterBtn').addEventListener('click', () => bar.remove());
+  } else if (evt.type === 'not-available') {
+    toast(t('noUpdates'), 'ok', 4000);
+  } else if (evt.type === 'error') {
+    toast(evt.message || t('failedUpdates'), 'warn', 5000);
   }
 });
 
 // ---------- boot ----------
 
 async function loadCatalog(force = false) {
-  if (force) toast('Обновляю каталог…');
+  if (force) toast(t('refreshingCatalog'));
   state.catalog = null;
   if (state.view === 'catalog') renderCatalog();
   state.catalog = await window.api.catalog.load(force);
   if (!state.catalog.error) buildModIndex();
   if (state.view === 'catalog') renderCatalog();
-  if (force && !state.catalog.error) toast('Каталог обновлён');
+  else render();
+  if (force && !state.catalog.error) toast(t('catalogUpdated'));
 }
 
 (async function boot() {

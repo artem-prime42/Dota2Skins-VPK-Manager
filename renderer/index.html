@@ -21,22 +21,22 @@
     <!-- Custom title bar -->
     <header id="titlebar">
       <div class="tb-brand">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l7 4v8l-7 8-7-8V6z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>
-        <span class="tb-title">Dota2skins</span>
-        <span class="tb-sub">Dota 2</span>
+        <img src="../build/icon.png" class="tb-icon" alt="App icon" data-i18n-alt="appIconAlt">
+        <span class="tb-title" data-i18n="appTitle">Dota2skins</span>
+        <span class="tb-sub" data-i18n="appSubtitle">Dota 2</span>
+      </div>
+
+      <div class="main-search-inline">
+        <span class="ms" aria-hidden="true">search</span>
+        <input id="globalSearch" data-i18n-placeholder="searchPlaceholder" placeholder="Поиск модов…" spellcheck="false">
+        <button id="clearSearch" class="tb-search-clear hidden" aria-label="Очистить" data-i18n-aria-label="clear"><span class="ms">close</span></button>
       </div>
 
       <div class="tb-spacer"></div>
 
-      <div class="tb-search">
-        <span class="ms" aria-hidden="true">search</span>
-        <input id="globalSearch" placeholder="Поиск модов…" spellcheck="false">
-        <button id="clearSearch" class="tb-search-clear hidden" aria-label="Очистить"><span class="ms">close</span></button>
-      </div>
-
       <div class="tb-controls">
-        <button class="tb-ctl" id="winMin" aria-label="Свернуть"><svg viewBox="0 0 12 12" width="12" height="12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.2"/></svg></button>
-        <button class="tb-ctl tb-close" id="winClose" aria-label="Закрыть"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+        <button class="tb-ctl" id="winMin" aria-label="Свернуть" data-i18n-aria-label="minimize"><svg viewBox="0 0 12 12" width="12" height="12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+        <button class="tb-ctl tb-close" id="winClose" aria-label="Закрыть" data-i18n-aria-label="closeWindow"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
       </div>
     </header>
 
@@ -52,26 +52,25 @@
       </div>
 
       <aside class="side-panel">
-        <div class="side-brand">
-          <div class="side-brand-title">Dota2skins</div>
-        </div>
+        <div class="side-brand"></div>
         <div class="side-nav">
-          <button class="tb-tab side-tab active" data-view="catalog">Каталог</button>
-          <button class="tb-tab side-tab" data-view="library">Библиотека<span class="tb-badge" id="libCount"></span></button>
-          <button class="tb-tab side-tab" data-view="presets">Пресеты</button>
-          <button class="tb-tab side-tab" data-view="authors">Авторы</button>
-          <button class="tb-tab side-tab" data-view="tools">Инструменты</button>
-          <button class="tb-tab side-tab" data-view="settings">Настройки</button>
+          <button class="tb-tab side-tab active" data-view="home"><span class="ms">home</span><span class="tab-label" data-i18n="home">Главная</span></button>
+          <button class="tb-tab side-tab" data-view="catalog"><span class="ms">apps</span><span class="tab-label" data-i18n="catalog">Каталог</span></button>
+          <button class="tb-tab side-tab" data-view="library"><span class="ms">inventory</span><span class="tab-label" data-i18n="library">Библиотека</span><span class="tb-badge" id="libCount"></span></button>
+          <button class="tb-tab side-tab" data-view="presets"><span class="ms">playlist_add</span><span class="tab-label" data-i18n="presets">Пресеты</span></button>
+          <button class="tb-tab side-tab" data-view="authors"><span class="ms">person</span><span class="tab-label" data-i18n="authors">Авторы</span></button>
+          <button class="tb-tab side-tab" data-view="tools"><span class="ms">build</span><span class="tab-label" data-i18n="tools">Инструменты</span></button>
+          <button class="tb-tab side-tab" data-view="settings"><span class="ms">settings</span><span class="tab-label" data-i18n="settings">Настройки</span></button>
         </div>
-        <button class="side-launch" id="launchDotaBtn"><span class="ms">play_arrow</span><span>Запустить Dota 2</span></button>
+        <button class="side-launch" id="launchDotaBtn"><span class="ms">play_arrow</span><span data-i18n="launchDota">Запустить Dota 2</span></button>
       </aside>
     </div>
 
     <!-- Status footer strip -->
     <footer id="statusbar">
       <span class="dot" id="dotaStatusDot"></span>
-      <span id="dotaStatusText">Поиск Dota 2…</span>
-      <button class="status-link" id="openModsFolderBtn">Открыть папку модов</button>
+      <span id="dotaStatusText" data-i18n="searchingDota">Поиск Dota 2…</span>
+      <button class="status-link" id="openModsFolderBtn"><span class="ms">folder_open</span><span data-i18n="openModsFolder">Открыть папку модов</span></button>
     </footer>
 
     <!-- Progress bar (bottom) -->

@@ -60,6 +60,21 @@ function parseStringValue(raw) {
   return cleaned;
 }
 
+function parseDateValue(raw) {
+  if (raw === null || raw === undefined || raw === '') return null;
+  if (typeof raw === 'number') {
+    return Number.isFinite(raw) ? raw : null;
+  }
+  const text = parseStringValue(raw);
+  if (!text) return null;
+  if (/^\d+$/.test(text)) {
+    const num = Number(text);
+    return Number.isFinite(num) ? (num > 1e12 ? num : num * 1000) : null;
+  }
+  const parsed = Date.parse(text);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function formatHeroLabel(slug) {
   if (!slug) return 'Hero';
   return String(slug)
@@ -240,8 +255,11 @@ async function loadSiteCatalog(source) {
       currentObject.name = parseStringValue(valueText);
       continue;
     }
-    if (key === 'author') {
-      currentObject.author = parseStringValue(valueText);
+    if (key === 'author' || key === 'sender' || key === 'authorName') {
+      const authorValue = parseStringValue(valueText);
+      if (authorValue && !currentObject.author) {
+        currentObject.author = authorValue;
+      }
       continue;
     }
     if (key === 'category') {
@@ -264,8 +282,11 @@ async function loadSiteCatalog(source) {
       currentObject.file = parseStringValue(valueText);
       continue;
     }
-    if (key === 'createdAt') {
-      currentObject.createdAt = parseStringValue(valueText);
+    if (key === 'createdAt' || key === 'created_at' || key === 'date') {
+      const dateValue = parseStringValue(valueText);
+      if (dateValue && !currentObject.createdAt) {
+        currentObject.createdAt = dateValue;
+      }
       continue;
     }
   }
@@ -287,7 +308,7 @@ async function loadSiteCatalog(source) {
     if (heroSlug && !heroNames.includes(heroLabel)) heroNames.push(heroLabel);
     const normalized = {
       name: entry.name || entry.title || entry.id,
-      author: entry.author || 'Unknown',
+      author: entry.author || entry.sender || entry.authorName || 'Unknown',
       preview: entry.preview || null,
       file: entry.file || null,
       createdAt: entry.createdAt || null,
@@ -368,7 +389,11 @@ async function loadSiteCatalog(source) {
   return {
     mods: {
       modsData: grouped,
-      recentlyAddedMods: Object.values(grouped).flat().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 40),
+      recentlyAddedMods: Object.values(grouped)
+        .filter(Array.isArray)
+        .flat()
+        .sort((a, b) => (parseDateValue(b.createdAt) || 0) - (parseDateValue(a.createdAt) || 0))
+        .slice(0, 40),
     },
     constants: {
       categories,

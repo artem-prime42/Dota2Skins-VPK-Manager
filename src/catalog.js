@@ -48,10 +48,19 @@ class Catalog {
     } else if (this.source.type === 'site') {
       const dataUrl = this.source.dataUrl || this.source.fileUrl;
       if (dataUrl) {
-        const res = await fetch(dataUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status} while fetching catalog`);
-        text = await res.text();
-        parsed = JSON.parse(text);
+        try {
+          const res = await fetch(dataUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status} while fetching catalog`);
+          text = await res.text();
+          parsed = JSON.parse(text);
+        } catch (err) {
+          if (this.source.fallbackSiteRoot) {
+            parsed = await loadSiteCatalog({ siteRoot: this.source.fallbackSiteRoot });
+            text = JSON.stringify(parsed);
+          } else {
+            throw err;
+          }
+        }
       } else {
         parsed = await loadSiteCatalog(this.source);
         text = JSON.stringify(parsed);
@@ -64,7 +73,7 @@ class Catalog {
         parsed = JSON.parse(text);
       } catch (err) {
         if (this.source.fallbackSiteRoot) {
-          parsed = loadSiteCatalog(this.source.fallbackSiteRoot);
+          parsed = await loadSiteCatalog(this.source.fallbackSiteRoot);
           text = JSON.stringify(parsed);
         } else {
           throw err;

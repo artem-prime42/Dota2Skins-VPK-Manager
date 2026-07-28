@@ -4,11 +4,19 @@ const fs = require('fs');
 
 const DEFAULT_CATALOG_REPO = 'https://github.com/artem-prime42/dota2-mod-manager-catalog';
 const DEFAULT_CATALOG_URL = 'https://raw.githubusercontent.com/artem-prime42/dota2-mod-manager-catalog/main/catalog.json';
+const LOCAL_CATALOG_PATH = '/home/artem/Other/catalog-repo/catalog.json';
 
 function resolveCatalogSource() {
   const envCatalogUrl = process.env.DOTA2SKINS_CATALOG_URL;
+  const envLocalCatalog = process.env.DOTA2SKINS_LOCAL_CATALOG;
+
   if (envCatalogUrl) {
     return { type: 'remote', url: envCatalogUrl };
+  }
+
+  const localCatalogFile = envLocalCatalog || LOCAL_CATALOG_PATH;
+  if (localCatalogFile && fs.existsSync(localCatalogFile)) {
+    return { type: 'file', filePath: localCatalogFile };
   }
 
   return {
@@ -40,13 +48,14 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1420,
     height: 860,
-    minWidth: 1420,
-    minHeight: 860,
-    resizable: false,
-    maximizable: false,
+    minWidth: 1100,
+    minHeight: 760,
+    resizable: true,
+    maximizable: true,
     backgroundColor: '#050506',
     autoHideMenuBar: true,
     frame: false,
+    icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -140,14 +149,22 @@ function setupAutoUpdate() {
     owner: 'artem-prime42',
     repo: 'dota2skins-mod-manager',
     private: false,
+    protocol: 'https',
+    host: 'github.com',
+    path: '/artem-prime42/dota2skins-mod-manager/releases/latest',
   });
   autoUpdater.on('update-available', (info) => {
     if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'available', version: info.version });
   });
+  autoUpdater.on('update-not-available', () => {
+    if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'not-available' });
+  });
   autoUpdater.on('update-downloaded', (info) => {
     if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'downloaded', version: info.version });
   });
-  autoUpdater.on('error', () => { /* offline or rate-limited — silent */ });
+  autoUpdater.on('error', (err) => {
+    if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'error', message: String(err.message || err) });
+  });
   autoUpdater.checkForUpdates().catch(() => {});
   // re-check every 4 hours while the app is open
   setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 4 * 60 * 60 * 1000);
@@ -169,6 +186,15 @@ function registerIpc() {
   // ----- updates -----
   ipcMain.handle('update:install', () => {
     if (autoUpdater) autoUpdater.quitAndInstall();
+  });
+  ipcMain.handle('update:check', async () => {
+    if (!autoUpdater) return { error: 'Обновления недоступны' };
+    try {
+      await autoUpdater.checkForUpdates();
+      return { ok: true };
+    } catch (err) {
+      return { error: String(err.message || err) };
+    }
   });
   ipcMain.handle('app:version', () => app.getVersion());
 
