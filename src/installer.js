@@ -5,7 +5,11 @@ const AdmZip = require('adm-zip');
 const { RAW_BASE } = require('./catalog');
 
 // Categories whose VPKs must load with higher priority ("!pakNN", numbers 02-09)
-const PRIORITY_CATEGORIES = ['trees', 'river', 'shaders', 'herofx', 'ranged-attack', 'hero-items', 'optimization'];
+const PRIORITY_CATEGORIES = ['river', 'shaders', 'herofx', 'hero-items', 'optimization'];
+
+function shouldUsePriorityPak(categoryId) {
+  return PRIORITY_CATEGORIES.includes(categoryId);
+}
 
 const FONTS_SUBDIR = ['dota', 'panorama', 'fonts'];
 const CURSOR_SUBDIR = ['dota', 'resource', 'cursor'];
@@ -129,7 +133,7 @@ class Installer {
    * [{ root: 'lang'|'fonts'|'cursor'|'tools', relPath, backup? }]
    */
   async install({ categoryId, modName, fileRef }) {
-    const isPriority = PRIORITY_CATEGORIES.includes(categoryId);
+    const isPriority = shouldUsePriorityPak(categoryId);
     const local = await this.download(categoryId, fileRef, modName);
     this.onProgress({ type: 'stage', label: modName, stage: 'установка' });
 
@@ -348,4 +352,4 @@ class Installer {
   }
 }
 
-module.exports = { Installer, PRIORITY_CATEGORIES };
+module.exports = { Installer, PRIORITY_CATEGORIES, shouldUsePriorityPak };

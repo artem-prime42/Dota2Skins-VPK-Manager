@@ -1048,6 +1048,14 @@ function renderDashboard() {
     .map((m) => ({ ...m, _cat: m._cat || m.categoryId || m.category || 'other' })) || []);
   const updateItems = (getLang() === 'en' ? [
     {
+      title: '1.1.1 launcher bug fix',
+      date: '2026-07-29',
+      meta: 'Bug fix',
+      changes: [
+        'Fixed launcher issues related to mod installation naming for certain categories.'
+      ],
+    },
+    {
       title: '1.1.0 launcher update',
       date: '2026-07-28',
       meta: 'Improvements and fixes',
@@ -1087,6 +1095,14 @@ function renderDashboard() {
       ],
     },
   ] : [
+    {
+      title: 'Версия 1.1.1',
+      date: '2026-07-29',
+      meta: 'Баг фикс',
+      changes: [
+        'Исправлены проблемы с названиями устанавливаемых модов в некоторых категориях.'
+      ],
+    },
     {
       title: 'Версия 1.1.0',
       date: '2026-07-28',
@@ -2579,7 +2595,7 @@ async function renderAbout() {
           </div>
           <span class="about-community-action">${t('discordAction')}</span>
         </a>
-        <a class="about-community-card about-community-card--telegram" href="https://t.me/dota_free_skins" target="_blank" rel="noopener noreferrer">
+        <a class="about-community-card about-community-card--telegram" href="https://t.me/dota2skins_official" target="_blank" rel="noopener noreferrer">
           <div class="about-community-icon">T</div>
           <div class="about-community-copy">
             <div class="about-community-title">${t('telegramTitle')}</div>

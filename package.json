@@ -1,7 +1,7 @@
 {
   "name": "dota2skins-mod-manager",
   "productName": "Dota2skins-mod-manager",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Desktop mod manager for Dota 2 — browse, install, toggle and preset 900+ cosmetic mods from the Dota2skins catalog",
   "main": "main.js",
   "scripts": {
@@ -48,7 +48,8 @@
         "nsis"
       ],
       "icon": "build/icon.ico",
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "signAndEditExecutable": false
     },
     "linux": {
       "target": [
