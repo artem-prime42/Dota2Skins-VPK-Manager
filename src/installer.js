@@ -4,7 +4,7 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 const { RAW_BASE } = require('./catalog');
 
-// Categories whose VPKs must load with higher priority ("!pakNN", numbers 02-09)
+// Categories whose VPKs must load with higher priority ("pakNN", numbers 02-09)
 const PRIORITY_CATEGORIES = ['river', 'shaders', 'herofx', 'hero-items', 'optimization'];
 
 function shouldUsePriorityPak(categoryId) {
@@ -97,7 +97,7 @@ class Installer {
   allocatePak(used, priority) {
     if (priority) {
       for (let n = 2; n <= 9; n++) {
-        const name = `!pak0${n}_dir.vpk`;
+        const name = `pak0${n}_dir.vpk`;
         if (!used.has(name)) {
           used.add(name);
           return name;

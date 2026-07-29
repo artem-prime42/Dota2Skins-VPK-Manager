@@ -13,7 +13,7 @@ test('Renderer card template uses explicit preview links for preview buttons', (
   assert.doesNotMatch(appSource, /<button class="mtag-play"/);
 });
 
-test('Site adapter keeps full preview and download URLs', () => {
+test('Site adapter keeps full preview and download URLs', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');
   fs.mkdirSync(sourceDir, { recursive: true });
@@ -34,14 +34,14 @@ export const OTHER_MODS = [];
 export const EXTRA_HIDDEN_SKIN_TITLES = [];
 `);
 
-  const data = loadSiteCatalog(tmpDir);
+  const data = await loadSiteCatalog(tmpDir);
   const entry = data.mods.modsData.heroes[0];
 
   assert.equal(entry.preview, 'https://img.example.com/demo.webp');
   assert.equal(entry.file, 'https://files.example.com/demo.zip');
 });
 
-test('Site adapter maps mods to their hero slug and slot', () => {
+test('Site adapter maps mods to their hero slug and slot', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-hero-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');
   fs.mkdirSync(sourceDir, { recursive: true });
@@ -63,7 +63,7 @@ export const OTHER_MODS = [];
 export const EXTRA_HIDDEN_SKIN_TITLES = [];
 `);
 
-  const data = loadSiteCatalog(tmpDir);
+  const data = await loadSiteCatalog(tmpDir);
   const hero = data.constants.HERO_CATALOG[0];
   const entry = data.mods.modsData.heroes[0];
 
@@ -127,7 +127,7 @@ export const EXTRA_HIDDEN_SKIN_TITLES = [];
   assert.equal(data.mods.modsData.heroes[0].preview, 'https://img.example.com/fresh.webp');
 });
 
-test('Site adapter parses all mods from OTHER_MODS and normalizes category ids', () => {
+test('Site adapter parses all mods from OTHER_MODS and normalizes category ids', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-other-mods-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');
   fs.mkdirSync(sourceDir, { recursive: true });
@@ -167,7 +167,7 @@ export const OTHER_MODS = [
 export const EXTRA_HIDDEN_SKIN_TITLES = [];
 `);
 
-  const data = loadSiteCatalog(tmpDir);
+  const data = await loadSiteCatalog(tmpDir);
 
   assert.ok(data.mods.modsData['high-five']);
   assert.ok(data.mods.modsData['creep-deny']);
@@ -175,7 +175,53 @@ export const EXTRA_HIDDEN_SKIN_TITLES = [];
   assert.ok(data.constants.categories.some((c) => c.id === 'creep-deny'));
 });
 
-test('Site adapter loads author profiles with avatars and links', () => {
+test('Site adapter strips leading exclamation marks from mod names for all categories', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-name-normalization-test-'));
+  const sourceDir = path.join(tmpDir, 'app', 'lib');
+  fs.mkdirSync(sourceDir, { recursive: true });
+  const sourcePath = path.join(sourceDir, 'hero-skins.ts');
+  fs.writeFileSync(sourcePath, `
+export const HERO_MODS = {
+  demo: [{
+    id: "demo",
+    title: "Hero mod",
+    author: "anon",
+    category: "heroes",
+    imageUrl: "https://img.example.com/hero.webp",
+    downloadUrl: "https://files.example.com/hero.zip",
+    createdAt: "2026-07-20T00:00:00.000Z",
+  }],
+};
+export const OTHER_MODS = [
+  {
+    id: "optimization-example",
+    title: "!Optimization Example",
+    author: "anon",
+    category: "optimization",
+    imageUrl: "https://img.example.com/optimization.webp",
+    downloadUrl: "https://files.example.com/optimization.zip",
+    createdAt: "2026-07-20T00:00:00.000Z",
+  },
+  {
+    id: "river-example",
+    title: "!River Example",
+    author: "anon",
+    category: "river",
+    imageUrl: "https://img.example.com/river.webp",
+    downloadUrl: "https://files.example.com/river.zip",
+    createdAt: "2026-07-20T00:00:00.000Z",
+  },
+];
+export const EXTRA_HIDDEN_SKIN_TITLES = [];
+`);
+
+  const data = await loadSiteCatalog(tmpDir);
+
+  assert.equal(data.mods.modsData.optimization[0].name, 'Optimization Example');
+  assert.equal(data.mods.modsData.river[0].name, 'River Example');
+});
+
+test('Site adapter loads author profiles with avatars and links', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-authors-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');
   fs.mkdirSync(sourceDir, { recursive: true });
@@ -206,7 +252,7 @@ export const AUTHORS_PROFILES = {
 };
 `);
 
-  const data = loadSiteCatalog(tmpDir);
+  const data = await loadSiteCatalog(tmpDir);
   const profile = data.constants.AUTHOR_PROFILES.find((p) => p.id === 'mopsyara');
 
   assert.ok(profile);

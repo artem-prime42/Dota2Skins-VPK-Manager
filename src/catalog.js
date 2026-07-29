@@ -8,6 +8,43 @@ const DEFAULT_CATALOG_URL = `${DEFAULT_BASE}/catalog.json`;
 const DEFAULT_DATA_FILE = 'catalog.json';
 const RAW_BASE = DEFAULT_BASE;
 
+function normalizeModName(name) {
+  if (name === null || name === undefined) return null;
+  const text = String(name).trim();
+  if (!text) return null;
+  return text.replace(/^!+\s*/, '').trim();
+}
+
+function normalizeCatalogPayload(data) {
+  if (!data || typeof data !== 'object') return data;
+
+  const normalizeValue = (value) => {
+    if (Array.isArray(value)) return value.map(normalizeValue);
+    if (!value || typeof value !== 'object') return value;
+
+    const shouldNormalizeName = Object.prototype.hasOwnProperty.call(value, 'name') || Object.prototype.hasOwnProperty.call(value, 'title');
+    if (shouldNormalizeName) {
+      const copy = { ...value };
+      if (Object.prototype.hasOwnProperty.call(copy, 'name')) copy.name = normalizeModName(copy.name);
+      if (Object.prototype.hasOwnProperty.call(copy, 'title')) copy.title = normalizeModName(copy.title);
+      return copy;
+    }
+
+    const out = {};
+    for (const [key, child] of Object.entries(value)) {
+      out[key] = normalizeValue(child);
+    }
+    return out;
+  };
+
+  if (data.mods && typeof data.mods === 'object') {
+    if (data.mods.modsData) data.mods.modsData = normalizeValue(data.mods.modsData);
+    if (data.mods.recentlyAddedMods) data.mods.recentlyAddedMods = normalizeValue(data.mods.recentlyAddedMods);
+  }
+
+  return data;
+}
+
 class Catalog {
   constructor(userDataDir, opts = {}) {
     this.cacheDir = path.join(userDataDir, 'catalog-cache');
@@ -81,9 +118,10 @@ class Catalog {
       }
     }
 
-    fs.writeFileSync(this.cachePath(DEFAULT_DATA_FILE), text);
+    const normalized = normalizeCatalogPayload(parsed);
+    fs.writeFileSync(this.cachePath(DEFAULT_DATA_FILE), JSON.stringify(normalized));
     fs.writeFileSync(this.cachePath('meta.json'), JSON.stringify({ fetchedAt: Date.now() }));
-    return parsed;
+    return normalized;
   }
 
   async load({ forceRefresh = false } = {}) {
@@ -93,8 +131,9 @@ class Catalog {
     }
     const text = fs.readFileSync(this.cachePath(DEFAULT_DATA_FILE), 'utf-8');
     const parsed = JSON.parse(text);
+    const normalized = normalizeCatalogPayload(parsed);
     return {
-      ...parsed,
+      ...normalized,
       fetchedAt: this.cacheInfo().fetchedAt,
     };
   }

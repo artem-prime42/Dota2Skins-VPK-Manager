@@ -82,6 +82,13 @@ function formatHeroLabel(slug) {
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
 
+function normalizeModName(name) {
+  if (name === null || name === undefined) return null;
+  const text = String(name).trim();
+  if (!text) return null;
+  return text.replace(/^!+\s*/, '').trim();
+}
+
 function normalizeCategoryId(id) {
   const raw = String(id || '').trim().toLowerCase();
   if (!raw) return 'other';
@@ -307,7 +314,7 @@ async function loadSiteCatalog(source) {
     const heroLabel = heroSlug ? formatHeroLabel(heroSlug) : null;
     if (heroSlug && !heroNames.includes(heroLabel)) heroNames.push(heroLabel);
     const normalized = {
-      name: entry.name || entry.title || entry.id,
+      name: normalizeModName(entry.name || entry.title || entry.id),
       author: entry.author || entry.sender || entry.authorName || 'Unknown',
       preview: entry.preview || null,
       file: entry.file || null,
