@@ -83,6 +83,175 @@ const SORTS = [
   { key: 'name-desc', label: { ru: 'По имени Я-А', en: 'Name Z-A' } },
 ];
 
+const HERO_ATTRIBUTE_MAP = {
+  alchemist: 'strength',
+  axe: 'strength',
+  bristleback: 'strength',
+  centaur: 'strength',
+  chaos_knight: 'strength',
+  clockwerk: 'strength',
+  dawnbreaker: 'strength',
+  doom: 'strength',
+  dragon_knight: 'strength',
+  earth_spirit: 'strength',
+  earthshaker: 'strength',
+  elder_titan: 'strength',
+  huskar: 'strength',
+  kunkka: 'strength',
+  largo: 'strength',
+  legion_commander: 'strength',
+  lifestealer: 'strength',
+  lycan: 'strength',
+  mars: 'strength',
+  night_stalker: 'strength',
+  ogre_magi: 'strength',
+  omniknight: 'strength',
+  phoenix: 'strength',
+  primal_beast: 'strength',
+  pudge: 'strength',
+  slardar: 'strength',
+  spirit_breaker: 'strength',
+  sven: 'strength',
+  tidehunter: 'strength',
+  timbersaw: 'strength',
+  tiny: 'strength',
+  treant_protector: 'strength',
+  tusk: 'strength',
+  underlord: 'strength',
+  undying: 'strength',
+  wraith_king: 'strength',
+  anti_mage: 'agility',
+  bloodseeker: 'agility',
+  bounty_hunter: 'agility',
+  broodmother: 'agility',
+  clinkz: 'agility',
+  drow_ranger: 'agility',
+  ember_spirit: 'agility',
+  faceless_void: 'agility',
+  gyrocopter: 'agility',
+  hoodwink: 'agility',
+  juggernaut: 'agility',
+  kez: 'agility',
+  lone_druid: 'agility',
+  luna: 'agility',
+  medusa: 'agility',
+  meepo: 'agility',
+  mirana: 'agility',
+  monkey_king: 'agility',
+  morphling: 'agility',
+  naga_siren: 'agility',
+  phantom_assassin: 'agility',
+  phantom_lancer: 'agility',
+  razor: 'agility',
+  riki: 'agility',
+  shadow_fiend: 'agility',
+  slark: 'agility',
+  sniper: 'agility',
+  spectre: 'agility',
+  templar_assassin: 'agility',
+  terrorblade: 'agility',
+  troll_warlord: 'agility',
+  ursa: 'agility',
+  vengeful_spirit: 'agility',
+  viper: 'agility',
+  weaver: 'agility',
+  ancient_apparition: 'intelligence',
+  bane: 'universal',
+  batrider: 'universal',
+  chen: 'intelligence',
+  crystal_maiden: 'intelligence',
+  dark_seer: 'intelligence',
+  dark_willow: 'intelligence',
+  disruptor: 'intelligence',
+  enchantress: 'intelligence',
+  enigma: 'universal',
+  grimstroke: 'intelligence',
+  invoker: 'intelligence',
+  jakiro: 'intelligence',
+  keeper_of_the_light: 'intelligence',
+  leshrac: 'intelligence',
+  lich: 'intelligence',
+  lina: 'intelligence',
+  lion: 'intelligence',
+  muerta: 'intelligence',
+  necrophos: 'intelligence',
+  outworld_devourer: 'intelligence',
+  puck: 'intelligence',
+  pugna: 'intelligence',
+  queen_of_pain: 'intelligence',
+  ringmaster: 'intelligence',
+  rubick: 'intelligence',
+  shadow_demon: 'intelligence',
+  shadow_shaman: 'intelligence',
+  silencer: 'intelligence',
+  skywrath_mage: 'intelligence',
+  storm_spirit: 'intelligence',
+  tinker: 'intelligence',
+  oracle: 'intelligence',
+  warlock: 'intelligence',
+  witch_doctor: 'intelligence',
+  zeus: 'intelligence',
+  abaddon: 'universal',
+  arc_warden: 'universal',
+  beastmaster: 'universal',
+  batrider: 'universal',
+  brewmaster: 'universal',
+  dazzle: 'universal',
+  death_prophet: 'universal',
+  enigma: 'universal',
+  io: 'universal',
+  magnus: 'universal',
+  marci: 'universal',
+  nature_prophet: 'universal',
+  nyx_assassin: 'universal',
+  pangolier: 'universal',
+  sand_king: 'universal',
+  snapfire: 'universal',
+  techies: 'universal',
+  venomancer: 'universal',
+  visage: 'universal',
+  void_spirit: 'universal',
+  windranger: 'universal',
+  winter_wyvern: 'intelligence',
+};
+
+function getHeroAttribute(slug) {
+  if (!slug) return null;
+  return HERO_ATTRIBUTE_MAP[String(slug).toLowerCase()] || null;
+}
+
+function heroFilterLabel(filterKey) {
+  switch (filterKey) {
+    case 'favorites': return getLang() === 'en' ? 'Favorites' : 'Избранные';
+    case 'count': return getLang() === 'en' ? 'By count' : 'По количеству';
+    case 'universal': return getLang() === 'en' ? 'Universal' : 'Универсал';
+    case 'strength': return getLang() === 'en' ? 'Strength' : 'Сила';
+    case 'agility': return getLang() === 'en' ? 'Agility' : 'Ловкость';
+    case 'intelligence': return getLang() === 'en' ? 'Intelligence' : 'Интеллект';
+    default: return getLang() === 'en' ? 'All' : 'Все';
+  }
+}
+
+const FAVORITE_HEROES_KEY = 'favoriteHeroes';
+function loadFavoriteHeroes() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(FAVORITE_HEROES_KEY) || '[]').map((slug) => String(slug).toLowerCase()));
+  } catch {
+    return new Set();
+  }
+}
+function saveFavoriteHeroes() {
+  localStorage.setItem(FAVORITE_HEROES_KEY, JSON.stringify([...state.favorites]));
+}
+function toggleFavoriteHero(slug) {
+  if (!slug) return;
+  const key = String(slug).toLowerCase();
+  if (state.favorites.has(key)) state.favorites.delete(key);
+  else state.favorites.add(key);
+  saveFavoriteHeroes();
+  renderCatalog();
+}
+
 const UI_TEXT = {
   ru: {
     appTitle: 'Dota2skins',
@@ -167,6 +336,8 @@ const UI_TEXT = {
     backToHeroes: 'Назад к героям',
     noHeroes: 'Нет доступных героев',
     noFilteredMods: 'Ничего не найдено — сбрось фильтры',
+    filters: 'Фильтры',
+    addToFavorites: 'Добавить в избранное',
     guide: 'Гайд',
     openSite: 'Открыть сайт',
     savePack: 'Сохранить пак',
@@ -329,6 +500,8 @@ const UI_TEXT = {
     backToHeroes: 'Back to heroes',
     noHeroes: 'No heroes available',
     noFilteredMods: 'Nothing found — reset the filters',
+    filters: 'Filters',
+    addToFavorites: 'Add to favorites',
     guide: 'Guide',
     openSite: 'Open site',
     savePack: 'Save pack',
@@ -416,7 +589,12 @@ const state = {
   settings: null,
   activeCategory: 'all',
   search: '',
-  filters: { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '' },
+  searchType: '',
+  searchActive: false,
+  filters: { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() },
+  heroFiltersOpen: false,
+  heroSearchKeepFocus: false,
+  favorites: loadFavoriteHeroes(),
   librarySearch: '',
   installedIndex: new Map(),
   installing: new Set(),
@@ -429,6 +607,140 @@ const viewRoot = $('#view-root');
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+const ARCANA_MOD_NAMES = new Set([
+  'drow ranger arcana',
+  'drow ranger stranger arcana',
+  'faceless void arcana',
+  'faceless void arcana style 2',
+  'monkey king arcana',
+  'monkey king arcana water',
+  'monkey king arcana death',
+  'monkey king arcana fire',
+  'spectre arcana',
+  'spectre arcana style 2',
+  'bloody spectre',
+  'terrorblade immortal arcana',
+  'terrorblade black arcana',
+  'terrorblade fractal horns of inner red',
+  'terrorblade fractal horns of inner white',
+  'terrorblade green fractal horns',
+  'terrorblade fractal horns of inner white v2',
+  'zeus arcana',
+  'wraith king arcana',
+  'phantom assassin arcana gothic whisper',
+  'skywrath mage arcana i',
+  'skywrath mage arcana ii',
+  'shadow fiend arcana',
+]);
+const IMMORTAL_MOD_NAMES = new Set([
+  'golden basher of mage skulls',
+  'golden offhand basher of mage skulls',
+  'origins of faith',
+  'orbuculum equinox dire delight',
+  'axe custom unleashed',
+  'eternal radiance blades',
+  'thirst of eztzhok blade',
+  'thirst of eztzhok off hand',
+  'bloodseeker eztzhok',
+  'tines of tybara',
+  'hunter\'s hoard',
+  'beastmaster primal paean',
+  'beastmaster primal peacemaker',
+  'beastmaster primal peacemaker crimson',
+  'immortal beastmaster',
+  'infernal cavalcade',
+  'infernal chieftain',
+  'infernal chieftain of the crimson witness',
+  'golden infernal chieftain',
+  'infernal cavalcade of the crimson witness',
+  'infernal menace',
+  'yulsaria\'s glacier',
+  'yulsaria\'s mantle',
+  'ice blossom',
+  'golden ice blossom',
+  'golden bracers of forlorn precipice',
+  'bracers of forlorn precipice',
+  'gates of nothl',
+  'gates of nothl crimson',
+  'disruptor tandem storm',
+  'mace of aeons',
+  'mace of aeons oathbreaker',
+  'mace of aeons usurper',
+  'magus apex',
+  'dark artistry cape',
+  'magus accord',
+  'dark artistry belt',
+  'dark artistry pauldrons',
+  'dark artistry bracers',
+  'mulctant pall',
+  'lion fin kings charm',
+  'fin king\'s charm of eminent revival',
+  'fin kings charm of eminent revival exceptional',
+  'hell-spar anathema crimson',
+  'hell-spar anathema',
+  'hell-spar anathema obsidian blight',
+  'cauldron of xahryx retro v2',
+  'claws of nuranu',
+  'twilight schism',
+  'golden twilight schism',
+  'twilight schism of the crimson witness',
+  'moonfall',
+  'golden moonfall',
+  'eyes of ardenok',
+  'eyes of ardenok crimson',
+  'shock of the anvil',
+  'progenitor\'s bane',
+  'crimson progenitor\'s bane',
+  'staff of gun-yu',
+  'golden staff of gun-yu',
+  '10th anniversary staff of gun-yu',
+  'staff of gun-yu of the crimson witness',
+  'immortal necrophos',
+  'codicil of the veiled ones',
+  'avowance of the veiled ones',
+  'avowance of the crimson witness',
+  'concord reversion',
+  'concord dominion',
+  'concord dominion of the crimson witness',
+  'tyrian phantom concord',
+  'immortal puck',
+  'queen of pain immortal',
+  'arms of desolation',
+  'immortal slardar',
+  'slark shadow in the deep',
+  'savage mettle',
+  'lightning orchid',
+  'stormborn',
+  'golden mandate of the stormborn',
+  'immortal templar assassin',
+  'rollermawster',
+  'tiny majesty of the colossus',
+  'the hallows within',
+  'swift claw',
+]);
+
+function normalizeBadgeName(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+function getModBadgeType(mod, styleLabel = '') {
+  const name = normalizeBadgeName(mod?.name);
+  const label = normalizeBadgeName(styleLabel);
+  const fullName = normalizeBadgeName(`${name} ${label}`);
+  if (ARCANA_MOD_NAMES.has(fullName) || ARCANA_MOD_NAMES.has(name) || ARCANA_MOD_NAMES.has(label)) return 'arcana';
+  if (IMMORTAL_MOD_NAMES.has(fullName) || IMMORTAL_MOD_NAMES.has(name) || IMMORTAL_MOD_NAMES.has(label)) return 'immortal';
+  return null;
+}
+
+function badgeLabelForType(type) {
+  return type === 'arcana' ? 'Arcana' : type === 'immortal' ? 'Immortal' : '';
+}
+
+function isSearchTypeMatch(mod, searchType) {
+  if (!searchType) return true;
+  return getModBadgeType(mod) === searchType;
 }
 
 function fmtMB(bytes) { return (bytes / 1024 / 1024).toFixed(1); }
@@ -913,6 +1225,20 @@ $('#launchDotaBtn').addEventListener('click', async () => {
 
 // global search
 let searchTimer = null;
+$('#globalSearch').addEventListener('focus', () => {
+  state.searchActive = true;
+  $('#clearSearch').classList.toggle('hidden', !state.search);
+  if (state.view !== 'catalog') switchView('catalog');
+  else renderCatalog();
+});
+$('#globalSearch').addEventListener('blur', () => {
+  setTimeout(() => {
+    if (!state.search && !state.searchType && document.activeElement !== $('#globalSearch')) {
+      state.searchActive = false;
+      if (state.view === 'catalog') renderCatalog();
+    }
+  }, 100);
+});
 $('#globalSearch').addEventListener('input', (e) => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
@@ -927,6 +1253,9 @@ $('#clearSearch').addEventListener('click', () => {
   $('#globalSearch').value = '';
   state.search = '';
   $('#clearSearch').classList.add('hidden');
+  if (!state.searchType) {
+    state.searchActive = false;
+  }
   if (state.view === 'catalog') renderCatalog();
 });
 
@@ -974,7 +1303,7 @@ function renderRail() {
   rail.querySelectorAll('.rail-item').forEach((b) => {
     b.addEventListener('click', () => {
       state.activeCategory = b.dataset.cat;
-      state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '' };
+      state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() };
       renderCatalog();
     });
   });
@@ -1029,7 +1358,7 @@ function renderCatalog() {
 
   renderRail();
 
-  const searching = state.search.trim().length > 0;
+  const searching = state.search.trim().length > 0 || state.searchType || state.searchActive;
   if (searching) return renderSearchResults();
   if (state.activeCategory === 'all') return renderHome();
   renderCategory(state.activeCategory);
@@ -1251,7 +1580,7 @@ function renderHome() {
   viewRoot.querySelectorAll('.cat-tile').forEach((t) => {
     t.addEventListener('click', () => {
       state.activeCategory = t.dataset.cat;
-      state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '' };
+      state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() };
       renderCatalog();
       $('#main').scrollTop = 0;
     });
@@ -1264,17 +1593,38 @@ function renderHome() {
 function renderSearchResults() {
   const q = state.search.trim().toLowerCase();
   const cats = visibleCategories();
-  let mods = [];
+  const allMods = [];
   for (const c of cats) {
     for (const m of categoryMods(c.id)) {
-      if (m.name && m.name.toLowerCase().includes(q)) mods.push({ ...m, _cat: c.id });
+      if (m.name && m.name.toLowerCase().includes(q)) allMods.push({ ...m, _cat: c.id });
     }
   }
+  const arcanaCount = allMods.filter((m) => getModBadgeType(m) === 'arcana').length;
+  const immortalCount = allMods.filter((m) => getModBadgeType(m) === 'immortal').length;
+  let mods = allMods.filter((m) => isSearchTypeMatch(m, state.searchType));
   mods = applyFilters(mods);
+
+  const labelAll = getLang() === 'en' ? 'All' : 'Все';
+  const labelArcana = 'Arcana';
+  const labelImmortal = 'Immortal';
+
+  const selectedCount = state.searchType === 'arcana'
+    ? arcanaCount
+    : state.searchType === 'immortal'
+      ? immortalCount
+      : allMods.length;
 
   viewRoot.innerHTML = `
     <div class="view-header">
       <h1 class="view-title">${t('searchText')} <span class="accent">${esc(state.search.trim())}</span></h1>
+    </div>
+    <div class="search-type-row">
+      <div class="search-type-buttons">
+        <button class="fchip ${!state.searchType ? 'active' : ''}" data-search-type="">${labelAll}</button>
+        <button class="fchip ${state.searchType === 'arcana' ? 'active' : ''}" data-search-type="arcana">${labelArcana}</button>
+        <button class="fchip ${state.searchType === 'immortal' ? 'active' : ''}" data-search-type="immortal">${labelImmortal}</button>
+      </div>
+      <span class="search-type-count">${selectedCount} ${plural(selectedCount, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
     </div>
     ${toolbarHtml(mods.length, { tags: [], groups: [] })}
     <div class="grid" id="modGrid">
@@ -1283,6 +1633,13 @@ function renderSearchResults() {
   `;
   bindToolbar();
   bindCards(viewRoot, mods);
+
+  viewRoot.querySelectorAll('.search-type-buttons .fchip[data-search-type]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.searchType = btn.dataset.searchType || '';
+      renderSearchResults();
+    });
+  });
 }
 
 // --- single category ---
@@ -1390,12 +1747,37 @@ function renderCategory(categoryId) {
   let gridHtml = '';
   if (categoryId === 'heroes') {
     const selectedHero = state.filters.hero || '';
+    const heroFilters = state.filters.heroFilter || new Set();
     const heroSearch = (state.filters.heroSearch || '').toLowerCase();
-    const filteredHeroes = (heroSearch
+    const heroDates = new Map();
+    heroes.forEach((hero) => {
+      const slug = (hero.slug || '').toLowerCase();
+      const heroMods = all.filter((m) => (m.hero || '').toLowerCase() === slug);
+      const latestDate = heroMods.reduce((max, m) => Math.max(max, parseDateValue(getModDateValue(m)) || 0), 0);
+      heroDates.set(slug, latestDate);
+    });
+    let filteredHeroes = (heroSearch
       ? heroes.filter((h) => h.name.toLowerCase().includes(heroSearch))
       : heroes)
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
+      .slice();
+    const filtersKeys = [...heroFilters];
+    const hasFilters = filtersKeys.length > 0;
+    const hasFavorites = heroFilters.has('favorites');
+    const hasCount = heroFilters.has('count');
+    const attributeFilters = filtersKeys.filter((key) => ['strength', 'agility', 'intelligence', 'universal'].includes(key));
+
+    if (hasFavorites) {
+      filteredHeroes = filteredHeroes.filter((h) => state.favorites.has((h.slug || '').toLowerCase()));
+    }
+    if (attributeFilters.length) {
+      const attributeSet = new Set(attributeFilters);
+      filteredHeroes = filteredHeroes.filter((h) => attributeSet.has(getHeroAttribute(h.slug)));
+    }
+    if (hasCount) {
+      filteredHeroes.sort((a, b) => (b.modsCount || 0) - (a.modsCount || 0));
+    } else {
+      filteredHeroes.sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
+    }
     
     if (selectedHero) {
       const heroEntry = heroes.find((h) => h.slug === selectedHero || h.name === selectedHero);
@@ -1427,9 +1809,11 @@ function renderCategory(categoryId) {
       const heroCards = filteredHeroes.map((hero) => {
         const previewUrlValue = resolveHeroPreview(hero);
         const previewHtml = previewUrlValue ? `<div class="hero-card-media">${mediaHtml(previewUrl('heroes', previewUrlValue))}</div>` : '';
+        const favActive = state.favorites.has((hero.slug || '').toLowerCase()) ? 'active' : '';
         return `
           <div class="card hero-card" data-hero="${esc(hero.slug)}">
             ${previewHtml}
+            <button class="hero-fav-btn ${favActive}" type="button" data-fav-hero="${esc(hero.slug)}" aria-label="${t('addToFavorites')}"><span class="ms">favorite</span></button>
             <div class="hero-card-content">
               <div class="hero-card-title">${esc(hero.name)}</div>
               <div class="hero-card-meta">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
@@ -1489,6 +1873,12 @@ function renderCategory(categoryId) {
         card.addEventListener('click', () => {
           state.filters.hero = card.dataset.hero;
           renderCatalog();
+        });
+      });
+      viewRoot.querySelectorAll('.hero-fav-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFavoriteHero(btn.dataset.favHero);
         });
       });
     }
@@ -1563,6 +1953,18 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
         <span class="ms">search</span>
         <input type="text" id="heroSearchInput" placeholder="${t('searchHeroes')}" value="${esc(f.heroSearch || '')}">
       </div>`);
+    toolbarParts.push(`
+      <div class="hero-filter-toggle-wrap">
+        <button class="hero-filter-toggle ${state.heroFiltersOpen ? 'active' : ''}" id="heroFilterToggle">
+          <span class="ms">filter_alt</span>${t('filters')}
+        </button>
+        <div class="hero-filter-panel ${state.heroFiltersOpen ? 'open' : ''}" id="heroFilterPanel">
+          ${['all', 'favorites', 'count', 'strength', 'agility', 'intelligence', 'universal'].map((key) => `
+            <button class="fchip ${(!f.heroFilter.size && key === 'all') || f.heroFilter.has(key) ? 'active' : ''}" data-hero-filter="${key}">
+              ${esc(heroFilterLabel(key))}
+            </button>`).join('')}
+        </div>
+      </div>`);
   }
 
   if (!isHeroes && groups.length) {
@@ -1617,18 +2019,46 @@ function bindToolbar() {
   if (heroSearchInput) {
     heroSearchInput.addEventListener('input', (e) => {
       clearTimeout(heroSearchTimer);
+      state.filters.heroSearch = e.target.value;
+      state.heroSearchKeepFocus = true;
       heroSearchTimer = setTimeout(() => {
-        state.filters.heroSearch = e.target.value;
         renderCatalog();
       }, 180);
     });
     heroSearchInput.addEventListener('focus', () => {
-      heroSearchInput.select();
+      state.heroSearchKeepFocus = true;
+    });
+  }
+  if (heroSearchInput && state.heroSearchKeepFocus && document.activeElement !== heroSearchInput) {
+    requestAnimationFrame(() => {
+      heroSearchInput.focus();
+      const len = heroSearchInput.value.length;
+      heroSearchInput.setSelectionRange(len, len);
     });
   }
   $('#installedChip')?.addEventListener('click', () => {
     state.filters.installedOnly = !state.filters.installedOnly;
     renderCatalog();
+  });
+  $('#heroFilterToggle')?.addEventListener('click', () => {
+    state.heroFiltersOpen = !state.heroFiltersOpen;
+    renderCatalog();
+  });
+  document.querySelectorAll('.fchip[data-hero-filter]').forEach((c) => {
+    c.addEventListener('click', () => {
+      const filter = c.dataset.heroFilter || '';
+      if (filter === 'all') {
+        state.filters.heroFilter = new Set();
+      } else {
+        if (!state.filters.heroFilter) state.filters.heroFilter = new Set();
+        if (state.filters.heroFilter.has(filter)) {
+          state.filters.heroFilter.delete(filter);
+        } else {
+          state.filters.heroFilter.add(filter);
+        }
+      }
+      renderCatalog();
+    });
   });
   document.querySelectorAll('.fchip[data-tag]').forEach((c) => {
     c.addEventListener('click', () => {
@@ -1655,13 +2085,18 @@ function cardHtml(m, i, withCat = false) {
   const previewAction = resolvePreviewAction(cat, m);
   const authorProfile = (state.catalog?.constants?.AUTHOR_PROFILES || []).find((entry) => entry.displayName.toLowerCase() === author.toLowerCase() || entry.id.toLowerCase() === author.toLowerCase());
   const authorAvatar = authorProfile?.avatarUrl ? `<img class="author-chip-avatar" src="${esc(authorProfile.avatarUrl)}" alt="${esc(author)}">` : '<span class="ms">person</span>';
+  const badgeType = getModBadgeType(m);
+  const badgeHtml = badgeType ? `<div class="card-badge card-badge-${badgeType}">${esc(badgeLabelForType(badgeType))}</div>` : '';
+  const cardClass = `card${installed ? ' has-installed' : ''}`;
+  const installedIcon = installed ? `<span class="card-installed" aria-label="${t('installed')}"><span class="ms">check_circle</span></span>` : '';
   return `
-    <div class="card" data-key="${esc(keyOf(cat, m.name, null))}" style="--i:${Math.min(i, 28)}">
+    <div class="${cardClass}" data-key="${esc(keyOf(cat, m.name, null))}" style="--i:${Math.min(i, 28)}">
       <div class="card-media">
         ${mediaHtml(prev, { hoverPlay: true })}
+        ${badgeHtml}
+        ${installedIcon}
         ${previewAction ? `<button class="card-preview-btn" data-play="${esc(previewAction.url)}" data-kind="${esc(previewAction.kind)}" data-title="${esc(m.name)}" aria-label="${t('preview')}"><span class="ms">visibility</span></button>` : ''}
         <div class="media-tags">
-          ${installed ? `<span class="mtag ok">${t('installed')}</span>` : ''}
           ${isPack ? `<span class="mtag">${t('pack') || 'Pack'} · ${(m.mods || []).length}</span>` : ''}
           ${m._custom ? `<span class="mtag custom">${t('customPack')}</span>` : ''}
           ${external ? `<span class="mtag">${t('link') || 'Link'}</span>` : ''}
@@ -1816,6 +2251,8 @@ function drawModal() {
     return slug === heroSlug.toLowerCase() || (entry.name || '').toLowerCase() === heroSlug.toLowerCase();
   }) : null;
   const heroLabel = heroEntry?.name || (heroSlug ? heroSlug.replace(/_/g, ' ') : '');
+  const badgeType = getModBadgeType(mod, styleLabel);
+  const modalBadge = badgeType ? `<div class="modal-badge modal-badge-${badgeType}">${esc(badgeLabelForType(badgeType))}</div>` : '';
 
   // pack contents (with per-session exclusions)
   if (isPack && !modalState.packExcluded) modalState.packExcluded = new Set();
@@ -1825,6 +2262,7 @@ function drawModal() {
   $('#modalContent').innerHTML = `
     <div class="modal-media">
       ${mediaHtml(mediaUrl, { autoplay: true })}
+      ${modalBadge}
       <button class="modal-close" id="modalCloseBtn" aria-label="Закрыть"><span class="ms">close</span></button>
       ${previewAction ? `
         <button class="preview-toggle" id="previewPlayBtn">
