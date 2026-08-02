@@ -1364,6 +1364,25 @@ function getRecentWeekMods() {
   return mods.sort((a, b) => (parseDateValue(getModDateValue(b)) || 0) - (parseDateValue(getModDateValue(a)) || 0));
 }
 
+function getLatestMods(limit = 40) {
+  const modsData = state.catalog?.mods?.modsData;
+  if (!modsData) {
+    return (state.catalog?.mods?.recentlyAddedMods || [])
+      .slice(0, limit)
+      .map((m) => ({ ...m, _cat: m._cat || m.categoryId || m.category || 'other' }));
+  }
+
+  const mods = [];
+  for (const cat of visibleCategories()) {
+    for (const mod of categoryMods(cat.id)) {
+      const ts = parseDateValue(getModDateValue(mod));
+      if (!ts) continue;
+      mods.push({ ...mod, _cat: cat.id, _dateTs: ts });
+    }
+  }
+  return mods.sort((a, b) => b._dateTs - a._dateTs).slice(0, limit);
+}
+
 function renderRecentWeekPage() {
   const recentWeekMods = getRecentWeekMods();
   viewRoot.innerHTML = `
@@ -1412,13 +1431,17 @@ function renderDashboard() {
   const totalAuthors = 12;
   const categoriesCount = cats.length;
   const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
-  const recentMods = ((state.catalog?.mods?.recentlyAddedMods || [])
-    .slice(0, 8)
-    .map((m) => ({ ...m, _cat: m._cat || m.categoryId || m.category || 'other' })) || []);
+  const recentMods = getLatestMods(6);
+  const heroEntries = (state.catalog?.constants?.HERO_CATALOG || [])
+    .filter((h) => (h.modsCount || 0) > 0)
+    .sort((a, b) => (b.modsCount || 0) - (a.modsCount || 0))
+    .slice(0, 4);
+  const heroSlidePool = ['invoker', 'juggernaut', 'pudge', 'rubick', 'storm_spirit', 'tidehunter'];
   const updateItems = (getLang() === 'en' ? [
     {
       title: '1.1.1 launcher bug fix',
       date: '2026-07-29',
+      heroSlug: 'invoker',
       meta: 'Bug fix',
       changes: [
         'Fixed launcher issues related to mod installation naming for certain categories.'
@@ -1427,17 +1450,18 @@ function renderDashboard() {
     {
       title: '1.1.0 launcher update',
       date: '2026-07-28',
+      heroSlug: 'juggernaut',
       meta: 'Improvements and fixes',
       changes: [
         'Fixed library search focus and prevented input losing cursor after each keystroke.',
         'Updated sort labels to show human-readable options across categories.',
-        
         'Miscellaneous bug fixes and UI polish.'
       ],
     },
     {
       title: '1.0.9 launcher patch',
       date: '2026-07-26',
+      heroSlug: 'pudge',
       meta: 'Bug fix',
       changes: [
         'Bug fix'
@@ -1446,6 +1470,7 @@ function renderDashboard() {
     {
       title: '1.0.8 launcher polish',
       date: '2026-07-26',
+      heroSlug: 'rubick',
       meta: 'New patch notes popups, smoother recent mods preview, and a cleaner launcher scrollbar.',
       changes: [
         'Added modal popups for patch notes with release date and detailed change log.',
@@ -1456,6 +1481,7 @@ function renderDashboard() {
     {
       title: '1.0.7 launcher refresh',
       date: '2026-07-25',
+      heroSlug: 'storm_spirit',
       meta: 'New home dashboard, clearer navigation, and smoother library controls.',
       changes: [
         'Added a refreshed home dashboard with launcher statistics and recent mods.',
@@ -1467,6 +1493,7 @@ function renderDashboard() {
     {
       title: 'Версия 1.1.2',
       date: '2026-07-29',
+      heroSlug: 'invoker',
       meta: 'Баг фикс',
       changes: [
         'Исправлены проблемы с названиями устанавливаемых модов во всех категориях.'
@@ -1475,6 +1502,7 @@ function renderDashboard() {
     {
       title: 'Версия 1.1.1',
       date: '2026-07-29',
+      heroSlug: 'juggernaut',
       meta: 'Баг фикс',
       changes: [
         'Исправлены проблемы с названиями устанавливаемых модов в некоторых категориях.'
@@ -1483,17 +1511,18 @@ function renderDashboard() {
     {
       title: 'Версия 1.1.0',
       date: '2026-07-28',
+      heroSlug: 'pudge',
       meta: 'Улучшения и исправления',
       changes: [
         'Исправлен фокус поиска в библиотеке — курсор больше не теряется при вводе.',
         'Обновлены метки сортировки — корректный вывод опций во всех категориях.',
-        
         'Различные исправления и полировка интерфейса.'
       ],
     },
     {
       title: 'Версия 1.0.9',
       date: '2026-07-26',
+      heroSlug: 'rubick',
       meta: 'Баг фикс',
       changes: [
         'Баг фикс'
@@ -1502,6 +1531,7 @@ function renderDashboard() {
     {
       title: 'Обновление 1.0.8',
       date: '2026-07-26',
+      heroSlug: 'storm_spirit',
       meta: 'Новые всплывающие патч-ноты, улучшенный блок недавних модов и более аккуратный скроллбар.',
       changes: [
         'Добавлены модальные окна для патч-нотов с датой и подробным списком изменений.',
@@ -1512,6 +1542,7 @@ function renderDashboard() {
     {
       title: 'Обновление 1.0.7',
       date: '2026-07-25',
+      heroSlug: 'tidehunter',
       meta: 'Новый стартовый экран, понятнее навигация и удобнее управление библиотекой.',
       changes: [
         'Добавлен обновлённый главный экран с новостями, статистикой и новыми модами.',
@@ -1520,57 +1551,194 @@ function renderDashboard() {
       ],
     },
   ]);
+  const currentSlideIndex = Number.isInteger(state.dashboardSlide) ? state.dashboardSlide : 0;
+  const slideItems = updateItems.map((item, index) => ({
+    ...item,
+    heroSlug: item.heroSlug || heroSlidePool[index % heroSlidePool.length],
+  }));
+  const activeSlide = slideItems[currentSlideIndex % slideItems.length] || slideItems[0];
+  const resolveSlideArt = (slug) => {
+    const hero = (state.catalog?.constants?.HERO_CATALOG || []).find((entry) => (entry.slug || '').toLowerCase() === (slug || '').toLowerCase());
+    if (!hero) return null;
+    const preview = resolveHeroPreview(hero);
+    return preview ? previewUrl('heroes', preview) : null;
+  };
+  const slideArt = resolveSlideArt(activeSlide.heroSlug) || resolveSlideArt('invoker');
+  const heroRows = heroEntries.map((hero, index) => {
+    const preview = resolveHeroPreview(hero);
+    const previewHtml = preview ? `<div class="dashboard-hero-portrait">${mediaHtml(previewUrl('heroes', preview), { hoverPlay: false })}</div>` : `<div class="dashboard-hero-portrait placeholder"><span class="ms">sports_esports</span></div>`;
+    const maxCount = heroEntries[0]?.modsCount || 1;
+    const percent = Math.max(16, Math.round(((hero.modsCount || 0) / maxCount) * 100));
+    return `
+      <button class="dashboard-hero-row" type="button" data-hero="${esc(hero.slug || hero.id || hero.name || '')}" style="--i:${Math.min(index, 12)}">
+        ${previewHtml}
+        <div class="dashboard-hero-info">
+          <div class="dashboard-hero-name">${esc(hero.name)}</div>
+          <div class="dashboard-hero-count">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+          <div class="dashboard-hero-meter"><span style="width:${percent}%"></span></div>
+        </div>
+      </button>`;
+  }).join('');
+
+  const statsCards = [
+    { value: totalMods, label: t('modsCount'), icon: 'extension' },
+    { value: totalAuthors, label: t('authorsCount'), icon: 'person' },
+    { value: categoriesCount, label: t('categoriesCount'), icon: 'apps' },
+    { value: installedModsCount, label: t('installedMods'), icon: 'download_done' },
+  ];
+  const communityCards = [
+    { name: 'Telegram', icon: 'send', hint: getLang() === 'en' ? 'Project channel' : 'Канал проекта', url: 'https://t.me/dota2skins_official' },
+    { name: 'Discord', icon: 'forum', hint: getLang() === 'en' ? 'Live discussions' : 'Живые обсуждения', url: 'https://discord.gg/Cb2cQhaANY' },
+  ];
 
   viewRoot.innerHTML = `
     <div class="dashboard-grid">
-      <section class="dashboard-news">
-        <div class="section-h"><span class="ms">new_releases</span>${t('dashboardNewsTitle')}</div>
-        <div class="news-list">
-          ${updateItems.map((item) => `
-            <article class="news-item" data-news-title="${esc(item.title)}" data-news-date="${esc(item.date)}" data-news-meta="${esc(item.meta)}" data-news-changes="${esc(item.changes.join(' | '))}">
-              <div class="news-item-title">${esc(item.title)}</div>
-              <div class="news-item-meta">${esc(item.meta)}</div>
-            </article>`).join('')}
-        </div>
-      </section>
-      <aside class="dashboard-stats">
-        <div class="section-h"><span class="ms">insights</span>${t('dashboardStatsTitle')}</div>
-        <div class="stats-grid">
-          <div class="stats-card">
-            <div class="stats-value">${totalMods}</div>
-            <div class="stats-label">${t('modsCount')}</div>
+      <div class="dashboard-main">
+        <section class="dashboard-news">
+          <div class="dashboard-section-head">
+            <div>
+              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'Launcher updates' : 'Обновления лаунчера'}</div>
+              <h2 class="dashboard-title">${t('dashboardNewsTitle')}</h2>
+            </div>
+            <div class="dashboard-nav">
+              <button class="dashboard-carousel-btn" type="button" data-dir="-1" aria-label="${getLang() === 'en' ? 'Previous' : 'Назад'}"><span class="ms">chevron_left</span></button>
+              <button class="dashboard-carousel-btn" type="button" data-dir="1" aria-label="${getLang() === 'en' ? 'Next' : 'Вперёд'}"><span class="ms">chevron_right</span></button>
+            </div>
           </div>
-          <div class="stats-card">
-            <div class="stats-value">${totalAuthors}</div>
-            <div class="stats-label">${t('authorsCount')}</div>
+          <div class="dashboard-banner">
+            <div class="dashboard-banner-media">
+              ${slideArt ? mediaHtml(slideArt, { hoverPlay: false }) : ''}
+            </div>
+            <div class="dashboard-banner-content">
+              <div class="dashboard-banner-top">
+                <span class="dashboard-pill">${esc(activeSlide.meta || '')}</span>
+                <span class="dashboard-date">${esc(activeSlide.date || '')}</span>
+              </div>
+              <h3 class="dashboard-banner-title">${esc(activeSlide.title || '')}</h3>
+              <ul class="dashboard-banner-list">
+                ${activeSlide.changes.map((change) => `<li>${esc(change)}</li>`).join('')}
+              </ul>
+              <div class="dashboard-banner-actions">
+                <button class="btn btn-primary dashboard-banner-btn" type="button" data-news-title="${esc(activeSlide.title)}" data-news-date="${esc(activeSlide.date)}" data-news-meta="${esc(activeSlide.meta)}" data-news-changes="${esc(activeSlide.changes.join(' | '))}">${getLang() === 'en' ? 'Learn more' : 'Подробнее'}</button>
+              </div>
+            </div>
           </div>
-          <div class="stats-card">
-            <div class="stats-value">${categoriesCount}</div>
-            <div class="stats-label">${t('categoriesCount')}</div>
+          <div class="dashboard-carousel-dots">
+            ${slideItems.map((item, index) => `<button class="dashboard-dot ${index === currentSlideIndex % slideItems.length ? 'active' : ''}" type="button" data-slide="${index}" aria-label="${getLang() === 'en' ? 'Open slide' : 'Открыть слайд'} ${index + 1}"></button>`).join('')}
           </div>
-          <div class="stats-card">
-            <div class="stats-value">${installedModsCount}</div>
-            <div class="stats-label">${t('installedMods')}</div>
+        </section>
+
+        <section class="dashboard-recent">
+          <div class="dashboard-section-head recent-section-head">
+            <div>
+              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'New arrivals' : 'Недавние релизы'}</div>
+              <h2 class="dashboard-title">${t('recentlyAdded')}</h2>
+            </div>
+            <button class="btn btn-ghost recent-all-btn" id="recentWeekBtn" type="button">${t('viewAll')}</button>
           </div>
-        </div>
+          <div class="dashboard-recent-track">
+            ${recentMods.length ? recentMods.map((m, i) => cardHtml(m, i, true)).join('') : `<div class="empty-note">${t('noResults')}</div>`}
+          </div>
+        </section>
+      </div>
+
+      <aside class="dashboard-side">
+        <section class="dashboard-stats">
+          <div class="dashboard-section-head">
+            <div>
+              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'Launcher overview' : 'Обзор лаунчера'}</div>
+              <h2 class="dashboard-title">${t('dashboardStatsTitle')}</h2>
+            </div>
+          </div>
+          <div class="dashboard-stats-grid">
+            ${statsCards.map((item) => `
+              <div class="dashboard-stat-card">
+                <div class="dashboard-stat-icon"><span class="ms">${esc(item.icon)}</span></div>
+                <div>
+                  <div class="dashboard-stat-value">${esc(String(item.value))}</div>
+                  <div class="dashboard-stat-label">${esc(item.label)}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </section>
+
+        <section class="dashboard-heroes dashboard-compact-heroes">
+          <div class="dashboard-section-head">
+            <div>
+              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'Hero roster' : 'Состав героев'}</div>
+              <h2 class="dashboard-title">${getLang() === 'en' ? 'Heroes with the most mods' : 'Герои с самым большим количеством модов'}</h2>
+            </div>
+          </div>
+          <div class="dashboard-hero-list">${heroRows}</div>
+        </section>
+
+        <section class="dashboard-community">
+          <div class="dashboard-section-head">
+            <div>
+              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'Community' : 'Сообщество'}</div>
+              <h2 class="dashboard-title">${getLang() === 'en' ? 'Stay connected' : 'Оставайтесь на связи'}</h2>
+            </div>
+          </div>
+          <div class="dashboard-community-list">
+            ${communityCards.map((card) => `
+              <button class="dashboard-community-card" type="button">
+                <span class="dashboard-community-left">
+                  <span class="dashboard-community-icon"><span class="ms">${esc(card.icon)}</span></span>
+                  <span>
+                    <span class="dashboard-community-name">${esc(card.name)}</span>
+                    <span class="dashboard-community-hint">${esc(card.hint)}</span>
+                  </span>
+                </span>
+                <span class="dashboard-community-arrow"><span class="ms">arrow_forward</span></span>
+              </button>`).join('')}
+          </div>
+        </section>
       </aside>
-      <section class="dashboard-recent">
-        <div class="section-h recent-section-head">
-          <span class="ms">auto_awesome</span>${t('recentlyAdded')}
-          <button class="btn btn-ghost recent-all-btn" id="recentWeekBtn">${t('viewAll')}</button>
-        </div>
-        <div class="recent-row">
-          ${recentMods.length ? recentMods.map((m, i) => cardHtml(m, i, true)).join('') : `<div class="empty-note">${t('noResults')}</div>`}
-        </div>
-      </section>
     </div>`;
+
   $('#recentWeekBtn')?.addEventListener('click', () => renderRecentWeekPage());
-  viewRoot.querySelectorAll('.news-item').forEach((item) => {
-    item.addEventListener('click', () => {
-      const title = item.dataset.newsTitle || '';
-      const rawDate = item.dataset.newsDate || '';
-      const meta = item.dataset.newsMeta || '';
-      const changes = (item.dataset.newsChanges || '').split(' | ').filter(Boolean);
+  viewRoot.querySelectorAll('.dashboard-carousel-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const dir = Number(button.dataset.dir || 0);
+      const nextIndex = ((Number.isInteger(state.dashboardSlide) ? state.dashboardSlide : 0) + dir + slideItems.length) % slideItems.length;
+      state.dashboardSlide = nextIndex;
+      renderDashboard();
+    });
+  });
+  viewRoot.querySelectorAll('.dashboard-dot').forEach((dot) => {
+    dot.addEventListener('click', () => {
+      state.dashboardSlide = Number(dot.dataset.slide || 0);
+      renderDashboard();
+    });
+  });
+  viewRoot.querySelectorAll('.dashboard-hero-row').forEach((heroButton) => {
+    heroButton.addEventListener('click', () => {
+      const heroSlug = heroButton.dataset.hero;
+      if (heroSlug) {
+        state.view = 'catalog';
+        state.activeCategory = 'heroes';
+        state.search = '';
+        state.filters.hero = heroSlug;
+        state.filters.tags = new Set();
+        state.filters.installedOnly = false;
+        state.filters.group = '';
+        state.filters.heroSearch = '';
+        render();
+      }
+    });
+  });
+  viewRoot.querySelectorAll('.dashboard-community-card').forEach((button, index) => {
+    const card = [{ url: 'https://t.me/dota2skins_official' }, { url: 'https://discord.gg/Cb2cQhaANY' }][index];
+    if (card && card.url) {
+      button.addEventListener('click', () => window.api.misc.openExternal(card.url));
+    }
+  });
+  viewRoot.querySelectorAll('.dashboard-banner-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const title = button.dataset.newsTitle || '';
+      const rawDate = button.dataset.newsDate || '';
+      const meta = button.dataset.newsMeta || '';
+      const changes = (button.dataset.newsChanges || '').split(' | ').filter(Boolean);
       const date = rawDate ? new Date(rawDate).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
       const overlay = document.createElement('div');
       overlay.className = 'slot-modal-overlay';
