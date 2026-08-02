@@ -712,6 +712,30 @@ const IMMORTAL_MOD_NAMES = new Set([
   'slark shadow in the deep',
   'savage mettle',
   'lightning orchid',
+  'the lightning orchid of eminent revival',
+  'the lightning orchid of eminent revival exceptional',
+  'whale blade',
+  'kunkka whale blade of eminent revival exceptional',
+  'serrakura',
+  'io madame scrio',
+  'dark artistry hair',
+  'invoker dark artistry',
+  'immortal ancient apparition',
+  'tinker interstellar astrarium',
+  'sniper ardalan interdictor',
+  'oracle immortal silence',
+  'cosmic immortal tinker',
+  'snapfire immortal',
+  'immortal medusa',
+  'ember spirit set 1',
+  'immortal phantom lancer v2',
+  'anti mage immortal',
+  'immortal lina',
+  'axe immortal set',
+  'phantom lancer immortal',
+  'storm spirit gold',
+  'anonymous ember',
+  'void spirit hidden vector',
   'stormborn',
   'golden mandate of the stormborn',
   'immortal templar assassin',
@@ -1139,6 +1163,18 @@ function tagLabel(categoryId, tag) {
   return cfg?.map?.[tag] || tag;
 }
 
+const HIDDEN_TAGS = new Set(['immortal', 'arcana']);
+
+function normalizeTags(tags) {
+  if (!tags) return [];
+  const rawTags = Array.isArray(tags)
+    ? tags
+    : (typeof tags === 'object' ? Object.entries(tags).filter(([, v]) => v).map(([k]) => k) : []);
+  return rawTags
+    .map((t) => String(t || '').trim())
+    .filter((t) => t && !HIDDEN_TAGS.has(t.toLowerCase()));
+}
+
 function isInstalled(categoryId, m) {
   return state.installedIndex.has(keyOf(categoryId, m.name, null)) ||
     (m.styles || []).some((s) => state.installedIndex.has(keyOf(categoryId, m.name, s.label)));
@@ -1149,8 +1185,8 @@ function isInstalled(categoryId, m) {
 function collectTags(mods) {
   const tags = new Map(); // tag -> count
   for (const m of mods) {
-    for (const [k, v] of Object.entries(m.tags || {})) {
-      if (v) tags.set(k, (tags.get(k) || 0) + 1);
+    for (const tag of normalizeTags(m.tags)) {
+      tags.set(tag, (tags.get(tag) || 0) + 1);
     }
   }
   return [...tags.entries()].sort((a, b) => b[1] - a[1]);
@@ -1179,7 +1215,10 @@ function applyFilters(mods, catForInstalled) {
   if (f.group) out = out.filter((m) => m._group === f.group);
   if (f.hero) out = out.filter((m) => heroMatches(f.hero, m.name));
   if (f.tags.size) {
-    out = out.filter((m) => [...f.tags].every((t) => m.tags?.[t]));
+    out = out.filter((m) => {
+      const normalized = new Set(normalizeTags(m.tags));
+      return [...f.tags].every((t) => normalized.has(t));
+    });
   }
   if (f.installedOnly) {
     out = out.filter((m) => isInstalled(m._cat || catForInstalled, m));
@@ -1227,7 +1266,7 @@ $('#launchDotaBtn').addEventListener('click', async () => {
 let searchTimer = null;
 $('#globalSearch').addEventListener('focus', () => {
   state.searchActive = true;
-  $('#clearSearch').classList.toggle('hidden', !state.search);
+  $('#clearSearch').classList.remove('hidden');
   if (state.view !== 'catalog') switchView('catalog');
   else renderCatalog();
 });
@@ -1235,6 +1274,7 @@ $('#globalSearch').addEventListener('blur', () => {
   setTimeout(() => {
     if (!state.search && !state.searchType && document.activeElement !== $('#globalSearch')) {
       state.searchActive = false;
+      $('#clearSearch').classList.add('hidden');
       if (state.view === 'catalog') renderCatalog();
     }
   }, 100);
@@ -2079,7 +2119,7 @@ function cardHtml(m, i, withCat = false) {
   const installed = isInstalled(cat, m);
   const isPack = m.type === 'pack';
   const external = !installTarget(m) && !m.styles && !isPack;
-  const tags = Object.entries(m.tags || {}).filter(([, v]) => v).map(([k]) => k).slice(0, 3);
+  const tags = normalizeTags(m.tags).slice(0, 3);
   const author = (m.author || m.sender || '').trim();
   const hideAuthor = author && ['Unknown', 'Anonymous'].includes(author);
   const previewAction = resolvePreviewAction(cat, m);
@@ -2089,6 +2129,14 @@ function cardHtml(m, i, withCat = false) {
   const badgeHtml = badgeType ? `<div class="card-badge card-badge-${badgeType}">${esc(badgeLabelForType(badgeType))}</div>` : '';
   const cardClass = `card${installed ? ' has-installed' : ''}`;
   const installedIcon = installed ? `<span class="card-installed" aria-label="${t('installed')}"><span class="ms">check_circle</span></span>` : '';
+  const packCount = Array.isArray(m.mods)
+    ? m.mods.length
+    : (typeof m.mods === 'number' && Number.isFinite(m.mods) ? m.mods : null);
+  const packTagHtml = isPack && Number.isFinite(packCount) && packCount > 0
+    ? `<span class="mtag">${t('pack') || 'Pack'} · ${packCount}</span>`
+    : '';
+  const tagChips = [packTagHtml, m._custom ? `<span class="mtag custom">${t('customPack')}</span>` : '', external ? `<span class="mtag">${t('link') || 'Link'}</span>` : '', ...tags.map((t) => `<span class="mtag">${esc(tagLabel(cat, t))}</span>`)].filter(Boolean).join('');
+  const mediaTagsHtml = tagChips ? `<div class="media-tags">${tagChips}</div>` : '';
   return `
     <div class="${cardClass}" data-key="${esc(keyOf(cat, m.name, null))}" style="--i:${Math.min(i, 28)}">
       <div class="card-media">
@@ -2096,12 +2144,7 @@ function cardHtml(m, i, withCat = false) {
         ${badgeHtml}
         ${installedIcon}
         ${previewAction ? `<button class="card-preview-btn" data-play="${esc(previewAction.url)}" data-kind="${esc(previewAction.kind)}" data-title="${esc(m.name)}" aria-label="${t('preview')}"><span class="ms">visibility</span></button>` : ''}
-        <div class="media-tags">
-          ${isPack ? `<span class="mtag">${t('pack') || 'Pack'} · ${(m.mods || []).length}</span>` : ''}
-          ${m._custom ? `<span class="mtag custom">${t('customPack')}</span>` : ''}
-          ${external ? `<span class="mtag">${t('link') || 'Link'}</span>` : ''}
-          ${tags.map((t) => `<span class="mtag">${esc(tagLabel(cat, t))}</span>`).join('')}
-        </div>
+        ${mediaTagsHtml}
         ${m.styles ? `
           <div class="media-swatches">
             ${m.styles.slice(0, 5).map((s) => `<span class="swatch-dot" style="background:${esc(s.color || '#a78bfa')}"></span>`).join('')}
