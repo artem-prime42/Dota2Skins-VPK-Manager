@@ -902,6 +902,14 @@ function resolveUrl(url) {
 }
 
 function resolvePreviewAction(categoryId, mod) {
+  const videoField = typeof mod?.video === 'string' && mod.video.trim() ? mod.video.trim() : null;
+  if (videoField) {
+    const resolvedVideo = resolveUrl(videoField);
+    if (isMedia(resolvedVideo)) return { kind: isAudio(resolvedVideo) ? 'audio' : 'media', url: resolvedVideo };
+    const embedUrl = getEmbedUrl(videoField);
+    if (embedUrl) return { kind: 'embed', url: embedUrl, rawUrl: videoField };
+  }
+
   const previewLink = (mod?.links || []).find((l) => l?.type === 'preview' && typeof l?.url === 'string' && l.url.trim());
   if (!previewLink) return null;
 
