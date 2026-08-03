@@ -349,6 +349,12 @@ const UI_TEXT = {
     enableAll: 'Включить всё',
     disableAll: 'Отключить всё',
     removeAllMods: 'Удалить все моды',
+    enableSelected: 'Включить выбранные',
+    disableSelected: 'Отключить выбранные',
+    mergeSelectedMods: 'Объединить выбранные',
+    removeSelectedMods: 'Удалить выбранные',
+    removeSelectedConfirm: 'Удалить выбранные моды?',
+    mergeSelectedConfirm: 'Объединить выбранные моды?',
     removeAllConfirm: 'Удалить все установленные моды?',
     removeAllDone: 'Удалено модов: {count}',
     removeAllResult: 'Удалено модов: {removed}; ошибок: {failed}',
@@ -513,6 +519,12 @@ const UI_TEXT = {
     enableAll: 'Enable all',
     disableAll: 'Disable all',
     removeAllMods: 'Remove all mods',
+    enableSelected: 'Enable selected',
+    disableSelected: 'Disable selected',
+    mergeSelectedMods: 'Merge selected',
+    removeSelectedMods: 'Remove selected',
+    removeSelectedConfirm: 'Delete selected mods?',
+    mergeSelectedConfirm: 'Merge selected mods?',
     removeAllConfirm: 'Delete all installed mods?',
     removeAllDone: 'Removed mods: {count}',
     removeAllResult: 'Removed mods: {removed}; failures: {failed}',
@@ -646,6 +658,9 @@ const IMMORTAL_MOD_NAMES = new Set([
   'bloodseeker eztzhok',
   'tines of tybara',
   'hunter\'s hoard',
+  'lion cannonroar confessor',
+  'mulctant pall crimson',
+  'tyrian mulctant pall',
   'beastmaster primal paean',
   'beastmaster primal peacemaker',
   'beastmaster primal peacemaker crimson',
@@ -1159,6 +1174,74 @@ function resolveHeroPreview(hero) {
   return `${RAW_BASE}/${raw.split('/').map(encodeURIComponent).join('/')}`;
 }
 
+function formatHeroLabelFromSlug(slug) {
+  return String(slug || '')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
+
+function getHeroSlugForMod(mod) {
+  const fromHero = (mod?.hero || '').toString().trim().toLowerCase();
+  if (fromHero) return fromHero;
+  const fromLabel = (mod?.heroLabel || '').toString().trim().toLowerCase();
+  if (fromLabel) return fromLabel.replace(/\s+/g, '_');
+  return '';
+}
+
+function getHeroCatalogEntries() {
+  const catalogHeroes = Array.isArray(state.catalog?.constants?.HERO_CATALOG) ? state.catalog.constants.HERO_CATALOG : [];
+  const heroMods = Array.isArray(state.catalog?.mods?.modsData?.heroes)
+    ? state.catalog.mods.modsData.heroes.filter((m) => m && (getHeroSlugForMod(m) || m.categoryId === 'heroes'))
+    : [];
+  const grouped = new Map();
+  for (const mod of heroMods) {
+    const slug = getHeroSlugForMod(mod);
+    if (!slug) continue;
+    if (!grouped.has(slug)) grouped.set(slug, []);
+    grouped.get(slug).push(mod);
+  }
+
+  const entries = catalogHeroes
+    .map((hero) => {
+      const slug = (hero?.slug || hero?.id || '').toString().trim().toLowerCase();
+      if (!slug) return null;
+      const mods = grouped.get(slug) || [];
+      return {
+        ...hero,
+        slug,
+        name: hero?.name || formatHeroLabelFromSlug(slug),
+        modsCount: mods.length,
+        slots: [...new Set(mods.map((m) => m.slot || 'default').filter(Boolean))],
+      };
+    })
+    .filter(Boolean);
+
+  for (const [slug, mods] of grouped.entries()) {
+    if (entries.some((entry) => entry.slug === slug)) continue;
+    entries.push({
+      id: slug,
+      slug,
+      name: formatHeroLabelFromSlug(slug),
+      preview: null,
+      modsCount: mods.length,
+      slots: [...new Set(mods.map((m) => m.slot || 'default').filter(Boolean))],
+    });
+  }
+
+  return entries
+    .sort((a, b) => (b.modsCount || 0) - (a.modsCount || 0) || (a.name || '').localeCompare(b.name || ''));
+}
+
+function getHeroModsForSlug(slug) {
+  const heroSlug = (slug || '').toString().trim().toLowerCase();
+  if (!heroSlug) return [];
+  return (state.catalog?.mods?.modsData?.heroes || []).filter((mod) => {
+    const candidate = getHeroSlugForMod(mod);
+    return candidate === heroSlug || (mod?.heroLabel || '').toString().trim().toLowerCase() === heroSlug;
+  });
+}
+
 function installTarget(mod) {
   const f = mod.file;
   if (!f) return null;
@@ -1212,16 +1295,27 @@ function collectGroups(mods) {
   return out;
 }
 
-function heroMatches(hero, name) {
-  const re = new RegExp(`\\b${hero.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-  return re.test(name);
+function matchesHeroFilter(mod, heroFilter) {
+  const value = String(heroFilter || '').trim().toLowerCase();
+  if (!value) return true;
+  const heroSlug = (mod.hero || '').toString().trim().toLowerCase();
+  const heroLabel = (mod.heroLabel || '').toString().trim().toLowerCase();
+  const normalizedFilter = value.replace(/[_-]+/g, ' ');
+  const normalizedHeroLabel = heroLabel.replace(/[_-]+/g, ' ');
+  const heroSlugVariants = new Set([
+    value,
+    value.replace(/[_\s]+/g, '_'),
+    value.replace(/[_\s]+/g, '-'),
+    normalizedFilter,
+  ]);
+  return heroSlugVariants.has(heroSlug) || heroSlugVariants.has(heroLabel) || heroSlugVariants.has(normalizedHeroLabel);
 }
 
 function applyFilters(mods, catForInstalled) {
   const f = state.filters;
   let out = mods;
   if (f.group) out = out.filter((m) => m._group === f.group);
-  if (f.hero) out = out.filter((m) => heroMatches(f.hero, m.name));
+  if (f.hero) out = out.filter((m) => matchesHeroFilter(m, f.hero));
   if (f.tags.size) {
     out = out.filter((m) => {
       const normalized = new Set(normalizeTags(m.tags));
@@ -1300,10 +1394,9 @@ $('#globalSearch').addEventListener('input', (e) => {
 $('#clearSearch').addEventListener('click', () => {
   $('#globalSearch').value = '';
   state.search = '';
+  state.searchType = '';
+  state.searchActive = false;
   $('#clearSearch').classList.add('hidden');
-  if (!state.searchType) {
-    state.searchActive = false;
-  }
   if (state.view === 'catalog') renderCatalog();
 });
 
@@ -1440,12 +1533,36 @@ function renderDashboard() {
   const categoriesCount = cats.length;
   const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
   const recentMods = getLatestMods(6);
-  const heroEntries = (state.catalog?.constants?.HERO_CATALOG || [])
+  const heroEntries = getHeroCatalogEntries()
     .filter((h) => (h.modsCount || 0) > 0)
-    .sort((a, b) => (b.modsCount || 0) - (a.modsCount || 0))
     .slice(0, 4);
   const heroSlidePool = ['invoker', 'juggernaut', 'pudge', 'rubick', 'storm_spirit', 'tidehunter'];
   const updateItems = (getLang() === 'en' ? [
+    {
+      title: 'Version 1.1.8',
+      date: '2026-08-03',
+      heroSlug: 'invoker',
+      meta: 'Launcher update',
+      changes: [
+        'Switching language in Settings automatically migrates managed mod files to the new language folder.',
+        'Improved merge button behavior and validation for safer merges.',
+        
+        'Various bug fixes and stability improvements.'
+      ],
+    },
+    {
+      title: '1.1.7 launcher update',
+      date: '2026-08-03',
+      heroSlug: 'abaddon',
+      meta: 'Launcher improvements and catalog navigation',
+      changes: [
+        'Fully refreshed the launcher home page.',
+        'Fixed found issues and improved overall stability.',
+        'Added video preview support for mods in the Hero Sounds category.',
+        'Added new filters in Heroes to find mods faster.',
+        'Added ability to view Arcana and Immortal mods separately in the general catalog.'
+      ],
+    },
     {
       title: '1.1.1 launcher bug fix',
       date: '2026-07-29',
@@ -1498,6 +1615,31 @@ function renderDashboard() {
       ],
     },
   ] : [
+    {
+      title: 'Версия 1.1.8',
+      date: '2026-08-03',
+      heroSlug: 'invoker',
+      meta: 'Обновление лаунчера',
+      changes: [
+        'При смене языка в настройках управляемые файлы модов автоматически мигрируются в новую папку.',
+        'Улучшена кнопка объединения модов: валидация и поведение стали безопаснее.',
+        
+        'Различные исправления и повышение стабильности.'
+      ],
+    },
+    {
+      title: 'Версия 1.1.7',
+      date: '2026-08-03',
+      heroSlug: 'abaddon',
+      meta: 'Обновление лаунчера',
+      changes: [
+        'Полностью обновлена главная страница лаунчера.',
+        'Исправлены найденные ошибки и улучшена стабильность работы.',
+        'Добавлен предпросмотр видео для модов в категории «Звуки героев».',
+        'Добавлены новые фильтры в категории «Герои», чтобы быстрее находить нужные моды.',
+        'В общем каталоге появилась возможность отдельно просматривать Arcana и Immortal предметы.'
+      ],
+    },
     {
       title: 'Версия 1.1.2',
       date: '2026-07-29',
@@ -1566,7 +1708,7 @@ function renderDashboard() {
   }));
   const activeSlide = slideItems[currentSlideIndex % slideItems.length] || slideItems[0];
   const resolveSlideArt = (slug) => {
-    const hero = (state.catalog?.constants?.HERO_CATALOG || []).find((entry) => (entry.slug || '').toLowerCase() === (slug || '').toLowerCase());
+    const hero = getHeroCatalogEntries().find((entry) => (entry.slug || '').toLowerCase() === (slug || '').toLowerCase());
     if (!hero) return null;
     const preview = resolveHeroPreview(hero);
     return preview ? previewUrl('heroes', preview) : null;
@@ -1954,7 +2096,7 @@ function renderCategory(categoryId) {
   const tags = collectTags(all);
   const groups = isGrouped(categoryId) ? collectGroups(all) : [];
   const heroes = categoryId === 'heroes'
-    ? (state.catalog?.constants?.HERO_CATALOG || []).filter((h) => (h.modsCount || 0) > 0)
+    ? getHeroCatalogEntries().filter((h) => (h.modsCount || 0) > 0)
     : [];
   const mods = applyFilters(all, categoryId);
 
@@ -1997,7 +2139,7 @@ function renderCategory(categoryId) {
     
     if (selectedHero) {
       const heroEntry = heroes.find((h) => h.slug === selectedHero || h.name === selectedHero);
-      const items = heroEntry ? all.filter((m) => (m.hero || '').toLowerCase() === heroEntry.slug.toLowerCase()) : [];
+      const items = heroEntry ? getHeroModsForSlug(heroEntry.slug) : [];
       const slots = sortSlots(items.map((m) => m.slot || 'default'));
       const slotCards = slots.map((slot) => {
         const slotMods = items.filter((m) => (m.slot || 'default') === slot);
@@ -2065,9 +2207,9 @@ function renderCategory(categoryId) {
   if (categoryId === 'heroes') {
     const selectedHero = state.filters.hero || '';
     if (selectedHero) {
-      const heroEntry = (state.catalog?.constants?.HERO_CATALOG || []).find((h) => h.slug === selectedHero || h.name === selectedHero);
+      const heroEntry = getHeroCatalogEntries().find((h) => h.slug === selectedHero || h.name === selectedHero);
       if (heroEntry) {
-        const items = all.filter((m) => (m.hero || '').toLowerCase() === heroEntry.slug.toLowerCase());
+        const items = getHeroModsForSlug(heroEntry.slug);
         viewRoot.querySelectorAll('.hero-slot-card').forEach((card) => {
           card.addEventListener('click', () => {
             const slot = card.dataset.slot;
@@ -2706,6 +2848,7 @@ async function installPack(pack) {
 async function renderLibrary() {
   const { installed, external } = await window.api.mods.list();
   const enabledCount = installed.filter((m) => m.enabled).length;
+  const selectedLibrary = new Set();
 
   viewRoot.innerHTML = `
     <div class="view-header">
@@ -2714,6 +2857,10 @@ async function renderLibrary() {
     <div class="lib-toolbar">
       <input class="input lib-search" id="librarySearchInput" placeholder="${t('searchHeroes')}" value="${esc(state.librarySearch || '')}">
       <span class="lib-stats">${installed.length} ${plural(installed.length, 'мод', 'мода', 'модов', 'mod', 'mods')} · ${enabledCount} ${getLang() === 'en' ? 'enabled' : 'включено'}</span>
+      <button class="btn btn-sm" id="enableSelectedBtn" disabled>${t('enableSelected')}</button>
+      <button class="btn btn-sm" id="disableSelectedBtn" disabled>${t('disableSelected')}</button>
+      <button class="btn btn-sm" id="mergeSelectedModsBtn" disabled>${t('mergeSelectedMods')}</button>
+      <button class="btn btn-sm btn-danger" id="removeSelectedModsBtn" disabled>${t('removeSelectedMods')}</button>
       <button class="btn btn-sm" id="enableAllBtn">${t('enableAll')}</button>
       <button class="btn btn-sm" id="disableAllBtn">${t('disableAll')}</button>
       <button class="btn btn-sm btn-danger" id="removeAllModsBtn">${t('removeAllMods')}</button>
@@ -2743,6 +2890,9 @@ async function renderLibrary() {
       const prev = previewUrl(rec.categoryId, rec.preview);
       const fileNames = rec.files.filter((f) => f.root === 'lang').map((f) => f.relPath);
       row.innerHTML = `
+        <div class="lib-select">
+          <input type="checkbox" class="lib-checkbox" data-id="${rec.id}" ${selectedLibrary.has(rec.id) ? 'checked' : ''}>
+        </div>
         ${prev && !isVideo(prev) ? `<img class="lib-thumb" src="${esc(prev)}" loading="lazy" alt="">` : `<div class="lib-thumb"></div>`}
         <div class="lib-info">
           <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
@@ -2759,6 +2909,15 @@ async function renderLibrary() {
           <button class="btn btn-sm btn-danger" data-del="${rec.id}">${t('delete')}</button>
         </div>
       `;
+
+      row.querySelectorAll('.lib-checkbox').forEach((cb) => {
+        cb.addEventListener('change', () => {
+          const id = cb.dataset.id;
+          if (cb.checked) selectedLibrary.add(id);
+          else selectedLibrary.delete(id);
+          updateToolbarState();
+        });
+      });
 
       row.querySelectorAll('.toggle').forEach((t) => {
         t.addEventListener('click', async () => {
@@ -2788,9 +2947,54 @@ async function renderLibrary() {
 
   updateLibraryList();
 
+  function updateToolbarState() {
+    const selectedCount = selectedLibrary.size;
+    $('#enableSelectedBtn').disabled = !selectedCount;
+    $('#disableSelectedBtn').disabled = !selectedCount;
+    $('#mergeSelectedModsBtn').disabled = selectedCount < 2;
+    $('#removeSelectedModsBtn').disabled = !selectedCount;
+  }
+
   $('#librarySearchInput')?.addEventListener('input', (e) => {
     state.librarySearch = e.target.value;
     updateLibraryList();
+  });
+  $('#enableSelectedBtn').addEventListener('click', () => {
+    const selected = installed.filter((rec) => selectedLibrary.has(rec.id));
+    bulkToggle(selected, true);
+  });
+  $('#disableSelectedBtn').addEventListener('click', () => {
+    const selected = installed.filter((rec) => selectedLibrary.has(rec.id));
+    bulkToggle(selected, false);
+  });
+  $('#mergeSelectedModsBtn').addEventListener('click', async () => {
+    const selected = installed.filter((rec) => selectedLibrary.has(rec.id));
+    if (!selected.length) return;
+    if (!await confirmDialog(t('mergeSelectedConfirm'))) return;
+    const r = await window.api.mods.mergeSelected(selected.map((rec) => rec.id));
+    if (r.error) toast(r.error, 'error');
+    else toast('Объединено', 'ok');
+    renderLibrary();
+    refreshInstalledIndex();
+  });
+  $('#removeSelectedModsBtn').addEventListener('click', async () => {
+    const selected = installed.filter((rec) => selectedLibrary.has(rec.id));
+    if (!selected.length) return;
+    if (!await confirmDialog(t('removeSelectedConfirm'))) return;
+    let removed = 0;
+    let failed = 0;
+    for (const rec of selected) {
+      const r = await window.api.mods.remove(rec.id);
+      if (r?.error) failed += 1;
+      else {
+        removed += 1;
+        selectedLibrary.delete(rec.id);
+      }
+    }
+    if (failed) toast(t('removeAllResult').replace('{removed}', removed).replace('{failed}', failed), 'warn');
+    else toast(t('removeAllDone').replace('{count}', removed), 'ok');
+    renderLibrary();
+    refreshInstalledIndex();
   });
   $('#enableAllBtn').addEventListener('click', () => bulkToggle(installed, true));
   $('#disableAllBtn').addEventListener('click', () => bulkToggle(installed, false));
@@ -2812,6 +3016,7 @@ async function renderLibrary() {
     refreshInstalledIndex();
   });
   $('#openFolderBtn2').addEventListener('click', () => window.api.misc.openLangFolder());
+  updateToolbarState();
 
   if (external.length) {
     const extList = $('#extList');
@@ -3331,7 +3536,7 @@ async function renderSettings() {
         <div class="select-wrap">
           <span class="ms">folder</span>
           <select class="input" id="langSelect" style="padding-left:30px">
-            ${['123', 'minify', 'russian', 'test'].map((v) => `<option value="${v}" ${s.langSuffix === v ? 'selected' : ''}>dota_${v}</option>`).join('')}
+            <!-- options populated dynamically -->
           </select>
         </div>
       </div>
@@ -3389,6 +3594,33 @@ async function renderSettings() {
     renderSettings();
     refreshSidebarStatus();
   });
+  // populate language folder options dynamically
+  (async () => {
+    const listRes = await window.api.misc.listLangFolders();
+    const select = $('#langSelect');
+    if (!select) return;
+    // clear existing
+    select.innerHTML = '';
+    const folders = Array.isArray(listRes?.folders) ? listRes.folders : [];
+    const defaults = folders.length ? folders : ['russian', 'english', 'minify', 'test'];
+    for (const v of defaults) {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = `dota_${v}`;
+      if (s.langSuffix === v) opt.selected = true;
+      select.appendChild(opt);
+    }
+    if (folders.length === 0) {
+      // ensure current setting is present
+      if (s.langSuffix && !defaults.includes(s.langSuffix)) {
+        const opt = document.createElement('option');
+        opt.value = s.langSuffix;
+        opt.textContent = `dota_${s.langSuffix}`;
+        opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+  })();
   $('#langSelect').addEventListener('change', async (e) => {
     await window.api.settings.set('langSuffix', e.target.value);
     toast(t('modsFolderHint').replace('{lang}', e.target.value), 'warn', 6000);

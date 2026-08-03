@@ -1,7 +1,7 @@
 {
   "name": "dota2skins-mod-manager",
   "productName": "Dota2skins-mod-manager",
-  "version": "1.1.6",
+  "version": "1.1.8",
   "description": "Desktop mod manager for Dota 2 — browse, install, toggle and preset 900+ cosmetic mods from the Dota2skins catalog",
   "main": "main.js",
   "scripts": {
@@ -24,12 +24,14 @@
   "license": "GPL-3.0",
   "homepage": "https://github.com/artem-prime42/dota2skins-mod-manager",
   "devDependencies": {
+    "@vscode/test-electron": "^3.1.0",
     "electron": "^33.4.11",
     "electron-builder": "^25.1.8"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",
-    "electron-updater": "^6.3.9"
+    "electron-updater": "^6.3.9",
+    "vpk-tools": "^1.0.3"
   },
   "build": {
     "appId": "com.thefleece.dota2skinsmodmanager",

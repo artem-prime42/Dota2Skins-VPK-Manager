@@ -13,6 +13,14 @@ test('Renderer card template uses explicit preview links for preview buttons', (
   assert.doesNotMatch(appSource, /<button class="mtag-play"/);
 });
 
+test('Renderer hero filtering uses hero metadata and marks requested mods as immortal', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
+  assert.match(appSource, /function matchesHeroFilter\(mod, heroFilter\)/);
+  assert.match(appSource, /lion cannonroar confessor/);
+  assert.match(appSource, /mulctant pall crimson/);
+  assert.match(appSource, /tyrian mulctant pall/);
+});
+
 test('Site adapter keeps full preview and download URLs', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');

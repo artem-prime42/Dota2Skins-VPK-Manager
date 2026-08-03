@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const AdmZip = require('adm-zip');
+const { VpkReader, VpkWriter } = require('vpk-tools');
 const { RAW_BASE } = require('./catalog');
 
 // Categories whose VPKs must load with higher priority ("pakNN", numbers 02-09)
@@ -13,6 +14,7 @@ function shouldUsePriorityPak(categoryId) {
 
 const FONTS_SUBDIR = ['dota', 'panorama', 'fonts'];
 const CURSOR_SUBDIR = ['dota', 'resource', 'cursor'];
+const MERGE_PAK_NAME = 'pak_merge_dir.vpk';
 
 function fileUrl(categoryId, fileRef) {
   if (!fileRef) return null;
@@ -111,10 +113,102 @@ class Installer {
         return name;
       }
     }
-    throw new Error('Свободных слотов pakNN не осталось (10-99 заняты)');
+    if (!used.has(MERGE_PAK_NAME)) {
+      used.add(MERGE_PAK_NAME);
+      return MERGE_PAK_NAME;
+    }
+    return MERGE_PAK_NAME;
   }
 
   // ---------- helpers ----------
+
+  resolveVpkTool() {
+    const game = this.getGamePath();
+    if (!game) return null;
+    const candidates = [];
+    const platform = process.platform;
+    if (platform === 'win32') {
+      candidates.push(path.join(game, 'bin', 'win64', 'vpk.exe'));
+      candidates.push(path.join(game, 'bin', 'vpk.exe'));
+      candidates.push(path.join(this.toolsDir, 'vpk.exe'));
+    } else {
+      candidates.push(path.join(game, 'bin', 'linux64', 'vpk'));
+      candidates.push(path.join(game, 'bin', 'vpk'));
+      candidates.push(path.join(this.toolsDir, 'vpk'));
+    }
+    for (const c of candidates) {
+      if (fs.existsSync(c)) return c;
+    }
+    return null;
+  }
+
+  buildMergeCommand(toolPath, outputPath, inputs) {
+    return ['-create', outputPath, ...inputs];
+  }
+
+  mergeVpkFiles(outputPath, inputs) {
+    const toolPath = this.resolveVpkTool();
+    if (!toolPath) {
+      throw new Error('Не найден инструмент VPK для объединения модов');
+    }
+    const args = this.buildMergeCommand(toolPath, outputPath, inputs);
+    const result = require('child_process').spawnSync(toolPath, args, { stdio: 'pipe', encoding: 'utf8' });
+    if (result.status !== 0) {
+      throw new Error(`Не удалось объединить VPK: ${result.stderr || result.stdout || 'unknown error'}`);
+    }
+  }
+
+  mergeRecords(records) {
+    const lang = this.langFolder();
+    fs.mkdirSync(lang, { recursive: true });
+
+    const inputFiles = [];
+    for (const rec of records) {
+      for (const file of rec.files || []) {
+        if (file.root !== 'lang') continue;
+        const abs = path.join(lang, file.relPath);
+        if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
+          inputFiles.push(abs);
+        }
+      }
+    }
+
+    if (inputFiles.length < 2) {
+      throw new Error('Нужно выбрать минимум 2 VPK-мода для объединения');
+    }
+    // pick a pak name the same way we do for downloads (gives a pakNN_dir.vpk with its own number)
+    const used = this.usedPakNames();
+    // determine whether any of the selected mods belong to a priority category
+    const isPriority = records.some((r) => !!r && shouldUsePriorityPak(r.categoryId));
+    const pakName = this.allocatePak(used, isPriority);
+    const outputPath = path.join(lang, pakName);
+
+    const writer = new VpkWriter();
+    for (const inputPath of inputFiles) {
+      const reader = VpkReader.open(inputPath);
+      try {
+        for (const filePath of reader.files()) {
+          writer.addFile(filePath, reader.readFile(filePath));
+        }
+      } finally {
+        reader.close();
+      }
+    }
+
+    writer.write(outputPath);
+
+    for (const inputPath of inputFiles) {
+      const off = inputPath + '.off';
+      if (fs.existsSync(off)) fs.rmSync(off, { force: true });
+      fs.rmSync(inputPath, { force: true });
+    }
+
+    return {
+      outputRelPath: pakName,
+      outputPath,
+      inputFiles,
+    };
+  }
 
   copyInto(src, destAbs) {
     fs.mkdirSync(path.dirname(destAbs), { recursive: true });
@@ -148,6 +242,30 @@ class Installer {
 
     if (local.toLowerCase().endsWith('.vpk')) {
       const pakName = this.allocatePak(used, isPriority);
+      if (pakName === MERGE_PAK_NAME) {
+        const mergePath = path.join(lang, pakName);
+        const mergeInputs = [local];
+        for (const f of fs.readdirSync(lang)) {
+          const full = path.join(lang, f);
+          const base = f.toLowerCase().replace(/\.off$/, '');
+          if (!fs.statSync(full).isFile()) continue;
+          if (base === MERGE_PAK_NAME.toLowerCase() || f.toLowerCase().endsWith('.off')) continue;
+          if (!/^(pak\d+_dir|pak\d+_\d+|pak_merge_dir)\.vpk$/i.test(f)) continue;
+          mergeInputs.push(full);
+        }
+        if (mergeInputs.length > 1) {
+          this.mergeVpkFiles(mergePath, mergeInputs);
+          for (const input of mergeInputs.slice(1)) {
+            fs.rmSync(input, { force: true });
+            const off = input + '.off';
+            if (fs.existsSync(off)) fs.rmSync(off, { force: true });
+          }
+        } else {
+          this.copyInto(local, mergePath);
+        }
+        records.push({ root: 'lang', relPath: pakName });
+        return records;
+      }
       this.copyInto(local, path.join(lang, pakName));
       records.push({ root: 'lang', relPath: pakName });
       return records;

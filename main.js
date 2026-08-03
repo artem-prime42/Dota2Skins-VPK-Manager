@@ -214,15 +214,30 @@ function registerIpc() {
         try {
           if (fs.existsSync(oldDir)) {
             fs.mkdirSync(newDir, { recursive: true });
-            for (const f of fs.readdirSync(oldDir)) {
-              // never move the game's own localization files (official lang folders)
-              if (/^pak01_/i.test(f) || f.toLowerCase() === 'gameinfo.gi') continue;
-              const src = path.join(oldDir, f);
-              const dst = path.join(newDir, f);
-              if (!fs.existsSync(dst)) fs.renameSync(src, dst);
+            // move only files that are referenced by our manifest (managed mods)
+            try {
+              const known = library.knownLangRelPaths();
+              for (const rel of known) {
+                const src = path.join(oldDir, rel);
+                const dst = path.join(newDir, rel);
+                if (fs.existsSync(src) && !fs.existsSync(dst)) {
+                  fs.mkdirSync(path.dirname(dst), { recursive: true });
+                  fs.renameSync(src, dst);
+                }
+                const srcOff = src + '.off';
+                const dstOff = dst + '.off';
+                if (fs.existsSync(srcOff) && !fs.existsSync(dstOff)) {
+                  fs.mkdirSync(path.dirname(dstOff), { recursive: true });
+                  fs.renameSync(srcOff, dstOff);
+                }
+              }
+            } catch (inner) {
+              console.error('failed to migrate managed lang files:', inner);
             }
-            // remove old folder if now empty
-            if (!fs.readdirSync(oldDir).length) fs.rmdirSync(oldDir);
+            // attempt to remove old folder if now empty
+            try {
+              if (!fs.readdirSync(oldDir).length) fs.rmdirSync(oldDir);
+            } catch {}
           }
         } catch (err) {
           console.error('lang folder migration failed:', err);
@@ -314,6 +329,35 @@ function registerIpc() {
     }
   });
 
+  ipcMain.handle('mods:mergeSelected', (e, ids) => {
+    const selected = (ids || []).map((id) => library.find(id)).filter(Boolean);
+    if (selected.length < 2) return { error: 'Нужно выбрать минимум 2 мода' };
+    try {
+      const result = installer.mergeRecords(selected);
+      // build a friendly merged name from selected mods' names
+      const names = selected.map((s) => (s && s.name) ? s.name.trim() : 'mod');
+      let mergedName = '';
+      if (names.length <= 3) mergedName = names.join(' + ');
+      else mergedName = names.slice(0, 3).join(' + ') + ` (+${names.length - 3})`;
+
+      for (const rec of selected) library.removeRecord(rec.id);
+
+      const merged = library.add({
+        name: mergedName || `Merged (${selected.length})`,
+        categoryId: selected[0].categoryId,
+        styleLabel: null,
+        fileRef: selected[0].fileRef,
+        preview: selected[0].preview,
+        files: [{ root: 'lang', relPath: result.outputRelPath }],
+      });
+      sendProgress({ type: 'done', label: merged.name });
+      return { ok: true, record: merged };
+    } catch (err) {
+      sendProgress({ type: 'error', label: 'merge', message: String(err.message || err) });
+      return { error: String(err.message || err) };
+    }
+  });
+
   ipcMain.handle('mods:externalSetEnabled', (e, fileName, enabled) => {
     try {
       const lang = installer.langFolder();
@@ -375,6 +419,29 @@ function registerIpc() {
       fs.mkdirSync(lang, { recursive: true });
       shell.openPath(lang);
       return { ok: true };
+    } catch (err) {
+      return { error: String(err.message || err) };
+    }
+  });
+
+  ipcMain.handle('misc:listLangFolders', (e) => {
+    try {
+      const game = settings.get('dotaGamePath');
+      if (!game) return { ok: true, folders: [] };
+      const langRoot = path.join(game);
+      if (!fs.existsSync(langRoot)) return { ok: true, folders: [] };
+      const out = [];
+      for (const f of fs.readdirSync(langRoot)) {
+        try {
+          const full = path.join(langRoot, f);
+          if (!fs.statSync(full).isDirectory()) continue;
+          const m = /^dota_(.+)$/i.exec(f);
+          if (m) out.push(m[1]);
+        } catch { /* ignore */ }
+      }
+      // de-duplicate and sort
+      const uniq = Array.from(new Set(out)).sort();
+      return { ok: true, folders: uniq };
     } catch (err) {
       return { error: String(err.message || err) };
     }

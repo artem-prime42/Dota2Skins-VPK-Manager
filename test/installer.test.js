@@ -1,5 +1,9 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { VpkReader, VpkWriter } = require('vpk-tools');
 const { Installer, shouldUsePriorityPak } = require('../src/installer');
 
 test('priority pak naming is disabled for trees and ranged-attack categories', () => {
@@ -16,4 +20,48 @@ test('priority categories use normal pak02_dir-style names without an exclamatio
   assert.equal(pakName, 'pak02_dir.vpk');
   assert.ok(used.has(pakName));
   assert.ok(!pakName.startsWith('!'));
+});
+
+test('installer falls back to a merge pak once pak10-99 are exhausted', () => {
+  const installer = new Installer({ userDataDir: '/tmp', getGamePath: () => '/tmp/game', getLangSuffix: () => 'russian' });
+  const used = new Set(Array.from({ length: 90 }, (_, i) => `pak${i + 10}_dir.vpk`));
+  const pakName = installer.allocatePak(used, false);
+
+  assert.equal(pakName, 'pak_merge_dir.vpk');
+  assert.ok(used.has(pakName));
+});
+
+test('merge command keeps the output path and input list', () => {
+  const installer = new Installer({ userDataDir: '/tmp', getGamePath: () => '/tmp/game', getLangSuffix: () => 'russian' });
+  const args = installer.buildMergeCommand('/tmp/vpk.exe', '/tmp/lang/pak_merge_dir.vpk', ['/tmp/a.vpk', '/tmp/b.vpk']);
+
+  assert.deepEqual(args, ['-create', '/tmp/lang/pak_merge_dir.vpk', '/tmp/a.vpk', '/tmp/b.vpk']);
+});
+
+test('mergeRecords combines selected VPK files into a single archive', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'installer-merge-'));
+  const gameRoot = path.join(tempRoot, 'game');
+  const langDir = path.join(gameRoot, 'dota_russian');
+  fs.mkdirSync(langDir, { recursive: true });
+
+  const installer = new Installer({ userDataDir: tempRoot, getGamePath: () => gameRoot, getLangSuffix: () => 'russian' });
+
+  const first = path.join(langDir, 'first.vpk');
+  new VpkWriter().addFile('foo.txt', 'one').write(first);
+  const second = path.join(langDir, 'second.vpk');
+  new VpkWriter().addFile('bar.txt', 'two').write(second);
+
+  const result = installer.mergeRecords([
+    { id: '1', name: 'One', categoryId: 'heroes', files: [{ root: 'lang', relPath: 'first.vpk' }] },
+    { id: '2', name: 'Two', categoryId: 'heroes', files: [{ root: 'lang', relPath: 'second.vpk' }] },
+  ]);
+
+  assert.match(result.outputRelPath, /^pak\d+_dir\.vpk$/);
+  assert.equal(fs.existsSync(path.join(langDir, result.outputRelPath)), true);
+
+  const merged = VpkReader.open(path.join(langDir, result.outputRelPath));
+  assert.equal(merged.readFile('foo.txt').toString(), 'one');
+  assert.equal(merged.readFile('bar.txt').toString(), 'two');
+  assert.equal(fs.existsSync(first), false);
+  assert.equal(fs.existsSync(second), false);
 });
