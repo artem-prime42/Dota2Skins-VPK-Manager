@@ -26,14 +26,15 @@
         <span class="tb-sub" data-i18n="appSubtitle">Dota 2</span>
       </div>
 
-      <div class="main-search-inline">
-        <span class="ms" aria-hidden="true">search</span>
-        <input id="globalSearch" data-i18n-placeholder="searchPlaceholder" placeholder="Поиск модов…" spellcheck="false">
-        <button id="clearSearch" class="tb-search-clear hidden" aria-label="Очистить" data-i18n-aria-label="clear"><span class="ms">close</span></button>
+      <div id="topNav" class="top-nav">
+        <button class="tb-tab top-tab active" data-top="heroes">Герои</button>
+        <button class="tb-tab top-tab" data-top="world">Мир</button>
+        <button class="tb-tab top-tab" data-top="interface">Интерфейс</button>
+        <button class="tb-tab top-tab" data-top="effects">Эффекты</button>
+        <button class="tb-tab top-tab" data-top="other">Остальное</button>
       </div>
 
       <div class="tb-spacer"></div>
-
       <div class="tb-controls">
         <button class="tb-ctl" id="winMin" aria-label="Свернуть" data-i18n-aria-label="minimize"><svg viewBox="0 0 12 12" width="12" height="12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.2"/></svg></button>
         <button class="tb-ctl tb-close" id="winClose" aria-label="Закрыть" data-i18n-aria-label="closeWindow"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
@@ -43,10 +44,8 @@
     <!-- Body -->
     <div id="body">
       <div class="body-main">
-        <!-- Category rail (catalog view only) -->
-        <aside id="catRail" class="cat-rail"></aside>
-
         <main id="main">
+          <div id="sectionSubnav" class="section-subnav"></div>
           <div id="view-root"></div>
         </main>
       </div>
@@ -55,7 +54,7 @@
         <div class="side-brand"></div>
         <div class="side-nav">
           <button class="tb-tab side-tab active" data-view="home"><span class="ms">home</span><span class="tab-label" data-i18n="home">Главная</span></button>
-          <button class="tb-tab side-tab" data-view="catalog"><span class="ms">apps</span><span class="tab-label" data-i18n="catalog">Каталог</span></button>
+          <button class="tb-tab side-tab" data-view="catalog"><span class="ms">apps</span><span class="tab-label">Моды</span></button>
           <button class="tb-tab side-tab" data-view="library"><span class="ms">inventory</span><span class="tab-label" data-i18n="library">Библиотека</span><span class="tb-badge" id="libCount"></span></button>
           <button class="tb-tab side-tab" data-view="presets"><span class="ms">playlist_add</span><span class="tab-label" data-i18n="presets">Пресеты</span></button>
           <button class="tb-tab side-tab" data-view="authors"><span class="ms">person</span><span class="tab-label" data-i18n="authors">Авторы</span></button>
@@ -63,6 +62,7 @@
           <button class="tb-tab side-tab" data-view="settings"><span class="ms">settings</span><span class="tab-label" data-i18n="settings">Настройки</span></button>
           <button class="tb-tab side-tab" data-view="about"><span class="ms">info</span><span class="tab-label" data-i18n="about">О программе</span></button>
         </div>
+        <div id="sideCategories" class="side-categories"></div>
         <button class="side-launch" id="launchDotaBtn"><span class="ms">play_arrow</span><span data-i18n="launchDota">Запустить Dota 2</span></button>
       </aside>
     </div>

@@ -7,13 +7,13 @@ const CAT_LABELS = {
   ru: {
     heroes: 'Герои', 'item-effects': 'Эффекты предметов', 'hero-items': 'Предметы героев',
     backgrounds: 'Фоны меню', cursors: 'Курсоры', 'mega-kill': 'Мега-килл', shaders: 'Шейдеры',
-    couriers: 'Курьеры', terrains: 'Ландшафты', creeps: 'Крипы', trees: 'Деревья', river: 'Река',
+    couriers: 'Курьеры', terrains: 'Ландшафты', creeps: 'Крипы', trees: 'Деревья', river: 'Речка',
     'ti-bp-effects': 'Паки эффектов', emblems: 'Эмблемы', 'creep-deny': 'Денай крипов',
     music: 'Музыка', 'hero-sounds': 'Звуки героев', sounds: 'Звуки', 'ranged-attack': 'Дальние атаки',
     other: 'Разное', ranks: 'Ранги', 'item-icons': 'Иконки предметов', 'versus-screens': 'Versus Screen',
     announcers: 'Анонсеры', wards: 'Варды', pedestal: 'Пьедесталы', huds: 'HUD',
     herofx: 'Эффекты героев', pings: 'Пинги', packs: 'Versus Screen', optimization: 'Оптимизация',
-    tormentor: 'Тормент', 'high-five': 'High Five', ancient: 'Древние', roshan: 'Рошан',
+    tormentor: 'Торментор', 'high-five': 'Дай пять', ancient: 'Древние', roshan: 'Рошан',
     towers: 'Башни', fonts: 'Шрифты', sites: 'Сайты', guides: 'Гайды', news: 'Новости',
   },
   en: {
@@ -22,7 +22,7 @@ const CAT_LABELS = {
     couriers: 'Couriers', terrains: 'Terrains', creeps: 'Creeps', trees: 'Trees', river: 'River',
     'ti-bp-effects': 'Effect packs', emblems: 'Emblems', 'creep-deny': 'Deny creeps',
     music: 'Music', 'hero-sounds': 'Hero sounds', sounds: 'Sounds', 'ranged-attack': 'Ranged attacks',
-    other: 'Other', ranks: 'Ranks', 'item-icons': 'Item icons', 'versus-screens': 'Versus screen',
+    other: 'Other', ranks: 'Ranks', 'item-icons': 'Item icons', 'versus-screens': 'Versus Screen',
     announcers: 'Announcers', wards: 'Wards', pedestal: 'Pedestals', huds: 'HUD',
     herofx: 'Hero effects', pings: 'Pings', packs: 'Versus screen', optimization: 'Optimization',
     tormentor: 'Tormentor', 'high-five': 'High five', ancient: 'Ancients', roshan: 'Roshan',
@@ -51,7 +51,7 @@ const RAIL_SECTIONS = {
     ['Герои', ['heroes', 'hero-items', 'herofx', 'hero-sounds']],
     ['Мир', ['terrains', 'trees', 'river', 'creeps', 'towers', 'roshan', 'ancient', 'tormentor', 'wards', 'couriers', 'pedestal', 'creep-deny']],
     ['Эффекты', ['shaders', 'ti-bp-effects', 'item-effects', 'ranged-attack', 'high-five']],
-    ['Интерфейс', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors', 'fonts']],
+    ['Интерфейс', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors']],
     ['Звук', ['announcers', 'mega-kill', 'music', 'sounds']],
     ['Прочее', ['packs', 'optimization', 'other', 'sites']],
   ],
@@ -59,13 +59,21 @@ const RAIL_SECTIONS = {
     ['Heroes', ['heroes', 'hero-items', 'herofx', 'hero-sounds']],
     ['World', ['terrains', 'trees', 'river', 'creeps', 'towers', 'roshan', 'ancient', 'tormentor', 'wards', 'couriers', 'pedestal', 'creep-deny']],
     ['Effects', ['shaders', 'ti-bp-effects', 'item-effects', 'ranged-attack', 'high-five']],
-    ['Interface', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors', 'fonts']],
+    ['Interface', ['backgrounds', 'huds', 'emblems', 'versus-screens', 'item-icons', 'ranks', 'pings', 'cursors']],
     ['Audio', ['announcers', 'mega-kill', 'music', 'sounds']],
     ['Other', ['packs', 'optimization', 'other', 'sites']],
   ],
 };
 
 const CATALOG_EXCLUDE = ['tools'];
+
+const TOP_SECTION_CATEGORIES = {
+  heroes: ['heroes'],
+  world: ['couriers', 'terrains', 'trees', 'roshan', 'ancient', 'creeps', 'river', 'tormentor', 'wards', 'towers', 'high-five', 'emblems'],
+  interface: ['packs', 'versus-screens', 'announcers', 'ranks', 'sounds', 'huds', 'mega-kill', 'wards', 'cursors', 'backgrounds'],
+  effects: ['item-effects', 'shaders', 'creep-deny', 'ranged-attack'],
+  other: ['pedestal', 'optimization', 'item-icons', 'other', 'hero-sounds'],
+};
 
 const HERO_PREVIEW_FALLBACKS = {
   io: 'https://i.postimg.cc/SRq0t679/wisp-vert.jpg',
@@ -599,15 +607,21 @@ const state = {
   view: 'home',
   catalog: null,
   settings: null,
-  activeCategory: 'all',
+  topSection: 'heroes',
+  activeCategory: 'heroes',
   search: '',
   searchType: '',
   searchActive: false,
+  searchKeepFocus: false,
   filters: { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() },
   heroFiltersOpen: false,
   heroSearchKeepFocus: false,
+  selectedModKey: null,
+  dashboardSlide: 0,
   favorites: loadFavoriteHeroes(),
   librarySearch: '',
+  librarySection: 'all',
+  librarySort: 'default',
   installedIndex: new Map(),
   installing: new Set(),
   modIndex: new Map(),
@@ -792,6 +806,25 @@ function getLang() {
 function t(key) { return UI_TEXT[getLang()]?.[key] ?? UI_TEXT.ru?.[key] ?? key; }
 function trLabel(id) { return CAT_LABELS[getLang()]?.[id] ?? CAT_LABELS.ru?.[id] ?? id; }
 function trSortLabel(key) { return SORTS.find((s) => s.key === key)?.label?.[getLang()] ?? key; }
+function getCatalogSearchPlaceholder() {
+  const placeholders = {
+    ru: {
+      heroes: 'Поиск героя...',
+      world: 'Поиск предметов мира...',
+      interface: 'Поиск элементов интерфейса...',
+      effects: 'Поиск эффектов...',
+      other: 'Поиск элементов...'
+    },
+    en: {
+      heroes: 'Search hero...',
+      world: 'Search world items...',
+      interface: 'Search interface elements...',
+      effects: 'Search effects...',
+      other: 'Search other items...'
+    }
+  };
+  return placeholders[getLang()]?.[state.topSection] || placeholders.ru?.heroes || 'Search mods...';
+}
 function translateUi(root = document) {
   root.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.dataset.i18n;
@@ -1341,17 +1374,86 @@ $('#winClose')?.addEventListener('click', () => window.api.win.close());
 
 // ---------- navigation ----------
 
-document.querySelectorAll('.tb-tab').forEach((btn) => {
+document.querySelectorAll('.side-tab').forEach((btn) => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
+
+document.querySelectorAll('.top-tab').forEach((btn) => {
+  btn.addEventListener('click', () => setTopSection(btn.dataset.top));
+});
+
+function resetCatalogState() {
+  state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() };
+  state.heroFiltersOpen = false;
+  state.heroSearchKeepFocus = false;
+  state.selectedModKey = null;
+  state.search = '';
+  state.searchType = '';
+  state.searchActive = false;
+}
+
+function setTopSection(section) {
+  if (!TOP_SECTION_CATEGORIES[section]) return;
+  state.topSection = section;
+  resetCatalogState();
+  if (section === 'heroes') {
+    state.activeCategory = 'heroes';
+  } else {
+    state.activeCategory = 'all';
+  }
+  document.querySelectorAll('.top-tab').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.top === section);
+  });
+  switchView('catalog');
+}
+
+function sectionSubnavCategories() {
+  const sectionCats = TOP_SECTION_CATEGORIES[state.topSection] || [];
+  if (state.topSection === 'heroes') return sectionCats;
+  return ['all', ...sectionCats];
+}
+
+function shouldShowSectionSubnav() {
+  const sectionCats = sectionSubnavCategories();
+  const visibleSectionCats = sectionCats.filter((id) => id === 'all' || categoryMods(id).length > 0);
+  return visibleSectionCats.length > 1;
+}
 
 function switchView(view) {
   closeModal();
   closeSlotModals();
-  document.querySelectorAll('.tb-tab').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.side-tab').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   state.view = view;
-  $('#catRail').classList.toggle('hidden', view !== 'catalog');
+  if ($('#catRail')) $('#catRail').classList.toggle('hidden', view !== 'catalog');
   render();
+}
+
+function renderSectionSubnav() {
+  const container = $('#sectionSubnav');
+  if (!container) return;
+  if (!shouldShowSectionSubnav() || state.view !== 'home' && state.view !== 'catalog') {
+    container.innerHTML = '';
+    return;
+  }
+  const sectionCats = sectionSubnavCategories();
+  const visibleSectionCats = sectionCats.filter((id) => id === 'all' || categoryMods(id).length > 0);
+  const labelFor = (id) => {
+    if (id === 'all') return getLang() === 'en' ? 'All' : 'Все';
+    if (id === 'packs') return getLang() === 'en' ? 'Versus Screen' : 'Versus Screen';
+    return catName(id);
+  };
+  container.innerHTML = visibleSectionCats.map((id) => `
+    <button class="section-chip ${state.activeCategory === id ? 'active' : ''}" data-cat="${esc(id)}" type="button">
+      ${esc(labelFor(id))}
+    </button>
+  `).join('');
+  container.querySelectorAll('.section-chip').forEach((button) => {
+    button.addEventListener('click', () => {
+      state.activeCategory = button.dataset.cat;
+      render();
+      $('#main').scrollTop = 0;
+    });
+  });
 }
 
 $('#openModsFolderBtn').addEventListener('click', async () => {
@@ -1366,39 +1468,61 @@ $('#launchDotaBtn').addEventListener('click', async () => {
 
 // global search
 let searchTimer = null;
-$('#globalSearch').addEventListener('focus', () => {
-  state.searchActive = true;
-  $('#clearSearch').classList.remove('hidden');
-  if (state.view !== 'catalog') switchView('catalog');
-  else renderCatalog();
-});
-$('#globalSearch').addEventListener('blur', () => {
-  setTimeout(() => {
-    if (!state.search && !state.searchType && document.activeElement !== $('#globalSearch')) {
+
+function restoreGlobalSearchFocus() {
+  if (!state.searchKeepFocus) return;
+  const input = $('#globalSearchInput');
+  if (!input) return;
+  if (document.activeElement === input) return;
+  requestAnimationFrame(() => {
+    if (!state.searchKeepFocus) return;
+    input.focus();
+    const len = input.value.length;
+    input.setSelectionRange(len, len);
+  });
+}
+
+function bindGlobalSearch() {
+  const input = $('#globalSearchInput');
+  const clearBtn = $('#globalSearchClear');
+  if (!input) return;
+  if (input.dataset.bound === '1') return;
+  input.dataset.bound = '1';
+  input.value = state.search || '';
+  const applySearch = (value) => {
+    state.search = value;
+    if (value.trim()) {
+      state.searchActive = true;
+    } else {
       state.searchActive = false;
-      $('#clearSearch').classList.add('hidden');
-      if (state.view === 'catalog') renderCatalog();
+      state.searchType = '';
     }
-  }, 100);
-});
-$('#globalSearch').addEventListener('input', (e) => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    state.search = e.target.value;
-    $('#clearSearch').classList.toggle('hidden', !state.search);
-    if (state.view !== 'catalog') switchView('catalog');
-    else renderCatalog();
-    $('#globalSearch')?.focus();
-  }, 180);
-});
-$('#clearSearch').addEventListener('click', () => {
-  $('#globalSearch').value = '';
-  state.search = '';
-  state.searchType = '';
-  state.searchActive = false;
-  $('#clearSearch').classList.add('hidden');
-  if (state.view === 'catalog') renderCatalog();
-});
+    renderCatalog();
+  };
+  input.addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    state.searchKeepFocus = true;
+    searchTimer = setTimeout(() => applySearch(e.target.value), 180);
+    input.placeholder = getCatalogSearchPlaceholder();
+  });
+  input.addEventListener('focus', () => {
+    state.searchKeepFocus = true;
+    input.placeholder = getCatalogSearchPlaceholder();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      state.searchKeepFocus = false;
+      input.blur();
+    }
+  });
+  clearBtn?.addEventListener('click', () => {
+    input.value = '';
+    state.searchKeepFocus = true;
+    applySearch('');
+    requestAnimationFrame(() => input.focus());
+  });
+  input.placeholder = getCatalogSearchPlaceholder();
+}
 
 // ---------- views ----------
 
@@ -1414,7 +1538,16 @@ function render() {
     case 'settings': renderer = renderSettings; break;
     case 'about': renderer = renderAbout; break;
   }
+  const viewRoot = $('#view-root');
+  if (viewRoot) {
+    viewRoot.classList.remove('view-animating');
+    void viewRoot.offsetWidth;
+    viewRoot.classList.add('view-animating');
+  }
   renderer();
+  renderSectionSubnav();
+  bindGlobalSearch();
+  restoreGlobalSearchFocus();
   translateUi(document);
 }
 
@@ -1516,15 +1649,21 @@ function renderCatalog() {
     return;
   }
 
-  renderRail();
+  if ($('#catRail')) renderRail();
 
   const searching = state.search.trim().length > 0 || state.searchType || state.searchActive;
-  if (searching) return renderSearchResults();
-  if (state.activeCategory === 'all') return renderHome();
-  renderCategory(state.activeCategory);
+  if (searching) {
+    renderSearchResults();
+  } else if (state.activeCategory === 'all') {
+    renderSectionAll();
+  } else {
+    renderCategory(state.activeCategory);
+  }
+  bindGlobalSearch();
+  restoreGlobalSearchFocus();
 }
 
-// --- home (all categories) ---
+// --- home (landing) ---
 
 function renderDashboard() {
   const cats = visibleCategories();
@@ -1546,7 +1685,6 @@ function renderDashboard() {
       changes: [
         'Switching language in Settings automatically migrates managed mod files to the new language folder.',
         'Improved merge button behavior and validation for safer merges.',
-        
         'Various bug fixes and stability improvements.'
       ],
     },
@@ -1623,7 +1761,6 @@ function renderDashboard() {
       changes: [
         'При смене языка в настройках управляемые файлы модов автоматически мигрируются в новую папку.',
         'Улучшена кнопка объединения модов: валидация и поведение стали безопаснее.',
-        
         'Различные исправления и повышение стабильности.'
       ],
     },
@@ -1914,10 +2051,38 @@ function renderDashboard() {
   bindCards(viewRoot, recentMods);
 }
 
-function renderHome() {
-  const cats = visibleCategories();
+function renderSectionAll() {
+  const sectionCats = TOP_SECTION_CATEGORIES[state.topSection] || [];
+  const allMods = sectionCats.flatMap((catId) => categoryMods(catId).map((m) => ({ ...m, _cat: catId })));
+  const tags = collectTags(allMods);
+  const groups = [];
+  const mods = applyFilters(allMods);
+  const title = getLang() === 'en' ? 'All' : 'Все';
 
   viewRoot.innerHTML = `
+    <div class="view-header">
+      <h1 class="view-title">${esc(title)}</h1>
+      <span class="view-sub">${mods.length} ${plural(mods.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
+    </div>
+    ${toolbarHtml(mods.length, { tags, groups, categoryId: 'all' })}
+    <div class="grid" id="modGrid">${mods.length ? mods.map((m, i) => cardHtml(m, i)).join('') : `<div class="empty-note">${t('noFilteredMods')}</div>`}</div>
+  `;
+  bindToolbar();
+  bindCards(viewRoot, mods);
+}
+
+function renderHome() {
+  const sectionCats = (TOP_SECTION_CATEGORIES[state.topSection] || []).filter(Boolean);
+  const cats = visibleCategories().filter((c) => sectionCats.includes(c.id) || !sectionCats.length);
+
+  viewRoot.innerHTML = `
+    <div class="view-header">
+      <div>
+        <h1 class="view-title">${t('home')}</h1>
+        <div class="view-sub">${t('categories')}</div>
+      </div>
+      <button class="btn btn-primary" id="homeModsBtn" type="button"><span class="ms">apps</span>${getLang() === 'en' ? 'Mods' : 'Моды'}</button>
+    </div>
     <div class="section-h"><span class="ms">apps</span>${t('categories')}</div>
     <div class="cat-tiles">
         ${cats.map((c, i) => {
@@ -1935,6 +2100,13 @@ function renderHome() {
       </div>
   `;
 
+  $('#homeModsBtn')?.addEventListener('click', () => {
+    state.activeCategory = 'all';
+    state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() };
+    renderCatalog();
+    $('#main').scrollTop = 0;
+  });
+
   viewRoot.querySelectorAll('.cat-tile').forEach((t) => {
     t.addEventListener('click', () => {
       state.activeCategory = t.dataset.cat;
@@ -1948,41 +2120,37 @@ function renderHome() {
 
 // --- search results ---
 
+function getCatalogSearchScopeCategories() {
+  const sectionCats = (TOP_SECTION_CATEGORIES[state.topSection] || []).filter(Boolean);
+  const visibleIds = new Set(visibleCategories().map((c) => c.id));
+  const scopedCats = sectionCats.filter((id) => visibleIds.has(id));
+
+  if (!scopedCats.length) {
+    return visibleCategories().map((c) => c.id);
+  }
+
+  if (state.activeCategory && state.activeCategory !== 'all' && scopedCats.includes(state.activeCategory)) {
+    return [state.activeCategory];
+  }
+
+  return scopedCats;
+}
+
 function renderSearchResults() {
   const q = state.search.trim().toLowerCase();
-  const cats = visibleCategories();
+  const cats = getCatalogSearchScopeCategories();
   const allMods = [];
-  for (const c of cats) {
-    for (const m of categoryMods(c.id)) {
-      if (m.name && m.name.toLowerCase().includes(q)) allMods.push({ ...m, _cat: c.id });
+  for (const catId of cats) {
+    for (const m of categoryMods(catId)) {
+      if (m.name && m.name.toLowerCase().includes(q)) allMods.push({ ...m, _cat: catId });
     }
   }
-  const arcanaCount = allMods.filter((m) => getModBadgeType(m) === 'arcana').length;
-  const immortalCount = allMods.filter((m) => getModBadgeType(m) === 'immortal').length;
-  let mods = allMods.filter((m) => isSearchTypeMatch(m, state.searchType));
-  mods = applyFilters(mods);
-
-  const labelAll = getLang() === 'en' ? 'All' : 'Все';
-  const labelArcana = 'Arcana';
-  const labelImmortal = 'Immortal';
-
-  const selectedCount = state.searchType === 'arcana'
-    ? arcanaCount
-    : state.searchType === 'immortal'
-      ? immortalCount
-      : allMods.length;
+  const mods = applyFilters(allMods);
 
   viewRoot.innerHTML = `
     <div class="view-header">
       <h1 class="view-title">${t('searchText')} <span class="accent">${esc(state.search.trim())}</span></h1>
-    </div>
-    <div class="search-type-row">
-      <div class="search-type-buttons">
-        <button class="fchip ${!state.searchType ? 'active' : ''}" data-search-type="">${labelAll}</button>
-        <button class="fchip ${state.searchType === 'arcana' ? 'active' : ''}" data-search-type="arcana">${labelArcana}</button>
-        <button class="fchip ${state.searchType === 'immortal' ? 'active' : ''}" data-search-type="immortal">${labelImmortal}</button>
-      </div>
-      <span class="search-type-count">${selectedCount} ${plural(selectedCount, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
+      <span class="view-sub">${mods.length} ${plural(mods.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
     </div>
     ${toolbarHtml(mods.length, { tags: [], groups: [] })}
     <div class="grid" id="modGrid">
@@ -1991,13 +2159,6 @@ function renderSearchResults() {
   `;
   bindToolbar();
   bindCards(viewRoot, mods);
-
-  viewRoot.querySelectorAll('.search-type-buttons .fchip[data-search-type]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.searchType = btn.dataset.searchType || '';
-      renderSearchResults();
-    });
-  });
 }
 
 // --- single category ---
@@ -2297,6 +2458,13 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
 
   if (!isHeroes) {
     toolbarParts.push(`
+      <div class="toolbar-search">
+        <span class="ms">search</span>
+        <input type="text" id="globalSearchInput" placeholder="${getCatalogSearchPlaceholder()}" value="${esc(state.search || '')}">
+        <button class="toolbar-search-clear" id="globalSearchClear" type="button" aria-label="${t('clear')}"><span class="ms">close</span></button>
+      </div>
+    `);
+    toolbarParts.push(`
       <div class="select-wrap">
         <span class="ms">sort</span>
         <select id="sortSelect">
@@ -2309,7 +2477,7 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
     toolbarParts.push(`
       <div class="hero-search-wrap">
         <span class="ms">search</span>
-        <input type="text" id="heroSearchInput" placeholder="${t('searchHeroes')}" value="${esc(f.heroSearch || '')}">
+        <input type="text" id="heroSearchInput" placeholder="${getCatalogSearchPlaceholder()}" value="${esc(f.heroSearch || '')}">
       </div>`);
     toolbarParts.push(`
       <div class="hero-filter-toggle-wrap">
@@ -2445,7 +2613,9 @@ function cardHtml(m, i, withCat = false) {
   const authorAvatar = authorProfile?.avatarUrl ? `<img class="author-chip-avatar" src="${esc(authorProfile.avatarUrl)}" alt="${esc(author)}">` : '<span class="ms">person</span>';
   const badgeType = getModBadgeType(m);
   const badgeHtml = badgeType ? `<div class="card-badge card-badge-${badgeType}">${esc(badgeLabelForType(badgeType))}</div>` : '';
-  const cardClass = `card${installed ? ' has-installed' : ''}`;
+  const key = keyOf(cat, m.name, null);
+  const isSelected = state.selectedModKey && state.selectedModKey === key;
+  const cardClass = `card${installed ? ' has-installed' : ''}${isSelected ? ' is-selected' : ''}`;
   const installedIcon = installed ? `<span class="card-installed" aria-label="${t('installed')}"><span class="ms">check_circle</span></span>` : '';
   const packCount = Array.isArray(m.mods)
     ? m.mods.length
@@ -2455,8 +2625,13 @@ function cardHtml(m, i, withCat = false) {
     : '';
   const tagChips = [packTagHtml, m._custom ? `<span class="mtag custom">${t('customPack')}</span>` : '', external ? `<span class="mtag">${t('link') || 'Link'}</span>` : '', ...tags.map((t) => `<span class="mtag">${esc(tagLabel(cat, t))}</span>`)].filter(Boolean).join('');
   const mediaTagsHtml = tagChips ? `<div class="media-tags">${tagChips}</div>` : '';
+  const downloadCount = Number(m.downloads ?? m.downloadCount ?? m.downloadsCount ?? 0);
+  const downloadHtml = Number.isFinite(downloadCount) && downloadCount > 0
+    ? `<span class="card-meta-pill"><span class="ms">cloud_download</span>${esc(downloadCount.toLocaleString(getLang()))}</span>`
+    : '';
+  const dateValue = getModDateValue(m);
   return `
-    <div class="${cardClass}" data-key="${esc(keyOf(cat, m.name, null))}" style="--i:${Math.min(i, 28)}">
+    <div class="${cardClass}" data-key="${esc(key)}" style="--i:${Math.min(i, 28)}">
       <div class="card-media">
         ${mediaHtml(prev, { hoverPlay: true })}
         ${badgeHtml}
@@ -2470,10 +2645,12 @@ function cardHtml(m, i, withCat = false) {
       </div>
       <div class="card-body">
         <div class="card-name">${esc(m.name)}</div>
-        <div class="card-meta">
-          ${withCat ? '' : ''}
-          ${getModDateValue(m) ? `<span>${fmtDate(getModDateValue(m))}</span>` : ''}
-          ${author && !hideAuthor ? `<button class="author-chip ${authorProfile ? 'clickable' : ''}" data-author-id="${esc(authorProfile?.id || '')}" type="button">${authorAvatar}${esc(author)}</button>` : ''}
+        <div class="card-info">
+          ${author && !hideAuthor ? `<button class="author-chip ${authorProfile ? 'clickable' : ''}" data-author-id="${esc(authorProfile?.id || '')}" type="button">${authorAvatar}${esc(author)}</button>` : '<span class="card-info-empty"></span>'}
+          <div class="card-meta">
+            ${dateValue ? `<span class="card-meta-pill card-meta-date"><span class="ms">event</span>${esc(fmtDate(dateValue))}</span>` : ''}
+            ${downloadHtml}
+          </div>
         </div>
       </div>
     </div>`;
@@ -2481,7 +2658,12 @@ function cardHtml(m, i, withCat = false) {
 
 function bindCards(root, modsList) {
   root.querySelectorAll('.card[data-key]').forEach((card) => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.author-chip') || e.target.closest('.card-preview-btn')) return;
+      state.selectedModKey = card.dataset.key;
+      root.querySelectorAll('.card[data-key]').forEach((item) => {
+        item.classList.toggle('is-selected', item === card);
+      });
       const key = card.dataset.key;
       // find the mod by key among provided list or global index
       let target = null;
@@ -2849,7 +3031,25 @@ async function renderLibrary() {
   const { installed, external } = await window.api.mods.list();
   const enabledCount = installed.filter((m) => m.enabled).length;
   const selectedLibrary = new Set();
-
+  const librarySort = state.librarySort || 'default';
+  const librarySections = [
+    { id: 'all', label: getLang() === 'en' ? 'All' : 'Все' },
+    { id: 'heroes', label: getLang() === 'en' ? 'Heroes' : 'Герои' },
+    { id: 'world', label: getLang() === 'en' ? 'World' : 'Мир' },
+    { id: 'interface', label: getLang() === 'en' ? 'Interface' : 'Интерфейс' },
+    { id: 'effects', label: getLang() === 'en' ? 'Effects' : 'Эффекты' },
+    { id: 'other', label: getLang() === 'en' ? 'Other' : 'Остальное' },
+  ];
+  const getSectionCategoryIds = (sectionId) => {
+    switch (sectionId) {
+      case 'heroes': return ['heroes'];
+      case 'world': return ['couriers', 'terrains', 'trees', 'roshan', 'ancient', 'creeps', 'river', 'tormentor', 'wards', 'towers', 'high-five', 'emblems'];
+      case 'interface': return ['packs', 'versus-screens', 'announcers', 'ranks', 'sounds', 'huds', 'mega-kill', 'wards', 'cursors', 'backgrounds'];
+      case 'effects': return ['item-effects', 'shaders', 'creep-deny', 'ranged-attack'];
+      case 'other': return ['pedestal', 'optimization', 'item-icons', 'other', 'hero-sounds'];
+      default: return [];
+    }
+  };
   viewRoot.innerHTML = `
     <div class="view-header">
       <h1 class="view-title">${t('library')}</h1>
@@ -2857,6 +3057,15 @@ async function renderLibrary() {
     <div class="lib-toolbar">
       <input class="input lib-search" id="librarySearchInput" placeholder="${t('searchHeroes')}" value="${esc(state.librarySearch || '')}">
       <span class="lib-stats">${installed.length} ${plural(installed.length, 'мод', 'мода', 'модов', 'mod', 'mods')} · ${enabledCount} ${getLang() === 'en' ? 'enabled' : 'включено'}</span>
+      <div class="select-wrap lib-sort-wrap">
+        <span class="ms">sort</span>
+        <select id="librarySortSelect">
+          <option value="default" ${librarySort === 'default' ? 'selected' : ''}>${getLang() === 'en' ? 'Default' : 'По умолчанию'}</option>
+          <option value="name" ${librarySort === 'name' ? 'selected' : ''}>${getLang() === 'en' ? 'Name A-Z' : 'По имени А-Я'}</option>
+          <option value="name-desc" ${librarySort === 'name-desc' ? 'selected' : ''}>${getLang() === 'en' ? 'Name Z-A' : 'По имени Я-А'}</option>
+          <option value="date" ${librarySort === 'date' ? 'selected' : ''}>${getLang() === 'en' ? 'Newest first' : 'Сначала новые'}</option>
+        </select>
+      </div>
       <button class="btn btn-sm" id="enableSelectedBtn" disabled>${t('enableSelected')}</button>
       <button class="btn btn-sm" id="disableSelectedBtn" disabled>${t('disableSelected')}</button>
       <button class="btn btn-sm" id="mergeSelectedModsBtn" disabled>${t('mergeSelectedMods')}</button>
@@ -2866,6 +3075,9 @@ async function renderLibrary() {
       <button class="btn btn-sm btn-danger" id="removeAllModsBtn">${t('removeAllMods')}</button>
       <button class="btn btn-sm" id="openFolderBtn2"><span class="ms">folder_open</span>${t('openModsFolder')}</button>
     </div>
+    <div class="section-subnav" id="librarySectionSubnav">
+      ${librarySections.map((section) => `<button class="section-chip ${(state.librarySection || 'all') === section.id ? 'active' : ''}" data-library-section="${esc(section.id)}" type="button">${esc(section.label)}</button>`).join('')}
+    </div>
     <div class="lib-list" id="libList"></div>
     ${external.length ? `
       <div class="section-h" style="margin-top:26px"><span class="ms">folder_zip</span>${t('externalFiles')}</div>
@@ -2873,8 +3085,26 @@ async function renderLibrary() {
       <div class="lib-list" id="extList"></div>` : ''}
   `;
 
+  function sortLibraryMods(list) {
+    const sorted = [...list];
+    switch (state.librarySort || 'default') {
+      case 'name': return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc': return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      case 'date': return sorted.sort((a, b) => (b.installedAt || 0) - (a.installedAt || 0));
+      default: return sorted;
+    }
+  }
+
   function updateLibraryList() {
-    const filteredInstalled = installed.filter((rec) => rec.name.toLowerCase().includes((state.librarySearch || '').trim().toLowerCase()));
+    const query = (state.librarySearch || '').trim().toLowerCase();
+    const currentSection = state.librarySection || 'all';
+    const sectionCategoryIds = new Set(getSectionCategoryIds(currentSection));
+    let filteredInstalled = installed.filter((rec) => {
+      const matchesQuery = !query || rec.name.toLowerCase().includes(query);
+      const matchesSection = currentSection === 'all' || sectionCategoryIds.has(rec.categoryId);
+      return matchesQuery && matchesSection;
+    });
+    filteredInstalled = sortLibraryMods(filteredInstalled);
     const libList = $('#libList');
     libList.innerHTML = '';
 
@@ -2958,6 +3188,17 @@ async function renderLibrary() {
   $('#librarySearchInput')?.addEventListener('input', (e) => {
     state.librarySearch = e.target.value;
     updateLibraryList();
+  });
+  $('#librarySortSelect')?.addEventListener('change', (e) => {
+    state.librarySort = e.target.value;
+    updateLibraryList();
+  });
+  document.querySelectorAll('#librarySectionSubnav .section-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      state.librarySection = chip.dataset.librarySection || 'all';
+      updateLibraryList();
+      document.querySelectorAll('#librarySectionSubnav .section-chip').forEach((btn) => btn.classList.toggle('active', btn === chip));
+    });
   });
   $('#enableSelectedBtn').addEventListener('click', () => {
     const selected = installed.filter((rec) => selectedLibrary.has(rec.id));
