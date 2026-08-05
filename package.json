@@ -6,12 +6,13 @@
   "main": "main.js",
   "scripts": {
     "start": "node scripts/start-electron.js",
-    "clean": "rm -rf dist/builder-debug.yml dist/builder-effective-config.yaml dist/linux-unpacked dist/win-unpacked",
-    "dist": "electron-builder --win --linux --publish always",
-    "build:win": "electron-builder --win --publish never",
-    "build:linux": "electron-builder --linux --publish never",
-    "release:win": "electron-builder --win --publish always",
-    "release:linux": "electron-builder --linux --publish always"
+    "clean": "rm -rf dist/builder-debug.yml dist/builder-effective-config.yaml dist/latest.yml dist/latest-linux.yml dist/linux-unpacked dist/win-unpacked",
+    "dist": "npm run build:release",
+    "build:win": "electron-builder --win --publish never && node scripts/generate-update-manifests.js",
+    "build:linux": "electron-builder --linux --publish never && node scripts/generate-update-manifests.js",
+    "build:release": "electron-builder --win --linux --publish never && node scripts/generate-update-manifests.js",
+    "release:win": "npm run build:win",
+    "release:linux": "npm run build:linux"
   },
   "repository": {
     "type": "git",
