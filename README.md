@@ -1,58 +1,112 @@
 <div align="center">
-  <img src="build/icon.png" alt="Dota 2 Mod Manager" width="110">
+  <img src="build/icon.png" alt="Dota2Skins Mod Manager" width="120">
 
-  <h1>Dota2Skins Mod Manager</h1>
+# Dota2Skins Mod Manager
 
-  <p><b>Desktop mod launcher for Dota 2.</b></p>
+A modern, open-source launcher for managing Dota 2 cosmetic mods from a single desktop app.
 
-  <p>
-    Preview:
-  </p>
+[![Release](https://img.shields.io/github/v/release/artem-prime42/dota2skins-mod-manager?style=flat-square)](https://github.com/artem-prime42/dota2skins-mod-manager/releases/latest)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey?style=flat-square)]()
 
-  <img src="https://i.postimg.cc/T1XvbHpd/izobrazenie.png" alt="Preview" width="720">
+[Download Latest Release](https://github.com/artem-prime42/dota2skins-mod-manager/releases/latest) •
+[Website](https://dota2skins.vercel.app)
+
 </div>
 
 ---
 
-## About
+## ✨ What it does
 
-Mods shown in this launcher are sourced from the Dota2Skins website: https://dota2skins.vercel.app/
+Dota2Skins Mod Manager helps you browse, install, update, and organize Dota 2 mods without manually copying files into the game folder.
 
-This repository contains the desktop launcher; download installers from Releases.
+It includes:
 
-## Installation
+- 🎭 Hero-based browsing
+- 📂 Category and filter-based navigation
+- 🔍 Fast search across mods
+- 📦 One-click install and uninstall
+- 📚 Built-in mod library and management tools
+- 👤 Author pages and mod discovery
+- 🔄 Automatic launcher updates
+- ⚡ Automatic detection of Dota 2 installation
+- 🧩 Support for presets, packs, and mod cleanup
 
-1. Download **Dota2Skins Mod Manager Setup** from the [latest release](https://github.com/artem-prime42/dota2skins-mod-manager/releases/latest)
-2. Run it. The app installs, creates a desktop shortcut and starts
-3. It finds your Dota 2 installation on its own (you can change the path in Settings)
-4. Add the launch option shown in **Settings** to Steam (`Steam → Dota 2 → Properties → Launch Options`):
+---
 
+## 🖼️ Screenshots
+
+### Hero browser
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/main_screen.png" width="900" alt="Hero browser screenshot">
+</p>
+
+### Categories and filters
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/interface.png" width="900" alt="Categories screenshot">
+</p>
+
+### Mod library
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/libary.png" width="900" alt="Library screenshot">
+</p>
+
+### Authors
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/authors.png" width="900" alt="Authors screenshot">
+</p>
+
+---
+
+## 🚀 Installation
+
+1. Download the latest installer from the [releases page](https://github.com/artem-prime42/dota2skins-mod-manager/releases/latest).
+2. Run the installer and follow the setup wizard.
+3. The launcher will try to detect your Dota 2 installation automatically.
+4. If needed, set the game path manually in Settings.
+5. Copy the launch option shown in Settings and paste it into Steam:
+
+```text
+Steam → Dota 2 → Properties → Launch Options
 ```
+
+Example:
+
+```text
 -language russian
 ```
 
-Mods load from a custom language folder (`game/dota_russian`, `dota_123`), so the game needs a matching `-language` launch option. If you play in Russian, use `dota_russian` / `-language russian`: the game stays Russian and mods work. Fonts and cursors need no launch option at all.
+---
 
-## Установка (Russian)
+## 🛠️ Development
 
-1. Скачай **Dota2Skins Mod Manager Setup** из [последнего релиза](https://github.com/artem-prime42/dota2skins-mod-manager/releases/latest)
-2. Запусти. Приложение установится, создаст ярлык и откроется
-3. Путь к Dota 2 находится автоматически
-4. Добавь параметр запуска из **Настроек** в Steam (`Steam → Dota 2 → Свойства → Параметры запуска`):
+To run the app locally:
 
+```bash
+git clone https://github.com/artem-prime42/dota2skins-mod-manager.git
+cd dota2skins-mod-manager
+npm install
+npm start
 ```
--language russian
+
+If you want to build a standalone package:
+
+```bash
+npm run dist
 ```
 
-Играешь на русском — используй `dota_russian` / `-language russian`: игра останется русской, моды будут работать. Шрифты и курсоры работают без параметра запуска.
+---
 
-## Credits
+## 🤝 Credits
 
 This project is based on and includes code from:
 
-- Dota 2 Mod Manager by TheFleece
-  https://github.com/TheFleece/dota2-mod-manager
+- [TheFleece / dota2-mod-manager](https://github.com/TheFleece/dota2-mod-manager)
 
 Licensed under the GNU General Public License v3.0 (GPL-3.0).
 
-The source code of this project is also available under the GPL-3.0 license.
+This repository is also distributed under the same license.

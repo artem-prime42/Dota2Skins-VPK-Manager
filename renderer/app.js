@@ -269,11 +269,18 @@ const UI_TEXT = {
     minimize: 'Свернуть',
     closeWindow: 'Закрыть',
     home: 'Главная',
+    modsButton: 'Моды',
+    heroesSection: 'Герои',
+    worldSection: 'Мир',
+    interfaceSection: 'Интерфейс',
+    effectsSection: 'Эффекты',
+    otherSection: 'Остальное',
     catalog: 'Каталог',
     library: 'Библиотека',
     presets: 'Пресеты',
     authors: 'Авторы',
     tools: 'Инструменты',
+    toolsSection: 'Инструменты',
     settings: 'Настройки',
     launchDota: 'Запустить Dota 2',
     dashboardNewsTitle: 'Новости лаунчера',
@@ -439,11 +446,18 @@ const UI_TEXT = {
     minimize: 'Minimize',
     closeWindow: 'Close',
     home: 'Home',
+    modsButton: 'Mods',
+    heroesSection: 'Heroes',
+    worldSection: 'World',
+    interfaceSection: 'Interface',
+    effectsSection: 'Effects',
+    otherSection: 'Other',
     catalog: 'Catalog',
     library: 'Library',
     presets: 'Presets',
     authors: 'Authors',
     tools: 'Tools',
+    toolsSection: 'Tools',
     settings: 'Settings',
     launchDota: 'Launch Dota 2',
     dashboardNewsTitle: 'Launcher news',
@@ -1382,6 +1396,13 @@ document.querySelectorAll('.top-tab').forEach((btn) => {
   btn.addEventListener('click', () => setTopSection(btn.dataset.top));
 });
 
+function updateTopTabsState() {
+  const isCatalogView = state.view === 'catalog';
+  document.querySelectorAll('.top-tab').forEach((btn) => {
+    btn.classList.toggle('active', isCatalogView && btn.dataset.top === state.topSection);
+  });
+}
+
 function resetCatalogState() {
   state.filters = { sort: 'default', tags: new Set(), installedOnly: false, group: '', hero: '', heroSearch: '', heroFilter: new Set() };
   state.heroFiltersOpen = false;
@@ -1401,9 +1422,14 @@ function setTopSection(section) {
   } else {
     state.activeCategory = 'all';
   }
-  document.querySelectorAll('.top-tab').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.top === section);
-  });
+  const button = document.querySelector(`.top-tab[data-top="${section}"]`);
+  if (button) {
+    button.classList.remove('is-animating');
+    window.requestAnimationFrame(() => {
+      button.classList.add('is-animating');
+      window.setTimeout(() => button.classList.remove('is-animating'), 320);
+    });
+  }
   switchView('catalog');
 }
 
@@ -1425,13 +1451,14 @@ function switchView(view) {
   document.querySelectorAll('.side-tab').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   state.view = view;
   if ($('#catRail')) $('#catRail').classList.toggle('hidden', view !== 'catalog');
+  updateTopTabsState();
   render();
 }
 
 function renderSectionSubnav() {
   const container = $('#sectionSubnav');
   if (!container) return;
-  if (!shouldShowSectionSubnav() || state.view !== 'home' && state.view !== 'catalog') {
+  if (state.view === 'home' || !shouldShowSectionSubnav() || state.view !== 'home' && state.view !== 'catalog') {
     container.innerHTML = '';
     return;
   }

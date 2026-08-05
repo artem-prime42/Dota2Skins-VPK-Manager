@@ -148,6 +148,9 @@ input, select { font-family: inherit; }
   margin-right: auto;
 }
 .top-tab {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   padding: 13px 18px;
   min-height: 44px;
   border-radius: 14px;
@@ -157,18 +160,45 @@ input, select { font-family: inherit; }
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  transition: transform 0.25s var(--ease), background 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  transform-origin: center;
+  transition: transform 0.28s var(--ease), background 0.28s var(--ease), color 0.28s var(--ease), border-color 0.28s var(--ease), box-shadow 0.28s var(--ease), letter-spacing 0.28s var(--ease);
   will-change: transform, background-color, box-shadow;
 }
+.top-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: translateX(-120%);
+  opacity: 0;
+  transition: transform 0.55s var(--ease), opacity 0.35s var(--ease);
+  pointer-events: none;
+  z-index: -1;
+}
 .top-tab:hover,
-.top-tab.active {
+.top-tab.active,
+.top-tab.is-animating {
   background: rgba(255,255,255,0.14);
   color: var(--text);
 }
+.top-tab:hover::before,
+.top-tab.active::before,
+.top-tab.is-animating::before {
+  transform: translateX(120%);
+  opacity: 1;
+}
 .top-tab.active {
-  transform: scale(1.05);
-  border-color: rgba(255,255,255,0.2);
-  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px) scale(1.05);
+  border-color: rgba(255,255,255,0.24);
+  box-shadow: 0 12px 28px rgba(255, 255, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.top-tab.is-animating {
+  animation: topTabSwitch 0.32s var(--ease);
+}
+@keyframes topTabSwitch {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 rgba(255,255,255,0); }
+  45% { transform: scale(1.08); box-shadow: 0 16px 32px rgba(255,255,255,0.14); }
+  100% { transform: translateY(-1px) scale(1.04); box-shadow: 0 12px 28px rgba(255,255,255,0.1); }
 }
 .section-subnav {
   display: flex;
@@ -382,15 +412,15 @@ input, select { font-family: inherit; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 14px 14px;
+  gap: 12px;
+  padding: 8px 14px 14px;
   border-right: 1px solid var(--border);
   background: rgba(8, 8, 13, 0.55);
   backdrop-filter: blur(12px);
 }
 
 .side-brand {
-  padding-bottom: 12px;
+  padding-bottom: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -423,7 +453,7 @@ input, select { font-family: inherit; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 2px;
+  padding-top: 0;
 }
 
 .side-tab {
