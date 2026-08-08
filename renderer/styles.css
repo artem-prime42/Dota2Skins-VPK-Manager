@@ -479,7 +479,7 @@ input, select { font-family: inherit; }
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.72fr) minmax(270px, 0.82fr);
+  grid-template-columns: minmax(0, 1.75fr) minmax(240px, 0.72fr);
   gap: 14px;
   padding: 0;
   align-items: start;
@@ -499,12 +499,33 @@ input, select { font-family: inherit; }
 }
 
 .dashboard-side {
-  min-width: 270px;
+  min-width: 240px;
   align-self: start;
+}
+
+.dashboard-popular-list {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(180px, 0.85fr);
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scroll-behavior: smooth;
+}
+
+.dashboard-popular-list .card {
+  width: 100%;
+  max-width: 220px;
+  min-height: auto;
+}
+
+.dashboard-popular-list::-webkit-scrollbar {
+  height: 6px;
 }
 
 .dashboard-news,
 .dashboard-recent,
+.dashboard-popular,
 .dashboard-stats,
 .dashboard-heroes,
 .dashboard-community {
@@ -524,6 +545,7 @@ input, select { font-family: inherit; }
 }
 
 .dashboard-news,
+.dashboard-popular,
 .dashboard-stats,
 .dashboard-recent,
 .dashboard-heroes,
@@ -1711,6 +1733,26 @@ input, select { font-family: inherit; }
   background: linear-gradient(180deg, transparent 75%, rgba(20, 20, 29, 0.9) 100%);
   pointer-events: none;
 }
+.modal-downloads {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(10, 10, 16, 0.85);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 2;
+}
+.modal-downloads .ms {
+  font-size: 16px;
+}
 .modal-body { padding: 16px 22px 22px; display: flex; flex-direction: column; gap: 13px; }
 .modal-title-row { display: flex; align-items: flex-start; gap: 12px; }
 .modal-title { font-size: 20px; font-weight: 800; flex: 1; }
@@ -1787,6 +1829,25 @@ input, select { font-family: inherit; }
   border-radius: var(--radius-xs);
   padding: 9px 13px;
 }
+
+/* Author modal custom styles */
+.author-modal { animation: modalIn 0.34s var(--ease); }
+.author-modal .social-grid { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:6px; }
+.social-btn {
+  display:inline-flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04); color:var(--text);
+  min-width:100px; justify-content:center; text-decoration:none; transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+}
+.social-btn .social-icon { display:inline-flex; width:20px; height:20px; align-items:center; justify-content:center; border-radius:6px; background:rgba(0,0,0,0.18); color:var(--text); font-size:12px; }
+.social-btn:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 14px 36px rgba(0,0,0,0.45); background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); }
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.social-btn { animation: popIn 0.28s var(--ease) both; }
 
 /* ============ Library ============ */
 .lib-toolbar { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }

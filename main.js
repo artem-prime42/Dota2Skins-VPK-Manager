@@ -186,6 +186,11 @@ function registerIpc() {
     else win.maximize();
     return win.isMaximized();
   });
+  ipcMain.handle('win:toggleFullscreen', () => {
+    if (win.isFullScreen()) win.setFullScreen(false);
+    else win.setFullScreen(true);
+    return win.isFullScreen();
+  });
   ipcMain.handle('win:close', () => win.close());
   ipcMain.handle('win:isMaximized', () => win.isMaximized());
 

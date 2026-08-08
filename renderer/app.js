@@ -815,6 +815,10 @@ const IMMORTAL_MOD_NAMES = new Set([
   'tiny majesty of the colossus',
   'the hallows within',
   'swift claw',
+  'underlord immortal ravenous',
+  'soul shredder',
+  'invoker immortal',
+  'shadow fiend immortal',
 ]);
 
 function normalizeBadgeName(value) {
@@ -1413,6 +1417,7 @@ function applyFilters(mods, catForInstalled) {
 // ---------- window controls ----------
 
 $('#winMin')?.addEventListener('click', () => window.api.win.minimize());
+$('#winFull')?.addEventListener('click', () => window.api.win.toggleFullscreen());
 $('#winClose')?.addEventListener('click', () => window.api.win.close());
 
 // ---------- navigation ----------
@@ -1678,6 +1683,21 @@ function getLatestMods(limit = 40) {
   return mods.sort((a, b) => b._dateTs - a._dateTs).slice(0, limit);
 }
 
+function getPopularMods(limit = 5) {
+  const mods = [];
+  for (const cat of visibleCategories()) {
+    for (const mod of categoryMods(cat.id)) {
+      const downloads = Number(mod.downloads ?? mod.downloadCount ?? mod.downloadsCount ?? 0);
+      mods.push({
+        ...mod,
+        _cat: cat.id,
+        _downloads: Number.isFinite(downloads) ? downloads : 0,
+      });
+    }
+  }
+  return mods.sort((a, b) => b._downloads - a._downloads || String(a.name || '').localeCompare(String(b.name || ''))).slice(0, limit);
+}
+
 function renderRecentWeekPage() {
   const recentWeekMods = getRecentWeekMods();
   viewRoot.innerHTML = `
@@ -1729,7 +1749,7 @@ function renderCatalog() {
 function renderDashboard() {
   const cats = visibleCategories();
   const totalMods = cats.reduce((n, c) => n + categoryMods(c.id).length, 0);
-  const totalAuthors = 12;
+  const totalAuthors = 13;
   const categoriesCount = cats.length;
   const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
   const recentMods = getLatestMods(6);
@@ -1928,6 +1948,9 @@ function renderDashboard() {
       </button>`;
   }).join('');
 
+  const popularMods = getPopularMods(5);
+  const popularRows = popularMods.map((m, i) => cardHtml(m, i, true)).join('');
+
   const statsCards = [
     { value: totalMods, label: t('modsCount'), icon: 'extension' },
     { value: totalAuthors, label: t('authorsCount'), icon: 'person' },
@@ -1942,37 +1965,15 @@ function renderDashboard() {
   viewRoot.innerHTML = `
     <div class="dashboard-grid">
       <div class="dashboard-main">
-        <section class="dashboard-news">
+        <section class="dashboard-popular">
           <div class="dashboard-section-head">
             <div>
-              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'Launcher updates' : 'Обновления лаунчера'}</div>
-              <h2 class="dashboard-title">${t('dashboardNewsTitle')}</h2>
-            </div>
-            <div class="dashboard-nav">
-              <button class="dashboard-carousel-btn" type="button" data-dir="-1" aria-label="${getLang() === 'en' ? 'Previous' : 'Назад'}"><span class="ms">chevron_left</span></button>
-              <button class="dashboard-carousel-btn" type="button" data-dir="1" aria-label="${getLang() === 'en' ? 'Next' : 'Вперёд'}"><span class="ms">chevron_right</span></button>
+              <div class="dashboard-eyebrow">${getLang() === 'en' ? 'Popular mods' : 'Популярные моды'}</div>
+              <h2 class="dashboard-title">${getLang() === 'en' ? 'Most popular mods' : 'Топ 5 модов'}</h2>
             </div>
           </div>
-          <div class="dashboard-banner">
-            <div class="dashboard-banner-media">
-              ${slideArt ? mediaHtml(slideArt, { hoverPlay: false }) : ''}
-            </div>
-            <div class="dashboard-banner-content">
-              <div class="dashboard-banner-top">
-                <span class="dashboard-pill">${esc(activeSlide.meta || '')}</span>
-                <span class="dashboard-date">${esc(activeSlide.date || '')}</span>
-              </div>
-              <h3 class="dashboard-banner-title">${esc(activeSlide.title || '')}</h3>
-              <ul class="dashboard-banner-list">
-                ${activeSlide.changes.map((change) => `<li>${esc(change)}</li>`).join('')}
-              </ul>
-              <div class="dashboard-banner-actions">
-                <button class="btn btn-primary dashboard-banner-btn" type="button" data-news-title="${esc(activeSlide.title)}" data-news-date="${esc(activeSlide.date)}" data-news-meta="${esc(activeSlide.meta)}" data-news-changes="${esc(activeSlide.changes.join(' | '))}">${getLang() === 'en' ? 'Learn more' : 'Подробнее'}</button>
-              </div>
-            </div>
-          </div>
-          <div class="dashboard-carousel-dots">
-            ${slideItems.map((item, index) => `<button class="dashboard-dot ${index === currentSlideIndex % slideItems.length ? 'active' : ''}" type="button" data-slide="${index}" aria-label="${getLang() === 'en' ? 'Open slide' : 'Открыть слайд'} ${index + 1}"></button>`).join('')}
+          <div class="dashboard-recent-track dashboard-popular-list">
+            ${popularRows || `<div class="empty-note">${t('noResults')}</div>`}
           </div>
         </section>
 
@@ -2858,6 +2859,10 @@ function drawModal() {
   const heroLabel = heroEntry?.name || (heroSlug ? heroSlug.replace(/_/g, ' ') : '');
   const badgeType = getModBadgeType(mod, styleLabel);
   const modalBadge = badgeType ? `<div class="modal-badge modal-badge-${badgeType}">${esc(badgeLabelForType(badgeType))}</div>` : '';
+  const downloadCount = Number(mod.downloads ?? mod.downloadCount ?? mod.downloadsCount ?? 0);
+  const downloadOverlay = Number.isFinite(downloadCount) && downloadCount > 0
+    ? `<div class="modal-downloads"><span class="ms">cloud_download</span>${esc(downloadCount.toLocaleString(getLang()))}</div>`
+    : '';
 
   // pack contents (with per-session exclusions)
   if (isPack && !modalState.packExcluded) modalState.packExcluded = new Set();
@@ -2868,6 +2873,7 @@ function drawModal() {
     <div class="modal-media">
       ${mediaHtml(mediaUrl, { autoplay: true })}
       ${modalBadge}
+      ${downloadOverlay}
       <button class="modal-close" id="modalCloseBtn" aria-label="Закрыть"><span class="ms">close</span></button>
       ${previewAction ? `
         <button class="preview-toggle" id="previewPlayBtn">
@@ -3584,7 +3590,7 @@ function renderAuthors() {
             <div class="author-profile-meta"></div>
             <div class="author-links">
               ${Object.entries(author.links || {}).filter(([, url]) => url).map(([type, url]) => `<a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(type)}</a>`).join('')}
-              ${author.authorLink ? `<a href="${esc(author.authorLink)}" target="_blank" rel="noreferrer">${t('authorSite')}</a>` : ''}
+              ${(author.authorLink && author.id !== 'nahuitosay') ? `<a href="${esc(author.authorLink)}" target="_blank" rel="noreferrer">${t('authorSite')}</a>` : ''}
             </div>
           </div>
         </div>
@@ -3621,11 +3627,14 @@ function renderAuthors() {
     return;
   }
 
+  // sort authors by mod count (descending)
+  const sortedAuthors = [...authors].sort((a, b) => countAuthorMods(b) - countAuthorMods(a));
+
   viewRoot.innerHTML = `
     <div class="view-header"><h1 class="view-title">${t('authorsTitle')}</h1></div>
-    ${authors.length ? `
+    ${sortedAuthors.length ? `
       <div class="tool-grid">
-        ${authors.map((author, i) => {
+        ${sortedAuthors.map((author, i) => {
           const count = countAuthorMods(author);
           return `
           <div class="tool-card author-card" style="--i:${i}" data-author-id="${esc(author.id)}">
@@ -3777,6 +3786,13 @@ async function renderAbout() {
       </div>
       <p>${t('aboutHeroIntro')}</p>
       <p>${t('aboutHeroBody')}</p>
+      <p style="margin-top:10px;color:var(--text-muted);font-size:13px">Dota2Skins Manager создан и развивается одним разработчиком</p>
+      <div style="margin-top:12px">
+        <button id="papapodzaborniyBtn" class="btn btn-ghost" style="display:flex;align-items:center;padding:6px 10px">
+          <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/papapodzaborniy.jpg" alt="papapodzaborniy" style="width:28px;height:28px;border-radius:6px;margin-right:8px;object-fit:cover">
+          Papapodzaborniy
+        </button>
+      </div>
     </div>
 
     <div class="settings-block" style="animation-delay:60ms">
@@ -3819,6 +3835,49 @@ async function renderAbout() {
       window.api.misc.openExternal(a.href);
     });
   });
+
+  // Papapodzaborniy button handler — opens modal with links
+  const papBtn = document.getElementById('papapodzaborniyBtn');
+  if (papBtn) {
+    papBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const content = `
+        <div class="author-modal" style="padding:18px;max-width:420px;min-width:260px">
+          <button class="modal-close" aria-label="${t('close')}"><span class="ms">close</span></button>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+            <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/papapodzaborniy.jpg" style="width:56px;height:56px;border-radius:10px;object-fit:cover">
+            <div>
+              <div style="font-weight:800">Papapodzaborniy</div>
+              <div style="font-size:13px;color:var(--text-muted)">Разработчик и контрибьютор</div>
+            </div>
+          </div>
+          <div class="social-grid">
+            <a class="social-btn" href="https://t.me/papapodzaborniy2" target="_blank" rel="noopener noreferrer">
+              <span class="social-icon">✈</span>
+              <span>Telegram</span>
+            </a>
+            <a class="social-btn" href="https://www.youtube.com/@papapodzaborniy" target="_blank" rel="noopener noreferrer">
+              <span class="social-icon">▶</span>
+              <span>YouTube</span>
+            </a>
+            <a class="social-btn" href="https://github.com/artem-prime42" target="_blank" rel="noopener noreferrer">
+              <span class="social-icon"></span>
+              <span>GitHub</span>
+            </a>
+          </div>
+        </div>`;
+      const overlay = document.getElementById('modalOverlay');
+      const modalContent = document.getElementById('modalContent');
+      if (overlay && modalContent) {
+        modalContent.innerHTML = content;
+        overlay.classList.remove('hidden');
+        // attach close handler
+        overlay.querySelector('.modal-close')?.addEventListener('click', () => overlay.classList.add('hidden'));
+      } else {
+        window.api.misc.openExternal('https://t.me/papapodzaborniy2');
+      }
+    });
+  }
 }
 
 // ===== Settings =====

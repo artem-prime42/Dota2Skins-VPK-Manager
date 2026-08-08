@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   win: {
     minimize: () => ipcRenderer.invoke('win:minimize'),
     maximize: () => ipcRenderer.invoke('win:maximize'),
+    toggleFullscreen: () => ipcRenderer.invoke('win:toggleFullscreen'),
     close: () => ipcRenderer.invoke('win:close'),
     isMaximized: () => ipcRenderer.invoke('win:isMaximized'),
     onMaximized: (cb) => ipcRenderer.on('win:maximized', (e, v) => cb(v)),
