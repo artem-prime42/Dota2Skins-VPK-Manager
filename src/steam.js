@@ -116,13 +116,20 @@ async function findDotaGamePath() {
   return null;
 }
 
-function validateGamePath(p) {
-  if (!p) return false;
+function resolveGamePath(p) {
+  if (!p) return null;
   try {
-    return fs.existsSync(path.join(p, 'dota'));
+    if (fs.existsSync(path.join(p, 'dota'))) return p;
+    const gameDir = path.join(p, 'game');
+    if (fs.existsSync(path.join(gameDir, 'dota'))) return gameDir;
   } catch {
-    return false;
+    return null;
   }
+  return null;
 }
 
-module.exports = { findDotaGamePath, validateGamePath };
+function validateGamePath(p) {
+  return !!resolveGamePath(p);
+}
+
+module.exports = { findDotaGamePath, validateGamePath, resolveGamePath };

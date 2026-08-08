@@ -35,7 +35,7 @@ const { Settings } = require('./src/settings');
 const { Catalog } = require('./src/catalog');
 const { Installer } = require('./src/installer');
 const { Library } = require('./src/library');
-const { findDotaGamePath, validateGamePath } = require('./src/steam');
+const { findDotaGamePath, validateGamePath, resolveGamePath } = require('./src/steam');
 
 let win;
 let settings, catalog, installer, library;
@@ -123,7 +123,7 @@ app.whenReady().then(async () => {
   library = new Library(userData);
   installer = new Installer({
     userDataDir: userData,
-    getGamePath: () => settings.get('dotaGamePath'),
+    getGamePath: () => resolveGamePath(settings.get('dotaGamePath')) || settings.get('dotaGamePath'),
     getLangSuffix: () => settings.get('langSuffix'),
     onProgress: sendProgress,
   });
@@ -132,6 +132,12 @@ app.whenReady().then(async () => {
   if (!validateGamePath(settings.get('dotaGamePath'))) {
     const found = await findDotaGamePath();
     if (found) settings.set('dotaGamePath', found);
+  }
+  if (settings.get('dotaGamePath')) {
+    const resolved = resolveGamePath(settings.get('dotaGamePath'));
+    if (resolved) {
+      settings.set('dotaGamePath', resolved);
+    }
   }
 
   registerIpc();

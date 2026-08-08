@@ -81,6 +81,31 @@ export const EXTRA_HIDDEN_SKIN_TITLES = [];
   assert.equal(entry.slot, 'set');
 });
 
+test('Site adapter includes all normalized categories from OTHER_MODS', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-category-validation-test-'));
+  const sourceDir = path.join(tmpDir, 'app', 'lib');
+  fs.mkdirSync(sourceDir, { recursive: true });
+  fs.writeFileSync(path.join(sourceDir, 'hero-skins.ts'), `
+export const HERO_MODS = {};
+export const OTHER_MODS = [
+  { id: "hero-items-example", title: "Hero item mod", author: "anon", category: "hero_items", imageUrl: "https://img.example.com/hero-items.webp", downloadUrl: "https://files.example.com/hero-items.zip", createdAt: "2026-07-20T00:00:00.000Z" },
+  { id: "herofx-example", title: "Hero FX mod", author: "anon", category: "herofx", imageUrl: "https://img.example.com/herofx.webp", downloadUrl: "https://files.example.com/herofx.zip", createdAt: "2026-07-20T00:00:00.000Z" },
+  { id: "highfive-example", title: "High Five mod", author: "anon", category: "high_five", imageUrl: "https://img.example.com/highfive.webp", downloadUrl: "https://files.example.com/highfive.zip", createdAt: "2026-07-20T00:00:00.000Z" },
+];
+export const EXTRA_HIDDEN_SKIN_TITLES = [];
+`);
+
+  const data = await loadSiteCatalog(tmpDir);
+  const categoryIds = data.constants.categories.map((c) => c.id);
+
+  assert.ok(categoryIds.includes('hero-items'));
+  assert.ok(categoryIds.includes('herofx'));
+  assert.ok(categoryIds.includes('high-five'));
+  assert.equal(data.mods.modsData['hero-items'][0].categoryId, 'hero-items');
+  assert.equal(data.mods.modsData['herofx'][0].categoryId, 'herofx');
+  assert.equal(data.mods.modsData['high-five'][0].categoryId, 'high-five');
+});
+
 test('Catalog can load data from a provided local file', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-test-'));
   const catalogFile = path.join(tmpDir, 'catalog.json');

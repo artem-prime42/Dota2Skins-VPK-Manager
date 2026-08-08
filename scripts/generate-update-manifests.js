@@ -41,5 +41,15 @@ function writeManifest(name, fileName, platform) {
 }
 
 fs.mkdirSync(distDir, { recursive: true });
-writeManifest('latest.yml', `Dota2skins-mod-manager-Setup-${version}.exe`, 'win');
-writeManifest('latest-linux.yml', `${pkg.productName}-${version}-x86_64.AppImage`, 'linux');
+const manifests = [
+  { name: 'latest.yml', fileName: `Dota2skins-mod-manager-Setup-${version}.exe`, platform: 'win' },
+  { name: 'latest-linux.yml', fileName: `${pkg.productName}-${version}-x86_64.AppImage`, platform: 'linux' },
+];
+for (const manifest of manifests) {
+  const fullPath = path.join(distDir, manifest.fileName);
+  if (!fs.existsSync(fullPath)) {
+    console.warn(`Skipping manifest generation: ${manifest.fileName} not found`);
+    continue;
+  }
+  writeManifest(manifest.name, manifest.fileName, manifest.platform);
+}

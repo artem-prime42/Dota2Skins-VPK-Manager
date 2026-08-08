@@ -75,6 +75,49 @@ function parseDateValue(raw) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function splitObjectProperties(line) {
+  const result = [];
+  let current = '';
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+  let escaped = false;
+
+  for (const char of line) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === '\\') {
+      current += char;
+      escaped = true;
+      continue;
+    }
+    if (char === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+      current += char;
+      continue;
+    }
+    if (char === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote;
+      current += char;
+      continue;
+    }
+    if (char === ',' && !inSingleQuote && !inDoubleQuote) {
+      result.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += char;
+  }
+
+  if (current.trim()) {
+    result.push(current.trim());
+  }
+
+  return result.filter(Boolean);
+}
+
 function formatHeroLabel(slug) {
   if (!slug) return 'Hero';
   return String(slug)
@@ -98,6 +141,10 @@ function normalizeCategoryId(id) {
     'mega_kills': 'mega-kill',
     'hero-sounds': 'hero-sounds',
     'hero_sounds': 'hero-sounds',
+    'hero-items': 'hero-items',
+    'hero_items': 'hero-items',
+    'hero-fx': 'herofx',
+    'hero_fx': 'herofx',
     'item-effects': 'item-effects',
     'item_effects': 'item-effects',
     'creep-deny': 'creep-deny',
@@ -229,8 +276,10 @@ async function loadSiteCatalog(source) {
     }
     if (!inTargetSection || trimmed.startsWith('import ') || trimmed.startsWith('export type')) continue;
 
-    const propertyMatch = trimmed.match(/^([A-Za-z0-9_$]+)\s*:\s*(.+)$/);
     const heroEntryMatch = trimmed.match(/^([A-Za-z0-9_$]+)\s*:\s*\[/);
+    const propertyParts = splitObjectProperties(trimmed)
+      .map((part) => part.match(/^([A-Za-z0-9_$]+)\s*:\s*(.+)$/))
+      .filter(Boolean);
 
     if (currentSection === 'hero' && heroEntryMatch && !currentObject) {
       const [, key] = heroEntryMatch;
@@ -241,8 +290,58 @@ async function loadSiteCatalog(source) {
       continue;
     }
 
-    if (trimmed === '{' || trimmed === '[{' || trimmed.endsWith('[{') || trimmed.includes('[{')) {
-      currentObject = {};
+    const isInlineObject = trimmed.startsWith('{') && trimmed.includes('}');
+    if (trimmed === '{' || trimmed === '[{' || trimmed.endsWith('[{') || trimmed.includes('[{') || isInlineObject) {
+      if (!currentObject) currentObject = {};
+      if (isInlineObject) {
+        for (const propertyMatch of propertyParts) {
+          const [, key, valueText] = propertyMatch;
+          if (key === 'id') {
+            currentObject.id = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'title') {
+            currentObject.name = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'author' || key === 'sender' || key === 'authorName') {
+            const authorValue = parseStringValue(valueText);
+            if (authorValue && !currentObject.author) {
+              currentObject.author = authorValue;
+            }
+            continue;
+          }
+          if (key === 'category') {
+            currentObject.category = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'hero') {
+            currentObject.hero = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'imageUrl') {
+            currentObject.preview = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'invokerSlot') {
+            currentObject.slot = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'downloadUrl') {
+            currentObject.file = parseStringValue(valueText);
+            continue;
+          }
+          if (key === 'createdAt' || key === 'created_at' || key === 'date') {
+            const dateValue = parseStringValue(valueText);
+            if (dateValue && !currentObject.createdAt) {
+              currentObject.createdAt = dateValue;
+            }
+            continue;
+          }
+        }
+        flushObject();
+        continue;
+      }
       continue;
     }
     if (trimmed === '},' || trimmed === '}' || trimmed === '};' || trimmed === '}]' || trimmed === '},' || trimmed === '}] ,' || trimmed === '}]' || trimmed === '},') {
@@ -251,51 +350,54 @@ async function loadSiteCatalog(source) {
     }
 
     if (!currentObject) continue;
-    if (!propertyMatch) continue;
+    if (!propertyParts.length) continue;
 
-    const [, key, valueText] = propertyMatch;
-    if (key === 'id') {
-      currentObject.id = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'title') {
-      currentObject.name = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'author' || key === 'sender' || key === 'authorName') {
-      const authorValue = parseStringValue(valueText);
-      if (authorValue && !currentObject.author) {
-        currentObject.author = authorValue;
+    for (const propertyMatch of propertyParts) {
+      const [, key, valueText] = propertyMatch;
+      if (key === 'id') {
+        currentObject.id = parseStringValue(valueText);
+        continue;
       }
-      continue;
-    }
-    if (key === 'category') {
-      currentObject.category = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'hero') {
-      currentObject.hero = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'imageUrl') {
-      currentObject.preview = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'invokerSlot') {
-      currentObject.slot = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'downloadUrl') {
-      currentObject.file = parseStringValue(valueText);
-      continue;
-    }
-    if (key === 'createdAt' || key === 'created_at' || key === 'date') {
-      const dateValue = parseStringValue(valueText);
-      if (dateValue && !currentObject.createdAt) {
-        currentObject.createdAt = dateValue;
+      if (key === 'title') {
+        currentObject.name = parseStringValue(valueText);
+        continue;
       }
-      continue;
+      if (key === 'author' || key === 'sender' || key === 'authorName') {
+        const authorValue = parseStringValue(valueText);
+        if (authorValue && !currentObject.author) {
+          currentObject.author = authorValue;
+        }
+        continue;
+      }
+      if (key === 'category') {
+        currentObject.category = parseStringValue(valueText);
+        continue;
+      }
+      if (key === 'hero') {
+        currentObject.hero = parseStringValue(valueText);
+        continue;
+      }
+      if (key === 'imageUrl') {
+        currentObject.preview = parseStringValue(valueText);
+        continue;
+      }
+      if (key === 'invokerSlot') {
+        currentObject.slot = parseStringValue(valueText);
+        continue;
+      }
+      if (key === 'downloadUrl') {
+        currentObject.file = parseStringValue(valueText);
+        continue;
+      }
+      if (key === 'createdAt' || key === 'created_at' || key === 'date') {
+        const dateValue = parseStringValue(valueText);
+        if (dateValue && !currentObject.createdAt) {
+          currentObject.createdAt = dateValue;
+        }
+        continue;
+      }
     }
+    continue;
   }
 
   const grouped = {};

@@ -1,6 +1,7 @@
 // Installer engine: download, extract, pak allocation, per-category install/uninstall
 const fs = require('fs');
 const path = require('path');
+const { fileURLToPath } = require('url');
 const AdmZip = require('adm-zip');
 const { VpkReader, VpkWriter } = require('vpk-tools');
 const { RAW_BASE } = require('./catalog');
@@ -19,7 +20,9 @@ const MERGE_PAK_NAME = 'pak_merge_dir.vpk';
 function fileUrl(categoryId, fileRef) {
   if (!fileRef) return null;
   if (/^https?:\/\//i.test(fileRef)) return fileRef;
-  return `${RAW_BASE}/assets/files/${categoryId}/${encodeURIComponent(fileRef)}`;
+  const normalizedCategory = encodeURIComponent(String(categoryId).replace(/\\/g, '/'));
+  const pathParts = String(fileRef).replace(/\\/g, '/').split('/').filter(Boolean).map(encodeURIComponent);
+  return `${RAW_BASE}/assets/files/${normalizedCategory}/${pathParts.join('/')}`;
 }
 
 class Installer {
@@ -51,6 +54,24 @@ class Installer {
   // ---------- download ----------
 
   async download(categoryId, fileRef, label) {
+    if (!fileRef) throw new Error('Не задан файл для загрузки');
+    if (typeof fileRef === 'string') {
+      const trimmed = fileRef.trim();
+      if (trimmed.startsWith('file://')) {
+        try {
+          const localPath = fileURLToPath(trimmed);
+          if (fs.existsSync(localPath)) return localPath;
+        } catch {
+          // fall back to manual decoding for malformed or legacy URLs
+        }
+        const fallbackPath = decodeURIComponent(trimmed.replace(/^file:\/\//i, ''));
+        if (fs.existsSync(fallbackPath)) return fallbackPath;
+      }
+      if (fs.existsSync(trimmed)) {
+        return trimmed;
+      }
+    }
+
     const url = fileUrl(categoryId, fileRef);
     const safeName = decodeURIComponent(url.split('/').pop());
     const destDir = path.join(this.downloadsDir, categoryId);
@@ -89,8 +110,12 @@ class Installer {
     const used = new Set();
     if (fs.existsSync(lang)) {
       for (const f of fs.readdirSync(lang)) {
-        // consider disabled files as occupying their base name too
-        used.add(f.toLowerCase().replace(/\.off$/, ''));
+        const name = f.toLowerCase().replace(/\.off$/, '');
+        used.add(name);
+        const partMatch = name.match(/^(pak\d+)(_\d+\.vpk)$/i);
+        if (partMatch) {
+          used.add(`${partMatch[1]}_dir.vpk`);
+        }
       }
     }
     return used;
@@ -280,6 +305,20 @@ class Installer {
     }
 
     const zip = new AdmZip(local);
+    const vpkPrefixMap = new Map();
+    for (const entry of zip.getEntries()) {
+      if (entry.isDirectory) continue;
+      const rel = entry.entryName.replace(/\\/g, '/');
+      const lower = rel.toLowerCase();
+      const baseName = rel.split('/').pop();
+      if (!baseName) continue;
+      if (lower.endsWith('_dir.vpk')) {
+        const originalPrefix = baseName.slice(0, -'_dir.vpk'.length);
+        const allocatedDir = this.allocatePak(used, isPriority);
+        vpkPrefixMap.set(originalPrefix, allocatedDir.slice(0, -'_dir.vpk'.length));
+      }
+    }
+
     for (const entry of zip.getEntries()) {
       if (entry.isDirectory) continue;
       const rel = entry.entryName.replace(/\\/g, '/');
@@ -297,9 +336,19 @@ class Installer {
         this.writeInto(entry.getData(), path.join(lang, relPath));
         records.push({ root: 'lang', relPath });
       } else if (lower.endsWith('_dir.vpk') || lower.endsWith('.vpk')) {
-        const pakName = lower.endsWith('_dir.vpk')
-          ? this.allocatePak(used, isPriority)
-          : baseName; // secondary pak parts (pakNN_000.vpk) keep names
+        let pakName;
+        if (lower.endsWith('_dir.vpk')) {
+          const originalPrefix = baseName.slice(0, -'_dir.vpk'.length);
+          const newPrefix = vpkPrefixMap.get(originalPrefix) || this.allocatePak(used, isPriority).slice(0, -'_dir.vpk'.length);
+          pakName = `${newPrefix}_dir.vpk`;
+        } else {
+          const partMatch = baseName.match(/^(.+?)(_\d+\.vpk)$/i);
+          if (partMatch && vpkPrefixMap.has(partMatch[1])) {
+            pakName = `${vpkPrefixMap.get(partMatch[1])}${partMatch[2]}`;
+          } else {
+            pakName = baseName;
+          }
+        }
         this.writeInto(entry.getData(), path.join(lang, pakName));
         records.push({ root: 'lang', relPath: pakName });
       } else {

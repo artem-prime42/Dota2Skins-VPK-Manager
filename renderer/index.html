@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy"
@@ -27,18 +27,18 @@
       </div>
 
       <div id="topNav" class="top-nav">
-        <button class="tb-tab top-tab active" data-top="heroes" data-i18n="heroesSection">Герои</button>
-        <button class="tb-tab top-tab" data-top="world" data-i18n="worldSection">Мир</button>
-        <button class="tb-tab top-tab" data-top="interface" data-i18n="interfaceSection">Интерфейс</button>
-        <button class="tb-tab top-tab" data-top="effects" data-i18n="effectsSection">Эффекты</button>
-        <button class="tb-tab top-tab" data-top="other" data-i18n="otherSection">Остальное</button>
-        <button class="tb-tab top-tab" data-top="tools" data-i18n="toolsSection">Инструменты</button>
+        <button class="tb-tab top-tab active" data-top="heroes" data-i18n="heroesSection">Heroes</button>
+        <button class="tb-tab top-tab" data-top="world" data-i18n="worldSection">World</button>
+        <button class="tb-tab top-tab" data-top="interface" data-i18n="interfaceSection">Interface</button>
+        <button class="tb-tab top-tab" data-top="effects" data-i18n="effectsSection">Effects</button>
+        <button class="tb-tab top-tab" data-top="other" data-i18n="otherSection">Other</button>
+        <button class="tb-tab top-tab" data-top="tools" data-i18n="toolsSection">Tools</button>
       </div>
 
       <div class="tb-spacer"></div>
       <div class="tb-controls">
-        <button class="tb-ctl" id="winMin" aria-label="Свернуть" data-i18n-aria-label="minimize"><svg viewBox="0 0 12 12" width="12" height="12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.2"/></svg></button>
-        <button class="tb-ctl tb-close" id="winClose" aria-label="Закрыть" data-i18n-aria-label="closeWindow"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+        <button class="tb-ctl" id="winMin" aria-label="Minimize" data-i18n-aria-label="minimize"><svg viewBox="0 0 12 12" width="12" height="12"><line x1="2" y1="6" x2="10" y2="6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+        <button class="tb-ctl tb-close" id="winClose" aria-label="Close" data-i18n-aria-label="closeWindow"><svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
       </div>
     </header>
 
@@ -54,24 +54,24 @@
       <aside class="side-panel">
         <div class="side-brand"></div>
         <div class="side-nav">
-          <button class="tb-tab side-tab active" data-view="home"><span class="ms">home</span><span class="tab-label" data-i18n="home">Главная</span></button>
-          <button class="tb-tab side-tab" data-view="catalog"><span class="ms">apps</span><span class="tab-label" data-i18n="modsButton">Моды</span></button>
-          <button class="tb-tab side-tab" data-view="library"><span class="ms">inventory</span><span class="tab-label" data-i18n="library">Библиотека</span><span class="tb-badge" id="libCount"></span></button>
-          <button class="tb-tab side-tab" data-view="presets"><span class="ms">playlist_add</span><span class="tab-label" data-i18n="presets">Пресеты</span></button>
-          <button class="tb-tab side-tab" data-view="authors"><span class="ms">person</span><span class="tab-label" data-i18n="authors">Авторы</span></button>
-          <button class="tb-tab side-tab" data-view="settings"><span class="ms">settings</span><span class="tab-label" data-i18n="settings">Настройки</span></button>
-          <button class="tb-tab side-tab" data-view="about"><span class="ms">info</span><span class="tab-label" data-i18n="about">О программе</span></button>
+          <button class="tb-tab side-tab active" data-view="home"><span class="ms">home</span><span class="tab-label" data-i18n="home">Home</span></button>
+          <button class="tb-tab side-tab" data-view="catalog"><span class="ms">apps</span><span class="tab-label" data-i18n="modsButton">Mods</span></button>
+          <button class="tb-tab side-tab" data-view="library"><span class="ms">inventory</span><span class="tab-label" data-i18n="library">Library</span><span class="tb-badge" id="libCount"></span></button>
+          <button class="tb-tab side-tab" data-view="presets"><span class="ms">playlist_add</span><span class="tab-label" data-i18n="presets">Presets</span></button>
+          <button class="tb-tab side-tab" data-view="authors"><span class="ms">person</span><span class="tab-label" data-i18n="authors">Authors</span></button>
+          <button class="tb-tab side-tab" data-view="settings"><span class="ms">settings</span><span class="tab-label" data-i18n="settings">Settings</span></button>
+          <button class="tb-tab side-tab" data-view="about"><span class="ms">info</span><span class="tab-label" data-i18n="about">About</span></button>
         </div>
         <div id="sideCategories" class="side-categories"></div>
-        <button class="side-launch" id="launchDotaBtn"><span class="ms">play_arrow</span><span data-i18n="launchDota">Запустить Dota 2</span></button>
+        <button class="side-launch" id="launchDotaBtn"><span class="ms">play_arrow</span><span data-i18n="launchDota">Launch Dota 2</span></button>
       </aside>
     </div>
 
     <!-- Status footer strip -->
     <footer id="statusbar">
       <span class="dot" id="dotaStatusDot"></span>
-      <span id="dotaStatusText" data-i18n="searchingDota">Поиск Dota 2…</span>
-      <button class="status-link" id="openModsFolderBtn"><span class="ms">folder_open</span><span data-i18n="openModsFolder">Открыть папку модов</span></button>
+      <span id="dotaStatusText" data-i18n="dotaNotFound">Dota 2 not found — set the path in settings</span>
+      <button class="status-link" id="openModsFolderBtn"><span class="ms">folder_open</span><span data-i18n="openModsFolder">Open mods folder</span></button>
     </footer>
 
     <!-- Progress bar (bottom) -->

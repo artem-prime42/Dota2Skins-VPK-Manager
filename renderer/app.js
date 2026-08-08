@@ -73,6 +73,7 @@ const TOP_SECTION_CATEGORIES = {
   interface: ['packs', 'versus-screens', 'announcers', 'ranks', 'sounds', 'huds', 'mega-kill', 'wards', 'cursors', 'backgrounds'],
   effects: ['item-effects', 'shaders', 'creep-deny', 'ranged-attack'],
   other: ['pedestal', 'optimization', 'item-icons', 'other', 'hero-sounds'],
+  tools: [],
 };
 
 const HERO_PREVIEW_FALLBACKS = {
@@ -260,6 +261,33 @@ function toggleFavoriteHero(slug) {
   renderCatalog();
 }
 
+const COURIER_EFFECT_MODS = new Set([
+  'pudgling',
+  'gingerbread baby roshan',
+  'golden doomling',
+  'golden huntling',
+  'onibi',
+  'honey heist baby roshan',
+  'strongback the swift',
+  'nian courier',
+  'golden flopjaw the boxhound',
+  'dark moon baby roshan',
+  'baby roshan 2018',
+  'jade baby roshan',
+  'aghanims baby roshan radiant',
+  'aghanims baby roshan dire',
+  'baby roshan 2017',
+  'desert sands baby roshan',
+  'golden seekling',
+  'golden venoling',
+  'jadehoof',
+]);
+
+const COURIER_EFFECT_NOTICE = {
+  ru: 'Этот курьер имеет эффекты. Чтобы они работали, необходимо выбрать курьера `Dollfart` и `Roshinante Scholar Edition` — его дают за выполнение заданий обучения 1 разряд.\n\nЕсли у вас нет этого курьера, выберите стандартного курьера, но он будет без эффектов.',
+  en: 'This courier has effects. To make them work, you need to select the courier `Dollfart` and `Roshinante Scholar Edition` — it is awarded for completing training missions at rank 1.\n\nIf you do not have this courier, select the default courier, but it will be without effects.',
+};
+
 const UI_TEXT = {
   ru: {
     appTitle: 'Dota2skins',
@@ -391,6 +419,7 @@ const UI_TEXT = {
     downloadingProgress: 'Скачивание: {label}',
     stageProgress: '{label}: {stage}',
     downloadingAutomatically: 'Скачиваю автоматически…',
+    toolsInDevelopment: 'Вкладка пока в разработке — некоторые функции могут быть недоступны.',
     installNoteFonts: 'Шрифт ставится в файлы игры (game\\dota\\panorama\\fonts) — параметр запуска не нужен. Оригиналы сохраняются автоматически.',
     installNoteCursors: 'Курсор ставится в game\\dota\\resource\\cursor — параметр запуска не нужен. Оригиналы сохраняются автоматически.',
     settingsSteamNote: 'Steam → Библиотека → ПКМ по Dota 2 → Свойства → Параметры запуска → вставь строку выше. Моды (кроме шрифтов и курсоров) работают только с этим параметром.',
@@ -935,7 +964,7 @@ function resolveDownloadTarget(mod, style) {
   }
   const picked = candidates.find((value) => typeof value === 'string' && value.trim());
   if (!picked) return null;
-  if (/^https?:\/\//i.test(picked)) return picked;
+  if (/^(https?:\/\/|file:\/\/\/?)+/i.test(picked) || /^[A-Za-z]:[\\/]/.test(picked) || picked.startsWith('/')) return picked;
   return `${RAW_BASE}/${picked.split('/').map(encodeURIComponent).join('/')}`;
 }
 
@@ -1397,9 +1426,9 @@ document.querySelectorAll('.top-tab').forEach((btn) => {
 });
 
 function updateTopTabsState() {
-  const isCatalogView = state.view === 'catalog';
+  const isTopView = state.view === 'catalog' || state.view === 'tools';
   document.querySelectorAll('.top-tab').forEach((btn) => {
-    btn.classList.toggle('active', isCatalogView && btn.dataset.top === state.topSection);
+    btn.classList.toggle('active', isTopView && btn.dataset.top === state.topSection);
   });
 }
 
@@ -1430,7 +1459,11 @@ function setTopSection(section) {
       window.setTimeout(() => button.classList.remove('is-animating'), 320);
     });
   }
-  switchView('catalog');
+  if (section === 'tools') {
+    switchView('tools');
+  } else {
+    switchView('catalog');
+  }
 }
 
 function sectionSubnavCategories() {
@@ -1452,6 +1485,7 @@ function switchView(view) {
   state.view = view;
   if ($('#catRail')) $('#catRail').classList.toggle('hidden', view !== 'catalog');
   updateTopTabsState();
+  void refreshSidebarStatus();
   render();
 }
 
@@ -2789,6 +2823,7 @@ function openCatalogTarget(categoryId, heroSlug = '') {
 
 function drawModal() {
   const { categoryId, mod, styleIdx } = modalState;
+  const showCourierNotice = COURIER_EFFECT_MODS.has((mod?.name || '').trim().toLowerCase());
   const styles = mod.styles || null;
   const cur = styles ? styles[styleIdx] : mod;
   const fileRef = styles ? cur.file : mod.file;
@@ -2842,6 +2877,7 @@ function drawModal() {
     <div class="modal-body">
       <div class="modal-title-row">
         <div class="modal-title">${esc(mod.name)}</div>
+        ${showCourierNotice ? `<button class="btn btn-sm btn-ghost" id="courierInfoBtn" type="button" title="${esc(t('tools'))}"><span class="ms">help_outline</span></button>` : ''}
       </div>
       <div class="modal-sub">
         <button class="modal-meta-chip" id="modalCategoryBtn" type="button">${esc(catName(categoryId))}</button>
@@ -2980,6 +3016,26 @@ function drawModal() {
   });
 
   const installBtn = $('#installBtn');
+  const courierInfoBtn = $('#courierInfoBtn');
+  if (courierInfoBtn) {
+    courierInfoBtn.addEventListener('click', () => {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-box" style="max-width:560px">
+          <div class="modal-header">
+            <h2 class="modal-title">${esc(t('tools'))}</h2>
+            <button class="modal-close" aria-label="${t('close')}"><span class="ms">close</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="modal-note" style="white-space:pre-line;line-height:1.6">${esc(COURIER_EFFECT_NOTICE[getLang()] || COURIER_EFFECT_NOTICE.en)}</div>
+          </div>
+        </div>`;
+      overlay.querySelector('.modal-close').addEventListener('click', () => overlay.remove());
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    });
+  }
   if (installBtn) {
     installBtn.addEventListener('click', () => doInstall(categoryId, mod, styleLabel, fileRef, cur.preview || mod.preview));
   }
@@ -3598,6 +3654,7 @@ async function renderTools() {
 
   viewRoot.innerHTML = `
     <div class="view-header"><h1 class="view-title">${t('tools')}</h1></div>
+    <div class="tool-note">${t('toolsInDevelopment')}</div>
     <div class="tool-grid">
       ${tools.map((t, i) => {
         const dl = t.file && /\.(zip|exe)$/i.test(t.file);
@@ -3931,14 +3988,21 @@ function removeUpdateBar() {
 // ---------- status bar ----------
 
 async function refreshSidebarStatus() {
-  const s = await window.api.settings.get();
-  state.settings = s;
   const dotEl = $('#dotaStatusDot');
   const txtEl = $('#dotaStatusText');
-  if (s.dotaPathValid) {
-    dotEl.className = 'dot ok';
-    txtEl.textContent = `${t('dotaConnected')} · dota_${s.langSuffix} · ${t('steamLaunchOption')}: -language ${s.langSuffix}`;
-  } else {
+  if (!dotEl || !txtEl) return;
+
+  try {
+    const s = await window.api.settings.get();
+    state.settings = s;
+    if (s?.dotaPathValid) {
+      dotEl.className = 'dot ok';
+      txtEl.textContent = `${t('dotaConnected')} · dota_${s.langSuffix || 'english'}`;
+    } else {
+      dotEl.className = 'dot bad';
+      txtEl.textContent = t('dotaNotFound');
+    }
+  } catch (e) {
     dotEl.className = 'dot bad';
     txtEl.textContent = t('dotaNotFound');
   }
