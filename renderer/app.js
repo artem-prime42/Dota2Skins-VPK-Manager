@@ -232,13 +232,45 @@ function getHeroAttribute(slug) {
 function heroFilterLabel(filterKey) {
   switch (filterKey) {
     case 'favorites': return getLang() === 'en' ? 'Favorites' : 'Избранные';
-    case 'count': return getLang() === 'en' ? 'By count' : 'По количеству';
+    case 'count':
+    case 'most-mods': return getLang() === 'en' ? 'Most mods' : 'С наибольшим числом модов';
+    case 'popular': return getLang() === 'en' ? 'Popular' : 'Популярные';
+    case 'anime': return getLang() === 'en' ? 'Anime' : 'Anime';
+    case 'arcana': return getLang() === 'en' ? 'Arcana' : 'Arcana';
+    case 'immortal': return getLang() === 'en' ? 'Immortal' : 'Immortal';
     case 'universal': return getLang() === 'en' ? 'Universal' : 'Универсал';
     case 'strength': return getLang() === 'en' ? 'Strength' : 'Сила';
     case 'agility': return getLang() === 'en' ? 'Agility' : 'Ловкость';
     case 'intelligence': return getLang() === 'en' ? 'Intelligence' : 'Интеллект';
     default: return getLang() === 'en' ? 'All' : 'Все';
   }
+}
+
+function getHeroFilterGroups() {
+  const lang = getLang();
+  return [
+    { title: lang === 'en' ? 'Parameters' : 'Параметры', icon: 'tune', keys: ['all', 'strength', 'agility', 'intelligence', 'universal'] },
+    { title: lang === 'en' ? 'Rarity' : 'Редкость', icon: 'star', keys: ['all', 'immortal', 'arcana'] },
+    { title: lang === 'en' ? 'Additional' : 'Дополнительно', icon: 'movie', keys: ['all', 'anime'] },
+    { title: lang === 'en' ? 'Quick filters' : 'Быстрые фильтры', icon: 'bolt', keys: ['all', 'favorites', 'most-mods', 'popular'] },
+  ];
+}
+
+function heroHasAnime(hero) {
+  const heroMods = getHeroModsForSlug(hero.slug);
+  return heroMods.some((mod) => modHasAnimeTag(mod));
+}
+
+function heroHasRarity(hero, rarity) {
+  const heroMods = getHeroModsForSlug(hero.slug);
+  return heroMods.some((mod) => getModBadgeType(mod) === rarity || normalizeTags(mod.tags).some((tag) => String(tag).toLowerCase() === rarity));
+}
+
+function getHeroPopularity(hero) {
+  return getHeroModsForSlug(hero.slug).reduce((sum, mod) => {
+    const downloads = Number(mod.downloads ?? mod.downloadCount ?? mod.downloadsCount ?? 0);
+    return sum + (Number.isFinite(downloads) ? downloads : 0);
+  }, 0);
 }
 
 const FAVORITE_HEROES_KEY = 'favoriteHeroes';
@@ -946,7 +978,7 @@ function toast(msg, type = 'ok', ms = 4000) {
 function previewUrl(categoryId, preview) {
   if (!preview) return null;
   if (/^https?:\/\//i.test(preview)) return preview;
-  if (/^file:\/\//i.test(preview)) return preview.replace(/^file:\/\//i, '');
+  if (/^file:\/\//i.test(preview)) return preview;
   if (preview.startsWith('assets/previews/')) return `${RAW_BASE}/${preview.split('/').map(encodeURIComponent).join('/')}`;
   return `${RAW_BASE}/assets/previews/${encodeURIComponent(categoryId)}/${encodeURIComponent(preview)}`;
 }
@@ -993,6 +1025,8 @@ function getEmbedUrl(url) {
 function resolveUrl(url) {
   if (!url) return null;
   if (/^https?:\/\//i.test(url)) return url;
+  if (/^file:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return `file://${encodeURI(url)}`;
   return `${RAW_BASE}/${url.split('/').map(encodeURIComponent).join('/')}`;
 }
 
@@ -1017,12 +1051,23 @@ function resolvePreviewAction(categoryId, mod) {
 }
 
 function mediaHtml(url, { hoverPlay = false, autoplay = false, controls = false } = {}) {
-  const normalizedUrl = typeof url === 'string' ? url.trim() : '';
+  let normalizedUrl = '';
+  let posterUrl = null;
+  if (typeof url === 'object' && url !== null) {
+    normalizedUrl = typeof url.url === 'string' ? url.url.trim() : '';
+    posterUrl = typeof url.poster === 'string' ? url.poster.trim() : null;
+  } else {
+    normalizedUrl = typeof url === 'string' ? url.trim() : '';
+  }
   if (!normalizedUrl) {
     return `<div class="noimg"><span class="ms" style="font-size:36px">image</span></div>`;
   }
   if (isVideo(normalizedUrl)) {
-    return `<video src="${esc(normalizedUrl)}" ${controls ? 'controls' : 'muted'} loop playsinline preload="${autoplay ? 'auto' : 'none'}" ${autoplay ? 'autoplay' : ''} ${hoverPlay ? 'data-hoverplay="1"' : ''}></video>`;
+    const type = normalizedUrl.toLowerCase().endsWith('.webm') ? 'video/webm' : 'video/mp4';
+    return `<video ${controls ? 'controls' : 'muted'} loop playsinline preload="${autoplay ? 'auto' : 'none'}" ${autoplay ? 'autoplay' : ''} ${posterUrl ? `poster="${esc(posterUrl)}"` : ''} ${hoverPlay ? 'data-hoverplay="1"' : ''}>
+      <source src="${esc(normalizedUrl)}" type="${type}">
+      ${t('videoNotSupported') || 'Your browser does not support this video.'}
+    </video>`;
   }
   if (isAudio(normalizedUrl)) {
     return `<div class="audio-wrap"><span class="ms audio-icon">graphic_eq</span><audio src="${esc(normalizedUrl)}" controls preload="none"></audio></div>`;
@@ -1089,7 +1134,7 @@ function openPlayer(urlOrAction, title) {
           ? `<div class="player-audio-visual"><span class="ms">graphic_eq</span></div><audio src="${esc(url)}" autoplay></audio>`
           : image
             ? `<div class="player-image"><img src="${esc(url)}" alt="${esc(title || '')}"></div>`
-            : `<video src="${esc(url)}" autoplay playsinline></video>`}
+            : `<video autoplay playsinline preload="auto"><source src="${esc(url)}" type="${isVideo(url) ? (url.toLowerCase().endsWith('.webm') ? 'video/webm' : 'video/mp4') : 'video/mp4'}"></video>`}
       <div class="player-title">${esc(title || '')}</div>
       <button class="player-close" aria-label="${t('close')}"><span class="ms">close</span></button>
       ${embed ? '' : `<div class="player-controls">
@@ -1170,12 +1215,18 @@ function keyOf(categoryId, name, styleLabel) {
 }
 
 async function refreshInstalledIndex() {
-  const { installed } = await window.api.mods.list();
+  const result = await window.api.mods.list();
+  const installed = Array.isArray(result?.installed) ? result.installed : [];
   state.installedIndex.clear();
   for (const rec of installed) {
-    state.installedIndex.set(keyOf(rec.categoryId, rec.name, rec.styleLabel), rec);
+    if (rec && rec.categoryId && rec.name) {
+      state.installedIndex.set(keyOf(rec.categoryId, rec.name, rec.styleLabel), rec);
+    }
   }
-  $('#libCount').textContent = installed.length || '';
+  const libCountEl = $('#libCount');
+  if (libCountEl) {
+    libCountEl.textContent = installed.length ? String(installed.length) : '';
+  }
 }
 
 // ---------- catalog data helpers ----------
@@ -1334,7 +1385,31 @@ function tagLabel(categoryId, tag) {
   return cfg?.map?.[tag] || tag;
 }
 
-const HIDDEN_TAGS = new Set(['immortal', 'arcana']);
+const HIDDEN_TAGS = new Set(['immortal', 'arcana', 'anime']);
+
+const HIDDEN_ANIME_MOD_NAMES = new Set([
+  'bane komeiji koishi',
+  'invoker patchouli',
+  'jakiro kiyohime',
+  'io histoire',
+  'natures prophet saya',
+  'doom jeanne alter',
+  'kez zangetsu',
+]);
+
+function normalizeModName(name) {
+  return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function modHasAnimeTag(mod) {
+  if (!mod) return false;
+  const tagValues = Array.isArray(mod.tags)
+    ? mod.tags
+    : (typeof mod.tags === 'object' ? Object.entries(mod.tags).filter(([, v]) => v).map(([k]) => k) : []);
+  const hasExplicitAnimeTag = tagValues.some((tag) => String(tag || '').trim().toLowerCase() === 'anime');
+  if (hasExplicitAnimeTag) return true;
+  return HIDDEN_ANIME_MOD_NAMES.has(normalizeModName(mod.name));
+}
 
 function normalizeTags(tags) {
   if (!tags) return [];
@@ -2342,10 +2417,12 @@ function renderCategory(categoryId) {
       : heroes)
       .slice();
     const filtersKeys = [...heroFilters];
-    const hasFilters = filtersKeys.length > 0;
     const hasFavorites = heroFilters.has('favorites');
-    const hasCount = heroFilters.has('count');
+    const hasMostMods = heroFilters.has('most-mods') || heroFilters.has('count');
+    const hasPopular = heroFilters.has('popular');
+    const hasAnime = heroFilters.has('anime');
     const attributeFilters = filtersKeys.filter((key) => ['strength', 'agility', 'intelligence', 'universal'].includes(key));
+    const rarityFilters = filtersKeys.filter((key) => ['immortal', 'arcana'].includes(key));
 
     if (hasFavorites) {
       filteredHeroes = filteredHeroes.filter((h) => state.favorites.has((h.slug || '').toLowerCase()));
@@ -2354,10 +2431,19 @@ function renderCategory(categoryId) {
       const attributeSet = new Set(attributeFilters);
       filteredHeroes = filteredHeroes.filter((h) => attributeSet.has(getHeroAttribute(h.slug)));
     }
-    if (hasCount) {
-      filteredHeroes.sort((a, b) => (b.modsCount || 0) - (a.modsCount || 0));
+    if (rarityFilters.length) {
+      const raritySet = new Set(rarityFilters);
+      filteredHeroes = filteredHeroes.filter((h) => raritySet.has('immortal') && heroHasRarity(h, 'immortal') || raritySet.has('arcana') && heroHasRarity(h, 'arcana'));
+    }
+    if (hasAnime) {
+      filteredHeroes = filteredHeroes.filter((h) => heroHasAnime(h));
+    }
+    if (hasPopular) {
+      filteredHeroes.sort((a, b) => getHeroPopularity(b) - getHeroPopularity(a) || (a.name || '').localeCompare(b.name || ''));
+    } else if (hasMostMods) {
+      filteredHeroes.sort((a, b) => (b.modsCount || 0) - (a.modsCount || 0) || (a.name || '').localeCompare(b.name || ''));
     } else {
-      filteredHeroes.sort((a, b) => a.name.localeCompare(b.name, 'ru', { sensitivity: 'base' }));
+      filteredHeroes.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ru', { sensitivity: 'base' }));
     }
     
     if (selectedHero) {
@@ -2541,17 +2627,26 @@ function toolbarHtml(resultCount, { tags = [], groups = [], heroes = [], categor
         <span class="ms">search</span>
         <input type="text" id="heroSearchInput" placeholder="${getCatalogSearchPlaceholder()}" value="${esc(f.heroSearch || '')}">
       </div>`);
+  }
+
+  if (isHeroes && !f.hero) {
     toolbarParts.push(`
-      <div class="hero-filter-toggle-wrap">
-        <button class="hero-filter-toggle ${state.heroFiltersOpen ? 'active' : ''}" id="heroFilterToggle">
-          <span class="ms">filter_alt</span>${t('filters')}
-        </button>
-        <div class="hero-filter-panel ${state.heroFiltersOpen ? 'open' : ''}" id="heroFilterPanel">
-          ${['all', 'favorites', 'count', 'strength', 'agility', 'intelligence', 'universal'].map((key) => `
-            <button class="fchip ${(!f.heroFilter.size && key === 'all') || f.heroFilter.has(key) ? 'active' : ''}" data-hero-filter="${key}">
-              ${esc(heroFilterLabel(key))}
-            </button>`).join('')}
-        </div>
+      <div class="hero-filter-panel ${state.heroFiltersOpen ? 'open' : ''}" id="heroFilterPanel">
+        ${getHeroFilterGroups().map((group) => `
+          <div class="hero-filter-group">
+            <div class="hero-filter-group-title">
+              <span>${esc(group.title)}</span>
+              <span class="ms hero-filter-group-icon">${esc(group.icon || 'filter_alt')}</span>
+            </div>
+            <div class="hero-filter-group-wrap">
+              ${group.keys.map((key) => `
+                <button class="fchip ${(!f.heroFilter.size && key === 'all') || f.heroFilter.has(key) ? 'active' : ''}" data-hero-filter="${key}">
+                  ${esc(heroFilterLabel(key))}
+                </button>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+        <button class="hero-filter-reset" id="heroFilterReset" type="button" data-hero-filter-reset="true">${t('clear')}</button>
       </div>`);
   }
 
@@ -2632,13 +2727,18 @@ function bindToolbar() {
     state.heroFiltersOpen = !state.heroFiltersOpen;
     renderCatalog();
   });
+  $('#heroFilterPanel')?.addEventListener('click', (e) => {
+    if (e.target.closest('.fchip')) {
+      state.heroFiltersOpen = true;
+    }
+  });
   document.querySelectorAll('.fchip[data-hero-filter]').forEach((c) => {
     c.addEventListener('click', () => {
       const filter = c.dataset.heroFilter || '';
+      if (!state.filters.heroFilter) state.filters.heroFilter = new Set();
       if (filter === 'all') {
         state.filters.heroFilter = new Set();
       } else {
-        if (!state.filters.heroFilter) state.filters.heroFilter = new Set();
         if (state.filters.heroFilter.has(filter)) {
           state.filters.heroFilter.delete(filter);
         } else {
@@ -2647,6 +2747,11 @@ function bindToolbar() {
       }
       renderCatalog();
     });
+  });
+  $('#heroFilterReset')?.addEventListener('click', () => {
+    state.filters.heroFilter = new Set();
+    state.heroFiltersOpen = false;
+    renderCatalog();
   });
   document.querySelectorAll('.fchip[data-tag]').forEach((c) => {
     c.addEventListener('click', () => {
@@ -2662,15 +2767,18 @@ function bindToolbar() {
 
 function cardHtml(m, i, withCat = false) {
   const cat = m._cat;
+  const previewAction = resolvePreviewAction(cat, m);
   const previewCandidate = m.preview || m.imageUrl || m.thumbnail || (m.styles?.[0]?.preview);
-  const prev = previewUrl(cat, previewCandidate);
+  const previewImageUrl = previewCandidate ? previewUrl(cat, previewCandidate) : null;
+  const prev = previewAction?.kind === 'media'
+    ? (isVideo(previewAction.url) ? { url: previewAction.url, poster: previewImageUrl } : previewAction.url)
+    : previewUrl(cat, previewCandidate);
   const installed = isInstalled(cat, m);
   const isPack = m.type === 'pack';
   const external = !installTarget(m) && !m.styles && !isPack;
   const tags = normalizeTags(m.tags).slice(0, 3);
   const author = (m.author || m.sender || '').trim();
   const hideAuthor = author && ['Unknown', 'Anonymous'].includes(author);
-  const previewAction = resolvePreviewAction(cat, m);
   const authorProfile = (state.catalog?.constants?.AUTHOR_PROFILES || []).find((entry) => entry.displayName.toLowerCase() === author.toLowerCase() || entry.id.toLowerCase() === author.toLowerCase());
   const authorAvatar = authorProfile?.avatarUrl ? `<img class="author-chip-avatar" src="${esc(authorProfile.avatarUrl)}" alt="${esc(author)}">` : '<span class="ms">person</span>';
   const badgeType = getModBadgeType(m);
@@ -2838,7 +2946,10 @@ function drawModal() {
 
   const links = mod.links || [];
   const previewAction = resolvePreviewAction(categoryId, { ...mod, preview: cur.preview || mod.preview });
-  const mediaUrl = previewUrl(categoryId, cur.preview || mod.preview);
+  const previewImageUrl = cur.preview || mod.preview ? previewUrl(categoryId, cur.preview || mod.preview) : null;
+  const mediaUrl = previewAction?.kind === 'media' || previewAction?.kind === 'audio'
+    ? (isVideo(previewAction.url) ? { url: previewAction.url, poster: previewImageUrl } : previewAction.url)
+    : previewUrl(categoryId, cur.preview || mod.preview);
 
   // author: mod.author/sender field, or an "author"-type link whose url is a name or URL
   const authorLink = links.find((l) => l.type === 'author');
@@ -4095,9 +4206,17 @@ window.api.onProgress((evt) => {
 
 // ---------- auto-update ----------
 
-window.api.update.onUpdate((evt) => {
+window.api.update.onUpdate(async (evt) => {
   removeUpdateBar();
   if (evt.type === 'available') {
+    try {
+      await refreshInstalledIndex();
+      if (state.view === 'library') renderLibrary();
+      else if (state.view === 'catalog') renderCatalog();
+      else render();
+    } catch {
+      /* noop */
+    }
     const bar = document.createElement('div');
     bar.className = 'update-bar';
     bar.innerHTML = `
@@ -4107,6 +4226,14 @@ window.api.update.onUpdate((evt) => {
     document.body.appendChild(bar);
     bar.querySelector('#updateLaterBtn').addEventListener('click', () => bar.remove());
   } else if (evt.type === 'downloaded') {
+    try {
+      await refreshInstalledIndex();
+      if (state.view === 'library') renderLibrary();
+      else if (state.view === 'catalog') renderCatalog();
+      else render();
+    } catch {
+      /* noop */
+    }
     const bar = document.createElement('div');
     bar.className = 'update-bar';
     bar.innerHTML = `
@@ -4118,8 +4245,24 @@ window.api.update.onUpdate((evt) => {
     bar.querySelector('#updateNowBtn').addEventListener('click', () => window.api.update.install());
     bar.querySelector('#updateLaterBtn').addEventListener('click', () => bar.remove());
   } else if (evt.type === 'not-available') {
+    try {
+      await refreshInstalledIndex();
+      if (state.view === 'library') renderLibrary();
+      else if (state.view === 'catalog') renderCatalog();
+      else render();
+    } catch {
+      /* noop */
+    }
     toast(t('noUpdates'), 'ok', 4000);
   } else if (evt.type === 'error') {
+    try {
+      await refreshInstalledIndex();
+      if (state.view === 'library') renderLibrary();
+      else if (state.view === 'catalog') renderCatalog();
+      else render();
+    } catch {
+      /* noop */
+    }
     toast(evt.message || t('failedUpdates'), 'warn', 5000);
   }
 });

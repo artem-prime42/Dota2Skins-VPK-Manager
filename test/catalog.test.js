@@ -21,6 +21,22 @@ test('Renderer hero filtering uses hero metadata and marks requested mods as imm
   assert.match(appSource, /tyrian mulctant pall/);
 });
 
+test('Hero filter UI includes the requested compact filter groups and quick filters', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
+  assert.match(appSource, /most-mods/);
+  assert.match(appSource, /popular/);
+  assert.match(appSource, /anime/);
+  assert.match(appSource, /heroFilterReset|reset.*hero.*filter/i);
+});
+
+test('Anime filter works for hidden anime mods without exposing the tag in UI normalization', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
+  assert.match(appSource, /HIDDEN_TAGS.*anime|anime.*HIDDEN_TAGS/i);
+  assert.match(appSource, /modHasAnimeTag|heroHasAnime\(/);
+  assert.doesNotMatch(appSource, /normalizeTags\(tags\).*anime|anime.*normalizeTags\(tags\)/i);
+  assert.match(appSource, /Bane Komeiji Koishi|Invoker Patchouli|Jakiro Kiyohime|IO Histoire|Natures Prophet Saya|Doom Jeanne Alter|Kez Zangetsu/i);
+});
+
 test('Site adapter keeps full preview and download URLs', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');

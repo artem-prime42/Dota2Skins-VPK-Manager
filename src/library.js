@@ -14,7 +14,15 @@ class Library {
     try {
       if (fs.existsSync(this.file)) {
         const parsed = JSON.parse(fs.readFileSync(this.file, 'utf-8'));
-        this.data = { installed: [], presets: [], ...parsed };
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          this.data = {
+            ...parsed,
+            installed: Array.isArray(parsed.installed) ? parsed.installed : [],
+            presets: Array.isArray(parsed.presets) ? parsed.presets : [],
+          };
+        } else {
+          this.data = { installed: [], presets: [] };
+        }
       }
     } catch {
       // keep defaults; corrupted manifest is preserved as .bak for manual recovery
@@ -28,7 +36,7 @@ class Library {
   }
 
   list() {
-    return this.data.installed;
+    return Array.isArray(this.data.installed) ? this.data.installed : [];
   }
 
   find(id) {
@@ -90,7 +98,7 @@ class Library {
   // ---------- presets ----------
 
   listPresets() {
-    return this.data.presets;
+    return Array.isArray(this.data.presets) ? this.data.presets : [];
   }
 
   savePreset(name) {

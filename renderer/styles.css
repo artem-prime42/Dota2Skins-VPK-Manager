@@ -2720,6 +2720,7 @@ audio::-webkit-media-controls-panel { background: var(--surface-solid); }
   align-items: center;
   gap: 8px;
   z-index: 20;
+  width: 100%;
 }
 .hero-filter-toggle {
   display: inline-flex;
@@ -2737,25 +2738,80 @@ audio::-webkit-media-controls-panel { background: var(--surface-solid); }
   background: var(--surface-hover);
 }
 .hero-filter-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 30;
-  display: none;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px;
-  background: rgba(18, 18, 22, 0.96);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 18px 40px rgba(0,0,0,0.25);
-  min-width: 220px;
+  position: static;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 .hero-filter-panel.open {
+  display: grid;
+}
+.hero-filter-group {
   display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.015);
+}
+.hero-filter-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.hero-filter-group-icon {
+  font-size: 15px;
+  color: var(--primary-soft);
+  opacity: 0.9;
+}
+.hero-filter-group-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .hero-filter-panel .fchip {
-  flex: 1 1 auto;
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 30px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.1;
+  background: rgba(255,255,255,0.02);
+  text-align: left;
+}
+.hero-filter-reset {
+  grid-column: 1 / -1;
+  justify-self: flex-end;
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.02);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.hero-filter-reset:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+  transform: translateY(-1px);
 }
 .hero-fav-btn {
   position: absolute;
