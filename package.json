@@ -1,7 +1,7 @@
 {
   "name": "dota2skins-mod-manager",
   "productName": "Dota2skins-mod-manager",
-  "version": "1.2.9",
+  "version": "1.3.0",
   "description": "Desktop mod manager for Dota 2 — browse, install, toggle and preset 1040+ cosmetic mods from the Dota2skins catalog",
   "main": "main.js",
   "scripts": {
