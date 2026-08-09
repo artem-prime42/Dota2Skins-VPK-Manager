@@ -14,30 +14,37 @@ function sha512(filePath) {
   return hash.digest('hex');
 }
 
+function yamlScalar(value) {
+  if (value === null || value === undefined) return 'null';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  const text = String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return `"${text}"`;
+}
+
 function writeManifest(name, fileName, platform) {
   const fullPath = path.join(distDir, fileName);
   if (!fs.existsSync(fullPath)) {
     throw new Error(`Artifact not found: ${fileName}`);
   }
 
-  const manifest = {
-    version,
-    files: [
-      {
-        // use relative filename so electron-updater will resolve it against
-        // the configured GitHub release download base
-        url: fileName,
-        sha512: sha512(fullPath),
-        size: fs.statSync(fullPath).size,
-      }
-    ],
-    path: fileName,
-    sha512: sha512(fullPath),
-    releaseDate: new Date().toISOString(),
-    type: platform,
-  };
+  const fileHash = sha512(fullPath);
+  const fileSize = fs.statSync(fullPath).size;
+  const releaseDate = new Date().toISOString();
 
-  fs.writeFileSync(path.join(distDir, name), JSON.stringify(manifest, null, 2));
+  const manifest = [
+    `version: ${yamlScalar(version)}`,
+    'files:',
+    `  - url: ${yamlScalar(fileName)}`,
+    `    sha512: ${yamlScalar(fileHash)}`,
+    `    size: ${fileSize}`,
+    `path: ${yamlScalar(fileName)}`,
+    `sha512: ${yamlScalar(fileHash)}`,
+    `releaseDate: ${yamlScalar(releaseDate)}`,
+    `type: ${yamlScalar(platform)}`,
+    '',
+  ].join('\n');
+
+  fs.writeFileSync(path.join(distDir, name), manifest, 'utf8');
 }
 
 fs.mkdirSync(distDir, { recursive: true });
