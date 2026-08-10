@@ -37,6 +37,7 @@ contextBridge.exposeInMainWorld('api', {
     openLangFolder: () => ipcRenderer.invoke('misc:openLangFolder'),
     openToolsFolder: (sub) => ipcRenderer.invoke('misc:openToolsFolder', sub),
     openExternal: (url) => ipcRenderer.invoke('misc:openExternal', url),
+    openPath: (targetPath) => ipcRenderer.invoke('misc:openPath', targetPath),
     listLangFolders: () => ipcRenderer.invoke('misc:listLangFolders'),
     launchDota: () => ipcRenderer.invoke('misc:launchDota'),
     cacheSize: () => ipcRenderer.invoke('misc:cacheSize'),

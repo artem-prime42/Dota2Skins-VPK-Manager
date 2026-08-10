@@ -8,6 +8,7 @@ const DEFAULTS = {
   // "123" switches the game UI to English
   langSuffix: 'russian',
   appLanguage: 'en',
+  autoUpdateEnabled: true,
 };
 
 class Settings {

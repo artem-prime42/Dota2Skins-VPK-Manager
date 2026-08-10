@@ -368,6 +368,7 @@ const UI_TEXT = {
     dotaPath: 'Путь к Dota 2',
     detectAutomatically: 'Найти автоматически',
     browseManually: 'Указать вручную',
+    browsePath: 'Обзор',
     langFolder: 'Языковая папка',
     steamLaunchOption: 'Параметр запуска Steam',
     copy: 'Копировать',
@@ -388,7 +389,11 @@ const UI_TEXT = {
     telegramDesc: 'Новости проекта, новые моды, обновления лаунчера и важные объявления.',
     telegramAction: 'Открыть Telegram',
     thirdPartySoftware: 'Стороннее программное обеспечение',
+    basedOnProject: 'Основано на коде проекта',
+    appearance: 'Внешний вид',
+    developerRole: 'Разработчик и контрибьютор',
     version: 'Версия',
+    checkUpdates: 'Проверить обновление',
     updatesNote: 'Обновления скачиваются автоматически из GitHub Releases — когда новая версия готова, появится кнопка установки.',
     dotaConnected: 'Dota 2 подключена',
     dotaNotFound: 'Dota 2 не найдена — укажи путь в настройках',
@@ -457,6 +462,10 @@ const UI_TEXT = {
     settingsSteamNote: 'Steam → Библиотека → ПКМ по Dota 2 → Свойства → Параметры запуска → вставь строку выше. Моды (кроме шрифтов и курсоров) работают только с этим параметром.',
     settingsSteamWarning: 'В Dota2 теперь требуется указывать допустимый язык, поэтому такие параметры, как -language minify, -language foo, больше не работают. Вместо этого используйте другой допустимый язык.',
     cacheInfoNote: 'Скачанные архивы модов. Нужны для быстрой переустановки — удаление ничего не сломает.',
+    autoUpdate: 'Авто обновление',
+    enabled: 'Включено',
+    disabled: 'Выключено',
+    developer: 'Разработчик',
     externalFiles: 'Внешние файлы в папке модов',
     externalFilesNote: 'Файлы, установленные не через менеджер',
     alwaysActive: 'всегда активен',
@@ -546,6 +555,7 @@ const UI_TEXT = {
     dotaPath: 'Dota 2 path',
     detectAutomatically: 'Detect automatically',
     browseManually: 'Browse manually',
+    browsePath: 'Open folder',
     langFolder: 'Language folder',
     steamLaunchOption: 'Steam launch option',
     copy: 'Copy',
@@ -566,7 +576,11 @@ const UI_TEXT = {
     telegramDesc: 'Project news, new mods, launcher updates, and important announcements.',
     telegramAction: 'Open Telegram',
     thirdPartySoftware: 'Third-party software',
+    basedOnProject: 'Based on the project',
+    appearance: 'Appearance',
+    developerRole: 'Developer and contributor',
     version: 'Version',
+    checkUpdates: 'Check for updates',
     updatesNote: 'Updates are downloaded automatically from GitHub Releases — when a new version is ready, an install button appears.',
     dotaConnected: 'Dota 2 is connected',
     dotaNotFound: 'Dota 2 not found — set the path in settings',
@@ -634,6 +648,10 @@ const UI_TEXT = {
     settingsSteamNote: 'Steam → Library → Right-click Dota 2 → Properties → Launch options → paste the string above. Mods (except fonts and cursors) only work with this option.',
     settingsSteamWarning: 'Dota 2 now requires a valid language to be specified, so launch parameters such as -language minify or -language foo no longer work. Use another valid language instead.',
     cacheInfoNote: 'Downloaded mod archives. They are used for quick reinstall — deleting them will not break anything.',
+    autoUpdate: 'Auto update',
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    developer: 'Developer',
     externalFiles: 'External files in the mods folder',
     externalFilesNote: 'Files installed outside the manager',
     alwaysActive: 'always active',
@@ -713,6 +731,7 @@ function esc(s) {
 const ARCANA_MOD_NAMES = new Set([
   'drow ranger arcana',
   'drow ranger stranger arcana',
+  'earthshaker arcana style 2',
   'faceless void arcana',
   'faceless void arcana style 2',
   'monkey king arcana',
@@ -1389,6 +1408,7 @@ const HIDDEN_TAGS = new Set(['immortal', 'arcana', 'anime']);
 
 const HIDDEN_ANIME_MOD_NAMES = new Set([
   'bane komeiji koishi',
+  'chen lelouch',
   'invoker patchouli',
   'jakiro kiyohime',
   'io histoire',
@@ -1673,11 +1693,9 @@ function render() {
     case 'home': renderer = renderDashboard; break;
     case 'catalog': renderer = renderCatalog; break;
     case 'library': renderer = renderLibrary; break;
-    case 'presets': renderer = renderPresets; break;
     case 'authors': renderer = renderAuthors; break;
     case 'tools': renderer = renderTools; break;
     case 'settings': renderer = renderSettings; break;
-    case 'about': renderer = renderAbout; break;
   }
   const viewRoot = $('#view-root');
   if (viewRoot) {
@@ -4003,20 +4021,16 @@ async function renderSettings() {
   viewRoot.innerHTML = `
     <div class="view-header">
       <h1 class="view-title">${t('settingsTitle')}</h1>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="color:var(--text-muted);font-size:13px">${t('languageLabel')}</span>
-        <select class="input" id="uiLangSelect" style="min-width:140px">
-          <option value="ru" ${s.appLanguage === 'ru' ? 'selected' : ''}>${t('russian')}</option>
-          <option value="en" ${s.appLanguage === 'en' ? 'selected' : ''}>${t('english')}</option>
-        </select>
-      </div>
     </div>
 
     <div class="settings-block">
       <h3>${t('dotaPath')}</h3>
       <div class="settings-row">
         <span class="mono" style="flex:1">${esc(s.dotaGamePath || (getLang() === 'en' ? 'not found' : 'не найден'))}</span>
-        <span class="dot ${s.dotaPathValid ? 'ok' : 'bad'}"></span>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <button class="btn btn-sm" id="browsePathBtn">${t('browsePath')}</button>
+          <span class="dot ${s.dotaPathValid ? 'ok' : 'bad'}"></span>
+        </div>
       </div>
       <div class="settings-row">
         <button class="btn btn-sm" id="detectBtn">${t('detectAutomatically')}</button>
@@ -4049,28 +4063,65 @@ async function renderSettings() {
       </div>
     </div>
 
-    <div class="settings-block" style="animation-delay:120ms">
-      <h3>${t('cacheSize')}</h3>
-      <div class="settings-row">
-        <span class="settings-label">${t('cacheSize')}</span>
-        <span style="font-variant-numeric:tabular-nums">${fmtMB(cacheSize)} MB</span>
-        <button class="btn btn-sm" id="clearCacheBtn">${t('clearCache')}</button>
+    <div class="settings-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin-top:4px;">
+      <div class="settings-block" style="animation-delay:180ms">
+        <h3>${t('catalogTitle')}</h3>
+        <div class="settings-row">
+          <span class="settings-label">${t('updated')}</span>
+          <span>${state.catalog?.fetchedAt ? new Date(state.catalog.fetchedAt).toLocaleString(getLang() === 'en' ? 'en-US' : 'ru') : '—'}</span>
+          <button class="btn btn-sm" id="refreshCatBtn2">${t('refreshNow')}</button>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">${t('source')}</span>
+          <a style="color:var(--primary-soft);cursor:pointer;font-size:12.5px" id="srcLink">dota2skins.vercel.app</a>
+        </div>
       </div>
-      <div style="font-size:12.5px;color:var(--text-muted)">
-        ${t('cacheInfoNote')}
+
+      <div class="settings-block" style="animation-delay:120ms">
+        <h3>${t('cacheSize')}</h3>
+        <div class="settings-row">
+          <span class="settings-label">${t('cacheSize')}</span>
+          <span style="font-variant-numeric:tabular-nums">${fmtMB(cacheSize)} MB</span>
+          <button class="btn btn-sm" id="clearCacheBtn">${t('clearCache')}</button>
+        </div>
+        <div style="font-size:12.5px;color:var(--text-muted)">
+          ${t('cacheInfoNote')}
+        </div>
       </div>
     </div>
 
-    <div class="settings-block" style="animation-delay:180ms">
-      <h3>${t('catalogTitle')}</h3>
-      <div class="settings-row">
-        <span class="settings-label">${t('updated')}</span>
-        <span>${state.catalog?.fetchedAt ? new Date(state.catalog.fetchedAt).toLocaleString(getLang() === 'en' ? 'en-US' : 'ru') : '—'}</span>
-        <button class="btn btn-sm" id="refreshCatBtn2">${t('refreshNow')}</button>
+    <div class="settings-grid" style="display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); margin-top:4px;">
+      <div class="settings-block" style="animation-delay:240ms">
+        <h3>${t('appearance')}</h3>
+        <div class="settings-row">
+          <span class="settings-label">${t('languageLabel')}</span>
+          <select class="input" id="uiLangSelect2" style="min-width:140px">
+            <option value="ru" ${s.appLanguage === 'ru' ? 'selected' : ''}>${t('russian')}</option>
+            <option value="en" ${s.appLanguage === 'en' ? 'selected' : ''}>${t('english')}</option>
+          </select>
+        </div>
+        <div class="settings-row" style="justify-content:space-between;align-items:center;">
+          <span class="settings-label">${t('autoUpdate')}</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:12px;color:${s.autoUpdateEnabled !== false ? 'var(--primary-soft)' : 'var(--text-muted)'}">${s.autoUpdateEnabled !== false ? t('enabled') : t('disabled')}</span>
+            <button class="toggle ${s.autoUpdateEnabled !== false ? 'on' : ''}" id="autoUpdateToggle" type="button" aria-pressed="${s.autoUpdateEnabled !== false}"></button>
+          </div>
+        </div>
       </div>
-      <div class="settings-row">
-        <span class="settings-label">${t('source')}</span>
-        <a style="color:var(--primary-soft);cursor:pointer;font-size:12.5px" id="srcLink">dota2skins.vercel.app</a>
+
+      <div class="settings-block" style="animation-delay:300ms">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+          <h3 style="margin:0">${t('about')}</h3>
+          <span class="about-hero-version">v${esc(appVersion)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <span style="color:var(--text-muted);font-size:13px">${t('developer')}</span>
+          <button id="papapodzaborniyBtn" class="btn btn-sm">Papapodzaborniy</button>
+        </div>
+        <p style="margin-top:6px;color:var(--text-muted);font-size:13px">${t('basedOnProject')} <a href="https://github.com/TheFleece/dota2-mod-manager" target="_blank" rel="noopener noreferrer">Dota 2 Mod Manager</a></p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+          <button id="checkUpdatesBtn" class="btn btn-sm">${t('checkUpdates')}</button>
+        </div>
       </div>
     </div>
 
@@ -4082,13 +4133,79 @@ async function renderSettings() {
     renderSettings();
     refreshSidebarStatus();
   });
-  $('#browseBtn').addEventListener('click', async () => {
+  $('#uiLangSelect2')?.addEventListener('change', async (e) => {
+    await window.api.settings.set('appLanguage', e.target.value);
+    renderSettings();
+  });
+  $('#autoUpdateToggle')?.addEventListener('click', async () => {
+    const enabled = !($('#autoUpdateToggle').classList.contains('on'));
+    $('#autoUpdateToggle').classList.toggle('on', enabled);
+    $('#autoUpdateToggle').setAttribute('aria-pressed', String(enabled));
+    await window.api.settings.set('autoUpdateEnabled', enabled);
+    renderSettings();
+  });
+  $('#checkUpdatesBtn')?.addEventListener('click', async () => {
+    try {
+      const result = await window.api.update.check();
+      if (result?.ok) toast(t('checkingUpdates'), 'ok', 4000);
+      else toast(result?.error || t('failedUpdates'), 'warn', 5000);
+    } catch (err) {
+      toast(t('failedUpdates'), 'warn', 5000);
+    }
+  });
+  $('#papapodzaborniyBtn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const content = `
+      <div class="author-modal" style="padding:18px;max-width:420px;min-width:260px">
+        <button class="modal-close" aria-label="${t('close')}"><span class="ms">close</span></button>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/papapodzaborniy.jpg" style="width:56px;height:56px;border-radius:10px;object-fit:cover">
+          <div>
+            <div style="font-weight:800">Papapodzaborniy</div>
+            <div style="font-size:13px;color:var(--text-muted)">${t('developerRole')}</div>
+          </div>
+        </div>
+        <div class="social-grid">
+          <a class="social-btn" href="https://t.me/papapodzaborniy2" target="_blank" rel="noopener noreferrer">
+            <span class="social-icon">✈</span>
+            <span>Telegram</span>
+          </a>
+          <a class="social-btn" href="https://www.youtube.com/@papapodzaborniy" target="_blank" rel="noopener noreferrer">
+            <span class="social-icon">▶</span>
+            <span>YouTube</span>
+          </a>
+          <a class="social-btn" href="https://github.com/artem-prime42" target="_blank" rel="noopener noreferrer">
+            <span class="social-icon"></span>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>`;
+    const overlay = document.getElementById('modalOverlay');
+    const modalContent = document.getElementById('modalContent');
+    if (overlay && modalContent) {
+      modalContent.innerHTML = content;
+      overlay.classList.remove('hidden');
+      overlay.querySelector('.modal-close')?.addEventListener('click', () => overlay.classList.add('hidden'));
+    }
+  });
+  const pickDotaPath = async () => {
     const r = await window.api.settings.browseDota();
     if (r?.error) toast(r.error, 'error');
     if (r?.path) toast(t('pathSaved'));
     renderSettings();
     refreshSidebarStatus();
-  });
+  };
+  const openDotaPath = async () => {
+    const p = state.settings?.dotaGamePath;
+    if (!p) {
+      toast(t('notFoundSettings'), 'warn');
+      return;
+    }
+    const result = await window.api.misc.openPath(p);
+    if (result?.error) toast(result.error, 'error');
+  };
+  $('#browsePathBtn')?.addEventListener('click', openDotaPath);
+  $('#browseBtn').addEventListener('click', pickDotaPath);
   // populate language folder options dynamically
   (async () => {
     const listRes = await window.api.misc.listLangFolders();
@@ -4116,31 +4233,39 @@ async function renderSettings() {
       }
     }
   })();
-  $('#langSelect').addEventListener('change', async (e) => {
+  $('#langSelect')?.addEventListener('change', async (e) => {
     await window.api.settings.set('langSuffix', e.target.value);
     toast(t('modsFolderHint').replace('{lang}', e.target.value), 'warn', 6000);
     renderSettings();
     refreshSidebarStatus();
   });
-  $('#uiLangSelect').addEventListener('change', async (e) => {
+  $('#uiLangSelect')?.addEventListener('change', async (e) => {
     await window.api.settings.set('appLanguage', e.target.value);
     toast(t('appLanguageSaved'), 'success');
     renderSettings();
   });
-  $('#copyLaunchBtn').addEventListener('click', () => {
+  $('#copyLaunchBtn')?.addEventListener('click', () => {
     navigator.clipboard.writeText(`-language ${s.langSuffix}`);
     toast(t('copiedToClipboard'));
   });
-  $('#clearCacheBtn').addEventListener('click', async () => {
-    await window.api.misc.clearCache();
-    toast(t('cacheCleared'));
-    renderSettings();
+  $('#clearCacheBtn')?.addEventListener('click', async () => {
+    try {
+      const res = await window.api.misc.clearCache();
+      toast(t('cacheCleared'));
+      renderSettings();
+    } catch (err) {
+      toast(t('failedUpdates'), 'warn');
+    }
   });
-  $('#refreshCatBtn2').addEventListener('click', async () => {
-    await loadCatalog(true);
-    renderSettings();
+  $('#refreshCatBtn2')?.addEventListener('click', async () => {
+    try {
+      await loadCatalog(true);
+      renderSettings();
+    } catch (err) {
+      toast(t('catalogLoadError'), 'warn');
+    }
   });
-  $('#srcLink').addEventListener('click', () => window.api.misc.openExternal('https://dota2skins.vercel.app/'));
+  $('#srcLink')?.addEventListener('click', () => window.api.misc.openExternal('https://dota2skins.vercel.app/'));
   $('#checkUpdateBtn')?.addEventListener('click', async () => {
     const result = await window.api.update.check();
     if (result?.ok) {

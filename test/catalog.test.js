@@ -37,6 +37,13 @@ test('Anime filter works for hidden anime mods without exposing the tag in UI no
   assert.match(appSource, /Bane Komeiji Koishi|Invoker Patchouli|Jakiro Kiyohime|IO Histoire|Natures Prophet Saya|Doom Jeanne Alter|Kez Zangetsu/i);
 });
 
+test('Arcana badge and hidden anime tag include the requested mod names', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
+  assert.match(appSource, /earthshaker arcana style 2/i);
+  assert.match(appSource, /chen lelouch/i);
+  assert.match(appSource, /HIDDEN_ANIME_MOD_NAMES|ARCANA_MOD_NAMES/i);
+});
+
 test('Site adapter keeps full preview and download URLs', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-test-'));
   const sourceDir = path.join(tmpDir, 'app', 'lib');

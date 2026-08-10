@@ -94,6 +94,20 @@ function mergeDownloadCounts(target, source) {
   }
 }
 
+function hasAnyDownloadCounts(value) {
+  if (!value) return false;
+  if (Array.isArray(value)) return value.some(hasAnyDownloadCounts);
+  if (typeof value !== 'object') return false;
+  for (const [key, child] of Object.entries(value)) {
+    if (key === 'downloads' || key === 'downloadCount' || key === 'downloadsCount') {
+      const n = Number(child);
+      if (Number.isFinite(n) && n > 0) return true;
+    }
+    if (hasAnyDownloadCounts(child)) return true;
+  }
+  return false;
+}
+
 const GITHUB_RELEASE_URL_RE = /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/(.+)$/i;
 const GITHUB_RELEASE_CACHE_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
@@ -339,7 +353,7 @@ class Catalog {
       }
     }
 
-    const shouldUpdateDownloads = forceRefresh || !previousCatalog || !isSameCatalogPayload(previousCatalog, normalized);
+    const shouldUpdateDownloads = forceRefresh || !previousCatalog || !isSameCatalogPayload(previousCatalog, normalized) || !hasAnyDownloadCounts(previousCatalog) || !hasAnyDownloadCounts(normalized);
     if (shouldUpdateDownloads) {
       try {
         normalized = await enrichGithubDownloadCounts(normalized, this.cacheDir, forceRefresh);

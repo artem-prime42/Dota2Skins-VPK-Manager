@@ -40,6 +40,10 @@ const { findDotaGamePath, validateGamePath, resolveGamePath } = require('./src/s
 let win;
 let settings, catalog, installer, library;
 
+function autoUpdatesEnabled() {
+  return settings?.get('autoUpdateEnabled') !== false;
+}
+
 function sendProgress(evt) {
   if (win && !win.isDestroyed()) win.webContents.send('progress', evt);
 }
@@ -149,6 +153,7 @@ app.whenReady().then(async () => {
 // ---- auto-update via GitHub Releases (packaged builds only) ----
 function setupAutoUpdate() {
   if (!autoUpdater || !app.isPackaged) return;
+  if (!autoUpdatesEnabled()) return;
   autoUpdater.autoDownload = true;
   autoUpdater.setFeedURL({
     provider: 'github',
@@ -160,20 +165,26 @@ function setupAutoUpdate() {
     path: '/artem-prime42/dota2skins-mod-manager/releases/latest',
   });
   autoUpdater.on('update-available', (info) => {
+    if (!autoUpdatesEnabled()) return;
     if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'available', version: info.version });
   });
   autoUpdater.on('update-not-available', () => {
+    if (!autoUpdatesEnabled()) return;
     if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'not-available' });
   });
   autoUpdater.on('update-downloaded', (info) => {
+    if (!autoUpdatesEnabled()) return;
     if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'downloaded', version: info.version });
   });
   autoUpdater.on('error', (err) => {
+    if (!autoUpdatesEnabled()) return;
     if (win && !win.isDestroyed()) win.webContents.send('update', { type: 'error', message: String(err.message || err) });
   });
   autoUpdater.checkForUpdates().catch(() => {});
   // re-check every 4 hours while the app is open
-  setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 4 * 60 * 60 * 1000);
+  setInterval(() => {
+    if (autoUpdatesEnabled()) autoUpdater.checkForUpdates().catch(() => {});
+  }, 4 * 60 * 60 * 1000);
 }
 
 app.on('window-all-closed', () => app.quit());
@@ -200,6 +211,7 @@ function registerIpc() {
   });
   ipcMain.handle('update:check', async () => {
     if (!autoUpdater) return { error: 'Обновления недоступны' };
+    if (!autoUpdatesEnabled()) return { error: 'Автообновление отключено' };
     try {
       await autoUpdater.checkForUpdates();
       return { ok: true };
@@ -467,6 +479,12 @@ function registerIpc() {
   ipcMain.handle('misc:openExternal', (e, url) => {
     if (/^https?:\/\//i.test(url)) shell.openExternal(url);
     return { ok: true };
+  });
+
+  ipcMain.handle('misc:openPath', async (e, targetPath) => {
+    if (!targetPath) return { ok: false, error: 'Путь не указан' };
+    const result = await shell.openPath(targetPath);
+    return result ? { ok: false, error: result } : { ok: true };
   });
 
   ipcMain.handle('misc:launchDota', async () => {
