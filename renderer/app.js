@@ -910,7 +910,12 @@ function getModBadgeType(mod, styleLabel = '') {
   const name = normalizeBadgeName(mod?.name);
   const label = normalizeBadgeName(styleLabel);
   const fullName = normalizeBadgeName(`${name} ${label}`);
-  const tags = normalizeTags(mod?.tags).map((tag) => normalizeBadgeName(tag));
+  const rawTags = Array.isArray(mod?.tags)
+    ? mod.tags
+    : (typeof mod?.tags === 'object' && mod?.tags !== null
+      ? Object.entries(mod.tags).filter(([, value]) => Boolean(value)).map(([key]) => key)
+      : []);
+  const tags = rawTags.map((tag) => normalizeBadgeName(tag));
   if (ARCANA_MOD_NAMES.has(fullName) || ARCANA_MOD_NAMES.has(name) || ARCANA_MOD_NAMES.has(label) || tags.includes('arcana')) return 'arcana';
   if (IMMORTAL_MOD_NAMES.has(fullName) || IMMORTAL_MOD_NAMES.has(name) || IMMORTAL_MOD_NAMES.has(label) || tags.includes('immortal')) return 'immortal';
   return null;
@@ -1873,7 +1878,7 @@ function renderCatalog() {
 function renderDashboard() {
   const cats = visibleCategories();
   const totalMods = cats.reduce((n, c) => n + categoryMods(c.id).length, 0);
-  const totalAuthors = 13;
+  const totalAuthors = 14;
   const categoriesCount = cats.length;
   const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
   const recentMods = getLatestMods(6);
