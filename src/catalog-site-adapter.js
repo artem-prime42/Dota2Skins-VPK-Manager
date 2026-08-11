@@ -188,7 +188,29 @@ async function loadAuthorProfiles(source) {
   try {
     text = await readTextFromSource(source, relativeProfilesPath);
   } catch {
-    return [];
+    // fallback: try to load authors.json from repo root (catalog repo may expose authors.json)
+    try {
+      const authorsJsonText = await readTextFromSource(source, 'authors.json');
+      const parsed = JSON.parse(authorsJsonText);
+      const list = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.authors) ? parsed.authors : null);
+      if (Array.isArray(list)) {
+        return list.map((p) => ({
+          id: (p.id || p.nick || p.displayName || '').toString().toLowerCase(),
+          displayName: p.displayName || p.nick || p.id || '',
+          avatarUrl: p.photo || p.avatarUrl || p.photoUrl || null,
+          authorLink: p.page || p.authorLink || null,
+          steam: p.steam || null,
+          telegram: p.telegram || null,
+          youtube: p.youtube || null,
+          twitch: p.twitch || null,
+          github: p.github || null,
+          website: p.website || null,
+          discord: p.discord || null,
+        }));
+      }
+    } catch (err) {
+      return [];
+    }
   }
   const match = text.match(/export const AUTHORS_PROFILES\s*(?::\s*[^=]+)?\s*=\s*\{([\s\S]*?)\n\};/m);
   if (!match) return [];
@@ -490,6 +512,27 @@ async function loadSiteCatalog(source) {
       mods,
     };
   });
+
+  for (const [authorKey, mods] of authorMods.entries()) {
+    const existing = authorEntries.find((entry) => (entry.id || '').toLowerCase() === authorKey || (entry.displayName || '').toLowerCase() === authorKey);
+    if (existing) continue;
+    authorEntries.push({
+      id: authorKey,
+      displayName: authorKey,
+      avatarUrl: null,
+      authorLink: null,
+      links: {
+        steam: null,
+        telegram: null,
+        youtube: null,
+        twitch: null,
+        github: null,
+        website: null,
+        discord: null,
+      },
+      mods: mods.map((mod) => ({ ...mod, categoryId: normalizeCategoryId(mod.categoryId || mod.category || 'other') })),
+    });
+  }
 
   const hiddenNames = new Set(['anonymous', 'unknown']);
   const visibleAuthors = authorEntries.filter((profile) => !hiddenNames.has((profile.displayName || '').toLowerCase()))
