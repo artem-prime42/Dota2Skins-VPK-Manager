@@ -724,15 +724,38 @@ const state = {
 const $ = (sel) => document.querySelector(sel);
 const viewRoot = $('#view-root');
 
+function isExternalLinkUrl(url) {
+  const normalized = String(url || '').trim();
+  return /^https?:\/\//i.test(normalized) || /^mailto:/i.test(normalized);
+}
+
+function bindExternalLinkHandlers(root = document) {
+  if (!root || root.__externalLinkBound) return;
+  root.addEventListener('click', (event) => {
+    const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+    if (!anchor) return;
+    const href = anchor.getAttribute('href');
+    if (!href || !isExternalLinkUrl(href)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.api?.misc?.openExternal?.(href);
+  }, true);
+  root.__externalLinkBound = true;
+}
+
+bindExternalLinkHandlers(document);
+
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 const ARCANA_MOD_NAMES = new Set([
   'drow ranger arcana',
+  'drow ranger arcana style 2 dark carnival',
   'drow ranger stranger arcana',
   'earthshaker arcana style 2',
   'faceless void arcana',
+  'vengeful spirit arcana',
   'faceless void arcana style 2',
   'monkey king arcana',
   'monkey king arcana water',
@@ -832,6 +855,12 @@ const IMMORTAL_MOD_NAMES = new Set([
   'queen of pain immortal',
   'arms of desolation',
   'immortal slardar',
+  'slark immortal v2',
+  'dragonclaw hook',
+  'mirana photax fluttercat',
+  'rapier of the burning god',
+  'rapier of the burning god offhand',
+  'phantom lancer fire',
   'slark shadow in the deep',
   'savage mettle',
   'lightning orchid',
@@ -870,6 +899,7 @@ const IMMORTAL_MOD_NAMES = new Set([
   'soul shredder',
   'invoker immortal',
   'shadow fiend immortal',
+  'doom sematary spells + ultimate song',
 ]);
 
 function normalizeBadgeName(value) {
@@ -880,8 +910,9 @@ function getModBadgeType(mod, styleLabel = '') {
   const name = normalizeBadgeName(mod?.name);
   const label = normalizeBadgeName(styleLabel);
   const fullName = normalizeBadgeName(`${name} ${label}`);
-  if (ARCANA_MOD_NAMES.has(fullName) || ARCANA_MOD_NAMES.has(name) || ARCANA_MOD_NAMES.has(label)) return 'arcana';
-  if (IMMORTAL_MOD_NAMES.has(fullName) || IMMORTAL_MOD_NAMES.has(name) || IMMORTAL_MOD_NAMES.has(label)) return 'immortal';
+  const tags = normalizeTags(mod?.tags).map((tag) => normalizeBadgeName(tag));
+  if (ARCANA_MOD_NAMES.has(fullName) || ARCANA_MOD_NAMES.has(name) || ARCANA_MOD_NAMES.has(label) || tags.includes('arcana')) return 'arcana';
+  if (IMMORTAL_MOD_NAMES.has(fullName) || IMMORTAL_MOD_NAMES.has(name) || IMMORTAL_MOD_NAMES.has(label) || tags.includes('immortal')) return 'immortal';
   return null;
 }
 

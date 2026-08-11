@@ -13,6 +13,13 @@ test('Renderer card template uses explicit preview links for preview buttons', (
   assert.doesNotMatch(appSource, /<button class="mtag-play"/);
 });
 
+test('Renderer intercepts external anchors and opens them in the browser', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
+  assert.match(appSource, /function bindExternalLinkHandlers/);
+  assert.match(appSource, /closest\('a\[href\]'\)/);
+  assert.match(appSource, /openExternal[^\n]*/);
+});
+
 test('Renderer hero filtering uses hero metadata and marks requested mods as immortal', () => {
   const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
   assert.match(appSource, /function matchesHeroFilter\(mod, heroFilter\)/);
@@ -275,6 +282,39 @@ export const EXTRA_HIDDEN_SKIN_TITLES = [];
 
   assert.equal(data.mods.modsData.optimization[0].name, 'Optimization Example');
   assert.equal(data.mods.modsData.river[0].name, 'River Example');
+});
+
+test('Renderer badge logic honors explicit immortal and arcana tags for requested mods', () => {
+  const appSource = fs.readFileSync(path.join(__dirname, '..', 'renderer', 'app.js'), 'utf8');
+  assert.match(appSource, /includes\('arcana'\)|includes\('immortal'\)/);
+  assert.match(appSource, /doom sematary spells \+ ultimate song/);
+});
+
+test('Site adapter synthesizes author profiles for authors without explicit profile entries', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-authors-fallback-test-'));
+  const sourceDir = path.join(tmpDir, 'app', 'lib');
+  fs.mkdirSync(sourceDir, { recursive: true });
+  fs.writeFileSync(path.join(sourceDir, 'hero-skins.ts'), `
+export const HERO_MODS = {
+  demo: [{
+    id: "demo",
+    title: "Demo mod",
+    author: "lansory",
+    category: "heroes",
+    imageUrl: "https://img.example.com/demo.webp",
+    downloadUrl: "https://files.example.com/demo.zip",
+    createdAt: "2026-07-20T00:00:00.000Z",
+  }],
+};
+export const OTHER_MODS = [];
+export const EXTRA_HIDDEN_SKIN_TITLES = [];
+`);
+
+  const data = await loadSiteCatalog(tmpDir);
+  const profile = data.constants.AUTHOR_PROFILES.find((p) => p.id === 'lansory');
+
+  assert.ok(profile);
+  assert.equal(profile.mods[0].author, 'lansory');
 });
 
 test('Site adapter loads author profiles with avatars and links', async () => {
