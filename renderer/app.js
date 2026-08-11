@@ -482,6 +482,9 @@ const UI_TEXT = {
     noAuthorMods: 'У этого автора пока нет модов',
     authorSearchPlaceholder: 'Поиск модов…',
     authorsTitle: 'Авторы',
+    reviews: 'Отзывы',
+    noReviews: 'Отзывы пока отсутствуют',
+    leaveReview: 'Оставьте свой отзыв',
     authorSite: 'Сайт',
     run: 'Запустить',
     folder: 'Папка',
@@ -668,6 +671,9 @@ const UI_TEXT = {
     noAuthorMods: 'This author has no mods yet',
     authorSearchPlaceholder: 'Search mods…',
     authorsTitle: 'Authors',
+    reviews: 'Reviews',
+    noReviews: 'No reviews yet',
+    leaveReview: 'Leave a review',
     authorSite: 'Website',
     run: 'Run',
     folder: 'Folder',
@@ -2967,6 +2973,105 @@ const LINK_LABEL = {
   en: { preview: 'Preview', source: 'Source', author: 'Author', bug: 'Bug', guide: 'Guide' },
 };
 
+const AUTHOR_REVIEWS = {
+  arthas: [
+    { reviewer: 'Frusy', rating: 5, date: '21 июля', text: 'Попросил у него сделать скин на тинкера, сделал все быстро и четко, отзывчивый чел, быстро отвечает, показал все на демке и сделал все так, как надо. Спасибо ему большое!' },
+    { reviewer: 'Anonymous', rating: 5, date: '29 июля', text: 'спасибо , просто братик зашел решил проблему все отлично , просто 5⭐️' },
+    { reviewer: 'cvrsxd', rating: 4, date: '2 августа', text: 'спасибо огромное этому человеку , однозначно + реп за то что создал скин мечты советую брать ,потом куплю еще' },
+    { reviewer: 'wwq', rating: 4.5, date: '11 августа', text: 'все ахуенно сделал братик, пасиба' }
+  ],
+  tenkay: [
+    { reviewer: 'Anonymous', rating: 4.5, date: '9 августа', text: 'красавчик сделал сет фастом, спасибо большое типу, советую' },
+    { reviewer: 'Игорь', rating: 5, date: '12 июля', text: 'Попросил парня сделать мне аркану на войда с иморталками , сделал все быстро и четко  ,все работает идеально . спасибо за работу .' }
+  ],
+  senop: [
+    { reviewer: 'Anonymous', rating: 4.5, date: '', text: 'Хороший человек, быстро все сделал! В будущем буду покупать еще. Покупайте не пожалеете.' }
+  ],
+  ceomods: [
+    { reviewer: 'crysumi', rating: 5, date: '9 августа', text: 'Заказал одного из своих любимых чаров, а именно кримсон минералку, не в первый раз заказываю кастом сет и все как обично -> на высоте, хз пацы обращайтесь к дикарю, точно не пожалеете)\n\ngl' },
+    { reviewer: 'Anonymous', rating: 5, date: '11 августа', text: '+rep Лучший мододел, очень быстро,+ приватка с топ сетами бонусом' },
+    { reviewer: 'Indiffirent', rating: 5, date: '10 августа', text: 'Быстро ответил, быстро выполнил работу, все качество и чётко, цена не большая. Приобрёл 1 сетик, плюсом получил доступ к кастомным приватный сетам' }
+  ],
+  mopsyara: [
+    { reviewer: 'Игорь', rating: 4, date: '20 июля', text: 'Очень отзывчивый , делает сеты быстро , если нужно что то поменять сразу это делает , сеты выглядят шикарно, спасибо большое' },
+    { reviewer: 'Самыйдобрый', rating: 4, date: '31 июля', text: 'Отзывчивый быстро чёт сделал не багается есле нужно что то поменять меняет' },
+    { reviewer: 'Игорь', rating: 5, date: '4 августа', text: 'Сделал сет красиво , хоть он и был довольно таким трудным в исполнении , сделал все четенько , красиво , в свой тайминг  ,при мини проблеме сразу ответил и помог .' }
+  ]
+};
+
+function getAuthorReviews(author) {
+  if (!author) return [];
+  const staticReviews = AUTHOR_REVIEWS[author.id] || AUTHOR_REVIEWS[author.displayName?.toLowerCase()];
+  const authorReviews = Array.isArray(author.reviews) ? author.reviews : [];
+  return [...authorReviews, ...(staticReviews || [])];
+}
+
+function getAuthorReviewsLabel(author) {
+  const count = getAuthorReviews(author).length;
+  return `${t('reviews')} (${count})`;
+}
+
+function renderReviewStars(rating = 0) {
+  const safeRating = Math.max(0, Math.min(5, Number(rating) || 0));
+  const fullStars = Math.floor(safeRating);
+  const hasHalf = safeRating - fullStars >= 0.5;
+  let stars = Array.from({ length: 5 }, (_, index) => {
+    if (index < fullStars) return '<span class="star filled">★</span>';
+    if (index === fullStars && hasHalf) return '<span class="star half">★</span>';
+    return '<span class="star empty">★</span>';
+  }).join('');
+  return `<span class="review-stars">${stars}</span>`;
+}
+
+function openAuthorReviewsModal(author) {
+  if (!author) return;
+  const reviews = getAuthorReviews(author);
+  const modalHtml = `
+    <div class="review-modal">
+      <div class="review-modal-header">
+        <div class="review-modal-title">${t('reviews')}</div>
+        <button class="modal-close" id="reviewModalClose" aria-label="${t('close')}"><span class="ms">close</span></button>
+      </div>
+      <div class="review-modal-list">
+        ${reviews.length ? reviews.map((review) => {
+          const reviewer = review.reviewer || 'Anonymous';
+          const dateText = review.date ? `<span class="review-date">${esc(review.date)}</span>` : '';
+          return `
+            <div class="author-review-row">
+              <div class="author-review-avatar"><span class="ms">person</span></div>
+              <div class="author-review-body">
+                <div class="author-review-topline">
+                  <div class="author-review-meta">
+                    <span class="author-review-name">${esc(reviewer)}</span>
+                    ${renderReviewStars(review.rating)}
+                    ${dateText}
+                  </div>
+                </div>
+                <div class="author-review-text">${esc(review.text || '')}</div>
+              </div>
+            </div>
+          `;
+        }).join('') : `<div class="empty-note">${t('noReviews')}</div>`}
+      </div>
+      <div class="review-modal-footer">
+        <button class="btn btn-primary review-submit-btn" type="button" data-review-link="https://discord.gg/yaB9PF7zFC">${t('leaveReview')}</button>
+      </div>
+    </div>
+  `;
+
+  $('#modalContent').innerHTML = modalHtml;
+  $('#modalOverlay').classList.remove('hidden');
+  $('#reviewModalClose')?.addEventListener('click', closeModal);
+  const submitBtn = $('#modalContent .review-submit-btn');
+  submitBtn?.addEventListener('click', () => {
+    const reviewLink = submitBtn.dataset.reviewLink || 'https://discord.gg/yaB9PF7zFC';
+    window.open(reviewLink, '_blank', 'noopener,noreferrer');
+  });
+  $('#modalOverlay')?.addEventListener('click', (e) => {
+    if (e.target === $('#modalOverlay')) closeModal();
+  });
+}
+
 function packMembers(mod) {
   return (mod.mods || []).map((name) => {
     const hit = state.modIndex.get(name.toLowerCase());
@@ -3751,7 +3856,10 @@ function renderAuthors() {
         <div class="author-profile-card">
           <div class="author-profile-avatar">${author.avatarUrl ? `<img src="${esc(author.avatarUrl)}" alt="${esc(author.displayName)}">` : '<span class="ms">person</span>'}</div>
           <div class="author-profile-info">
-            <h1 class="view-title">${esc(author.displayName)}</h1>
+            <div class="author-name-row">
+              <h1 class="view-title">${esc(author.displayName)}</h1>
+              <button id="authorReviewsBtn" class="btn btn-sm btn-ghost author-reviews-btn" type="button" data-author-id="${esc(author.id)}">${getAuthorReviewsLabel(author)}</button>
+            </div>
             <div class="author-profile-meta"></div>
             <div class="author-links">
               ${Object.entries(author.links || {}).filter(([, url]) => url).map(([type, url]) => `<a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(type)}</a>`).join('')}
@@ -3779,6 +3887,9 @@ function renderAuthors() {
     $('#authorBackBtn')?.addEventListener('click', () => {
       state.authors = { selected: null, search: '', sort: 'default' };
       renderAuthors();
+    });
+    $('#authorReviewsBtn')?.addEventListener('click', () => {
+      openAuthorReviewsModal(author);
     });
     $('#authorSearchInput')?.addEventListener('input', (e) => {
       state.authors = { ...state.authors, search: e.target.value };
