@@ -1,7 +1,7 @@
 <div align="center">
   <img src="build/icon.png" alt="Dota2Skins Mod Manager" width="120">
 
-# Dota2Skins Mod Manager
+# Dota2Skins VPK Manager
 
 A modern, open-source launcher for managing Dota 2 cosmetic mods from a single desktop app.
 
@@ -18,7 +18,7 @@ A modern, open-source launcher for managing Dota 2 cosmetic mods from a single d
 
 ## ✨ What it does
 
-Dota2Skins Mod Manager helps you browse, install, update, and organize Dota 2 mods without manually copying files into the game folder.
+Dota2Skins VPK Manager helps you browse, install, update, and organize Dota 2 mods without manually copying files into the game folder.
 
 It includes:
 
