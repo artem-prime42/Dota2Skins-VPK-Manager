@@ -390,6 +390,8 @@ const UI_TEXT = {
     telegramAction: 'Открыть Telegram',
     thirdPartySoftware: 'Стороннее программное обеспечение',
     basedOnProject: 'Основано на коде проекта',
+    modifiedProjectNotice: 'Этот проект является изменённой версией Dota 2 Mod Manager от Mykhailo Lynnyk, взятой 2026-07-21, и с тех пор был изменён.',
+    copyrightNotice: 'Copyright (C) 2026 Mykhailo Lynnyk',
     appearance: 'Внешний вид',
     developerRole: 'Разработчик и контрибьютор',
     version: 'Версия',
@@ -580,6 +582,8 @@ const UI_TEXT = {
     telegramAction: 'Open Telegram',
     thirdPartySoftware: 'Third-party software',
     basedOnProject: 'Based on the project',
+    modifiedProjectNotice: 'This project is a modified version of Dota 2 Mod Manager by Mykhailo Lynnyk, taken on 2026-07-21, and has been modified since.',
+    copyrightNotice: 'Copyright (C) 2026 Mykhailo Lynnyk',
     appearance: 'Appearance',
     developerRole: 'Developer and contributor',
     version: 'Version',
@@ -4062,7 +4066,8 @@ async function renderAbout() {
       </div>
       <p>${t('aboutHeroIntro')}</p>
       <p>${t('aboutHeroBody')}</p>
-      <p style="margin-top:10px;color:var(--text-muted);font-size:13px">Dota2Skins Manager создан и развивается одним разработчиком</p>
+      <p style="margin-top:10px;color:var(--text-muted);font-size:13px">${t('modifiedProjectNotice')}</p>
+      <p style="margin-top:6px;color:var(--text-muted);font-size:13px">${t('copyrightNotice')}</p>
       <div style="margin-top:12px">
         <button id="papapodzaborniyBtn" class="btn btn-ghost" style="display:flex;align-items:center;padding:6px 10px">
           <img src="https://raw.githubusercontent.com/artem-prime42/dota2-media/main/images/papapodzaborniy.jpg" alt="papapodzaborniy" style="width:28px;height:28px;border-radius:6px;margin-right:8px;object-fit:cover">
@@ -4096,11 +4101,13 @@ async function renderAbout() {
     <div class="settings-block" style="animation-delay:120ms">
       <h3>${t('thirdPartySoftware')}</h3>
       <div class="about-third-party-body">
+        ${t('modifiedProjectNotice')}<br>
         ${getLang() === 'en' ? 'This launcher contains code based on' : 'Этот лаунчер содержит код, основанный на'}
         <strong>Dota 2 Mod Manager</strong> by TheFleece.<br>
         ${getLang() === 'en' ? 'Licensed under GNU GPL v3.0.' : 'Лицензировано по GNU GPL v3.0.'}<br>
         ${getLang() === 'en' ? 'Original project:' : 'Оригинальный проект:'}
-        <a href="https://github.com/TheFleece/dota2-mod-manager">https://github.com/TheFleece/dota2-mod-manager</a>
+        <a href="https://github.com/TheFleece/dota2-mod-manager">https://github.com/TheFleece/dota2-mod-manager</a><br>
+        ${t('copyrightNotice')}
       </div>
     </div>
   `;
@@ -4266,6 +4273,8 @@ async function renderSettings() {
           <button id="papapodzaborniyBtn" class="btn btn-sm">Papapodzaborniy</button>
         </div>
         <p style="margin-top:6px;color:var(--text-muted);font-size:13px">${t('basedOnProject')} <a href="https://github.com/TheFleece/dota2-mod-manager" target="_blank" rel="noopener noreferrer">Dota 2 Mod Manager</a></p>
+        <p style="margin-top:6px;color:var(--text-muted);font-size:13px">${t('modifiedProjectNotice')}</p>
+        <p style="margin-top:4px;color:var(--text-muted);font-size:13px">${t('copyrightNotice')}</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
           <button id="checkUpdatesBtn" class="btn btn-sm">${t('checkUpdates')}</button>
         </div>

@@ -103,9 +103,13 @@ npm run dist
 
 ## 🤝 Credits
 
+This project is a modified version of Dota 2 Mod Manager by Mykhailo Lynnyk, taken on 2026-07-21, and has been modified since.
+
 This project is based on and includes code from:
 
 - [TheFleece / dota2-mod-manager](https://github.com/TheFleece/dota2-mod-manager)
+
+Copyright (C) 2026 Mykhailo Lynnyk
 
 Licensed under the GNU General Public License v3.0 (GPL-3.0).
 
