@@ -22,8 +22,16 @@
     <header id="titlebar">
       <div class="tb-brand">
         <img src="../build/icon.png" class="tb-icon" alt="App icon" data-i18n-alt="appIconAlt">
-        <span class="tb-title" data-i18n="appTitle">Dota2skins</span>
-        <span class="tb-sub" data-i18n="appSubtitle">Dota 2</span>
+        <div class="tb-brand-stack">
+          <div class="tb-brand-head">
+            <span class="tb-title" data-i18n="appTitle">Dota2skins</span>
+            <span class="tb-sub" data-i18n="appSubtitle">Dota 2</span>
+          </div>
+          <div class="tb-brand-nav">
+            <button class="tb-nav-btn" id="viewBackBtn" type="button" aria-label="Previous page"><span class="ms">arrow_back</span></button>
+            <button class="tb-nav-btn" id="viewForwardBtn" type="button" aria-label="Next page"><span class="ms">arrow_forward</span></button>
+          </div>
+        </div>
       </div>
 
       <div id="topNav" class="top-nav">

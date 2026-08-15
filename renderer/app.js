@@ -273,6 +273,49 @@ function getHeroPopularity(hero) {
   }, 0);
 }
 
+function openHeroDownloadsModal(hero) {
+  if (!hero) return;
+  closeModal();
+  closeSlotModals();
+
+  const heroSlug = (hero.slug || hero.id || '').toString().trim().toLowerCase();
+  const heroMods = getHeroModsForSlug(heroSlug);
+  const totalDownloads = heroMods.reduce((sum, mod) => {
+    const downloads = Number(mod.downloads ?? mod.downloadCount ?? mod.downloadsCount ?? 0);
+    return sum + (Number.isFinite(downloads) ? downloads : 0);
+  }, 0);
+  const modsCount = heroMods.length;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'slot-modal-overlay hero-download-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box hero-download-modal" style="max-width: 340px;">
+      <div class="modal-header">
+        <h2 class="modal-title">${esc(hero.name || formatHeroLabelFromSlug(heroSlug))}</h2>
+        <button class="modal-close" aria-label="${t('close')}"><span class="ms">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="hero-download-modal-body">
+          <div class="hero-download-pill"><span class="ms">cloud_download</span>${esc(totalDownloads.toLocaleString(getLang()))}</div>
+          <div class="hero-download-text">${getLang() === 'en' ? 'Total downloads for hero mods:' : 'Общее количество скачиваний модов на героя:'}</div>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); close(); }
+  };
+  document.addEventListener('keydown', onKey, true);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('.modal-close')?.addEventListener('click', close);
+}
+
 const FAVORITE_HEROES_KEY = 'favoriteHeroes';
 function loadFavoriteHeroes() {
   try {
@@ -729,6 +772,8 @@ const state = {
   installing: new Set(),
   modIndex: new Map(),
   authors: { selected: null, search: '', sort: 'default' },
+  navHistory: ['home'],
+  navIndex: 0,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -1567,6 +1612,18 @@ document.querySelectorAll('.side-tab').forEach((btn) => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
 
+$('#viewBackBtn')?.addEventListener('click', () => navigateViewHistory(-1));
+$('#viewForwardBtn')?.addEventListener('click', () => navigateViewHistory(1));
+document.addEventListener('mousedown', (event) => {
+  if (event.button === 3) {
+    event.preventDefault();
+    navigateViewHistory(-1);
+  } else if (event.button === 4) {
+    event.preventDefault();
+    navigateViewHistory(1);
+  }
+});
+
 document.querySelectorAll('.top-tab').forEach((btn) => {
   btn.addEventListener('click', () => setTopSection(btn.dataset.top));
 });
@@ -1624,13 +1681,41 @@ function shouldShowSectionSubnav() {
   return visibleSectionCats.length > 1;
 }
 
-function switchView(view) {
+function updateViewHistoryButtons() {
+  const backBtn = $('#viewBackBtn');
+  const forwardBtn = $('#viewForwardBtn');
+  if (backBtn) backBtn.disabled = state.navIndex <= 0;
+  if (forwardBtn) forwardBtn.disabled = state.navIndex >= state.navHistory.length - 1;
+}
+
+function pushViewHistory(view) {
+  if (!view) return;
+  const prev = state.navHistory[state.navIndex];
+  if (prev === view) return;
+  state.navHistory = state.navHistory.slice(0, state.navIndex + 1);
+  state.navHistory.push(view);
+  state.navIndex = state.navHistory.length - 1;
+  updateViewHistoryButtons();
+}
+
+function navigateViewHistory(delta) {
+  if (!Number.isInteger(delta)) return;
+  const nextIndex = state.navIndex + delta;
+  if (nextIndex < 0 || nextIndex >= state.navHistory.length) return;
+  const nextView = state.navHistory[nextIndex];
+  state.navIndex = nextIndex;
+  switchView(nextView, { recordHistory: false });
+}
+
+function switchView(view, { recordHistory = true } = {}) {
   closeModal();
   closeSlotModals();
   document.querySelectorAll('.side-tab').forEach((b) => b.classList.toggle('active', b.dataset.view === view));
   state.view = view;
   if ($('#catRail')) $('#catRail').classList.toggle('hidden', view !== 'catalog');
   updateTopTabsState();
+  if (recordHistory) pushViewHistory(view);
+  updateViewHistoryButtons();
   void refreshSidebarStatus();
   render();
 }
@@ -1888,7 +1973,7 @@ function renderCatalog() {
 function renderDashboard() {
   const cats = visibleCategories();
   const totalMods = cats.reduce((n, c) => n + categoryMods(c.id).length, 0);
-  const totalAuthors = 14;
+  const totalAuthors = 15;
   const categoriesCount = cats.length;
   const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
   const recentMods = getLatestMods(6);
@@ -2541,13 +2626,17 @@ function renderCategory(categoryId) {
         const previewUrlValue = resolveHeroPreview(hero);
         const previewHtml = previewUrlValue ? `<div class="hero-card-media">${mediaHtml(previewUrl('heroes', previewUrlValue))}</div>` : '';
         const favActive = state.favorites.has((hero.slug || '').toLowerCase()) ? 'active' : '';
+        const totalHeroDownloads = getHeroPopularity(hero);
         return `
           <div class="card hero-card" data-hero="${esc(hero.slug)}">
             ${previewHtml}
             <button class="hero-fav-btn ${favActive}" type="button" data-fav-hero="${esc(hero.slug)}" aria-label="${t('addToFavorites')}"><span class="ms">favorite</span></button>
             <div class="hero-card-content">
               <div class="hero-card-title">${esc(hero.name)}</div>
-              <div class="hero-card-meta">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+              <div class="hero-card-bottom">
+                <div class="hero-card-meta">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+                <button class="hero-download-btn" type="button" data-download-hero="${esc(hero.slug)}" aria-label="${getLang() === 'en' ? 'Hero downloads' : 'Скачивания героя'}"><span class="ms">cloud_download</span></button>
+              </div>
             </div>
           </div>`;
       }).join('');
@@ -2610,6 +2699,14 @@ function renderCategory(categoryId) {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           toggleFavoriteHero(btn.dataset.favHero);
+        });
+      });
+      viewRoot.querySelectorAll('.hero-download-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const heroSlug = btn.dataset.downloadHero;
+          const heroEntry = getHeroCatalogEntries().find((entry) => (entry.slug || '').toLowerCase() === String(heroSlug || '').toLowerCase());
+          if (heroEntry) openHeroDownloadsModal(heroEntry);
         });
       });
     }
@@ -2986,7 +3083,8 @@ const AUTHOR_REVIEWS = {
   ],
   tenkay: [
     { reviewer: 'Anonymous', rating: 4.5, date: '9 августа', text: 'красавчик сделал сет фастом, спасибо большое типу, советую' },
-    { reviewer: 'Игорь', rating: 5, date: '12 июля', text: 'Попросил парня сделать мне аркану на войда с иморталками , сделал все быстро и четко  ,все работает идеально . спасибо за работу .' }
+    { reviewer: 'Игорь', rating: 5, date: '12 июля', text: 'Попросил парня сделать мне аркану на войда с иморталками , сделал все быстро и четко  ,все работает идеально . спасибо за работу .' },
+    { reviewer: 'Koptische', rating: 4, date: '15 августа', text: 'Попросил сделать 2 сета, сделал качественно и быстро советую.' }
   ],
   senop: [
     { reviewer: 'Anonymous', rating: 4.5, date: '', text: 'Хороший человек, быстро все сделал! В будущем буду покупать еще. Покупайте не пожалеете.' }
