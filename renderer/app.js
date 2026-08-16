@@ -2964,7 +2964,18 @@ function cardHtml(m, i, withCat = false) {
   return `
     <div class="${cardClass}" data-key="${esc(key)}" style="--i:${Math.min(i, 28)}">
       <div class="card-media">
-        ${mediaHtml(prev, { hoverPlay: true })}
+        ${(() => {
+          // For card thumbnails prefer a static poster image when the preview is a video.
+          // This avoids downloading/playing the video on hover and keeps the photo visible.
+          try {
+            const isVideoPreview = previewAction?.kind === 'media' && isVideo(previewAction.url);
+            if (isVideoPreview) {
+              const poster = previewImageUrl || '';
+              return `<img src="${esc(poster)}" loading="lazy" alt="">`;
+            }
+          } catch (e) {}
+          return mediaHtml(prev, { hoverPlay: false });
+        })()}
         ${badgeHtml}
         ${installedIcon}
         ${previewAction ? `<button class="card-preview-btn" data-play="${esc(previewAction.url)}" data-kind="${esc(previewAction.kind)}" data-title="${esc(m.name)}" aria-label="${t('preview')}"><span class="ms">visibility</span></button>` : ''}
@@ -3082,10 +3093,13 @@ const AUTHOR_REVIEWS = {
     { reviewer: 'wwq', rating: 4.5, date: '11 августа', text: 'все ахуенно сделал братик, пасиба' }
   ],
   tenkay: [
+    { reviewer: 'Losing interest', rating: 5, date: '16 августа', text: 'Продавец продемонстрировал себя как профессионал, психолог и надежный партнер, оказав значительную помощь в выборе оптимального скина с эффектом огня или электричества, удовлетворяющего любые предпочтения. Кроме того, была предоставлена консультация по сочетанию скинов с огненными эффектами и разъяснены детали относительно специфического эффекта у персонажа Яторо. Итогом взаимодействия стала покупка эмблемы. Была оказана полная поддержка по всем запрошенным вопросам. Продавец Гуль как и Я 😅✌️' },
+    { reviewer: '5502 дней без секса', rating: 4, date: '16 августа', text: 'крутой пасан ависе мод брудское мисоло все сделал четка быстра бесплатн, людина чи кампутер' },
     { reviewer: 'Anonymous', rating: 4.5, date: '9 августа', text: 'красавчик сделал сет фастом, спасибо большое типу, советую' },
     { reviewer: 'Игорь', rating: 5, date: '12 июля', text: 'Попросил парня сделать мне аркану на войда с иморталками , сделал все быстро и четко  ,все работает идеально . спасибо за работу .' },
     { reviewer: 'Koptische', rating: 4, date: '15 августа', text: 'Попросил сделать 2 сета, сделал качественно и быстро советую.' }
   ],
+
   senop: [
     { reviewer: 'Anonymous', rating: 4.5, date: '', text: 'Хороший человек, быстро все сделал! В будущем буду покупать еще. Покупайте не пожалеете.' }
   ],
@@ -3243,7 +3257,9 @@ function drawModal() {
 
   $('#modalContent').innerHTML = `
     <div class="modal-media">
-      ${mediaHtml(mediaUrl, { autoplay: true })}
+      ${previewAction && previewAction.kind === 'media' && isVideo(previewAction.url)
+        ? `<img src="${esc(previewImageUrl || previewAction.url)}" alt="" loading="lazy">`
+        : mediaHtml(mediaUrl, { autoplay: true })}
       ${modalBadge}
       ${downloadOverlay}
       <button class="modal-close" id="modalCloseBtn" aria-label="Закрыть"><span class="ms">close</span></button>
