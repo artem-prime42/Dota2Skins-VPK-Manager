@@ -82,6 +82,7 @@ const HERO_PREVIEW_FALLBACKS = {
   lifestealer: 'https://i.postimg.cc/90p33DL0/life-stealer-vert.jpg',
   nature_prophet: 'https://i.postimg.cc/bv2KyCmn/furion-vert.jpg',
   necrophos: 'https://i.postimg.cc/d3JX9qw6/necrolyte-vert.jpg',
+  leshrac: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/leshrac.png',
   windranger: 'https://i.postimg.cc/x1B44G9x/Windranger-icon.webp',
 };
 
@@ -768,6 +769,7 @@ const state = {
   librarySearch: '',
   librarySection: 'all',
   librarySort: 'default',
+  authorSearchKeepFocus: false,
   installedIndex: new Map(),
   installing: new Set(),
   modIndex: new Map(),
@@ -1973,10 +1975,10 @@ function renderCatalog() {
 function renderDashboard() {
   const cats = visibleCategories();
   const totalMods = cats.reduce((n, c) => n + categoryMods(c.id).length, 0);
-  const totalAuthors = 15;
+  const totalAuthors = 16;
   const categoriesCount = cats.length;
   const installedModsCount = state.installedIndex.size || parseInt($('#libCount')?.textContent || '0') || 0;
-  const recentMods = getLatestMods(6);
+  const recentMods = getLatestMods(5);
   const heroEntries = getHeroCatalogEntries()
     .filter((h) => (h.modsCount || 0) > 0)
     .slice(0, 4);
@@ -2599,25 +2601,35 @@ function renderCategory(categoryId) {
       const heroEntry = heroes.find((h) => h.slug === selectedHero || h.name === selectedHero);
       const items = heroEntry ? getHeroModsForSlug(heroEntry.slug) : [];
       const slots = sortSlots(items.map((m) => m.slot || 'default'));
-      const slotCards = slots.map((slot) => {
-        const slotMods = items.filter((m) => (m.slot || 'default') === slot);
-        const modCount = slotMods.length;
-        const slotTitle = translateSlot(slot);
-        const firstPreview = slotMods.find((m) => m.preview || m.imageUrl)?.preview || slotMods.find((m) => m.preview || m.imageUrl)?.imageUrl || null;
-        const previewHtml = firstPreview ? `<div class="hero-slot-media">${mediaHtml(previewUrl(categoryId, firstPreview), { hoverPlay: false })}</div>` : '';
+      const activeSlot = state.filters.heroSlot || slots[0] || 'default';
+      const slotMods = items.filter((m) => (m.slot || 'default') === activeSlot);
+
+      const sidebar = slots.map((slot) => {
+        const slotItems = items.filter((m) => (m.slot || 'default') === slot);
+        const isActive = slot === activeSlot;
         return `
-          <div class="hero-slot-card" data-slot="${esc(slot)}">
-            ${previewHtml}
-            <div class="hero-slot-info">
-              <div class="hero-slot-title">${esc(slotTitle)}</div>
-            </div>
-          </div>`;
+          <button class="hero-slot-side-item ${isActive ? 'active' : ''}" type="button" data-slot="${esc(slot)}">
+            <span class="hero-slot-side-name">${esc(translateSlot(slot))}</span>
+            <span class="slot-count">${slotItems.length}</span>
+          </button>`;
       }).join('');
+
+      const slotCards = slotMods.map((m, index) => cardHtml({ ...m, _cat: categoryId }, index, false)).join('');
+
       gridHtml = `
         <div class="hero-detail">
           <button class="btn btn-ghost hero-back" id="heroBackBtn"><span class="ms">arrow_back</span>${t('backToHeroes')}</button>
-          <div class="hero-detail-title">${esc(heroEntry?.name || selectedHero)}</div>
-          <div class="hero-slots-grid">${slotCards}</div>
+          <div class="hero-slot-layout">
+            <aside class="hero-slot-sidebar">
+              <div class="hero-slot-sidebar-list">${sidebar}</div>
+            </aside>
+            <section class="hero-slot-content">
+              <div class="hero-slot-content-header">
+                <h2 class="hero-slot-content-title">${esc(translateSlot(activeSlot))}</h2>
+              </div>
+              <div class="hero-slot-mod-grid">${slotCards || `<div class="empty-note">${t('noFilteredMods')}</div>`}</div>
+            </section>
+          </div>
         </div>`;
     } else if (!filteredHeroes.length) {
       gridHtml = `<div class="empty-note">${t('noHeroes')}</div>`;
@@ -2657,13 +2669,17 @@ function renderCategory(categoryId) {
     gridHtml = mods.map((m, i) => cardHtml(m, i)).join('');
   }
 
+  const modGridClass = categoryId === 'heroes' && state.filters.hero ? 'hero-slot-root' : 'grid';
+
   viewRoot.innerHTML = `
-    <div class="view-header">
-      <h1 class="view-title">${esc(catName(categoryId))}</h1>
-      <span class="view-sub">${all.length} ${plural(all.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
-    </div>
+    ${categoryId === 'heroes' ? '' : `
+      <div class="view-header">
+        <h1 class="view-title">${esc(catName(categoryId))}</h1>
+        <span class="view-sub">${all.length} ${plural(all.length, 'мод', 'мода', 'модов', 'mod', 'mods')}</span>
+      </div>
+    `}
     ${toolbarHtml(mods.length, { tags, groups, heroes, categoryId })}
-    <div class="grid" id="modGrid">${gridHtml}</div>
+    <div class="${modGridClass}" id="modGrid">${gridHtml}</div>
   `;
   bindToolbar();
   if (categoryId === 'heroes') {
@@ -2672,18 +2688,20 @@ function renderCategory(categoryId) {
       const heroEntry = getHeroCatalogEntries().find((h) => h.slug === selectedHero || h.name === selectedHero);
       if (heroEntry) {
         const items = getHeroModsForSlug(heroEntry.slug);
-        viewRoot.querySelectorAll('.hero-slot-card').forEach((card) => {
-          card.addEventListener('click', () => {
-            const slot = card.dataset.slot;
-            const slotMods = items.filter((m) => (m.slot || 'default') === slot);
-            openSlotModal(slot, slotMods, heroEntry.name, categoryId);
+        const activeSlot = state.filters.heroSlot || sortSlots(items.map((m) => m.slot || 'default'))[0] || 'default';
+        viewRoot.querySelectorAll('.hero-slot-side-item').forEach((item) => {
+          item.addEventListener('click', () => {
+            state.filters.heroSlot = item.dataset.slot || 'default';
+            renderCatalog();
           });
         });
+        bindCards(viewRoot, items.filter((m) => (m.slot || 'default') === activeSlot));
       }
       const backBtn = $('#heroBackBtn');
       if (backBtn) {
         backBtn.addEventListener('click', () => {
           state.filters.hero = '';
+          state.filters.heroSlot = '';
           state.filters.heroSearch = '';
           renderCatalog();
         });
@@ -3246,8 +3264,8 @@ function drawModal() {
   const badgeType = getModBadgeType(mod, styleLabel);
   const modalBadge = badgeType ? `<div class="modal-badge modal-badge-${badgeType}">${esc(badgeLabelForType(badgeType))}</div>` : '';
   const downloadCount = Number(mod.downloads ?? mod.downloadCount ?? mod.downloadsCount ?? 0);
-  const downloadOverlay = Number.isFinite(downloadCount) && downloadCount > 0
-    ? `<div class="modal-downloads"><span class="ms">cloud_download</span>${esc(downloadCount.toLocaleString(getLang()))}</div>`
+  const downloadBadge = Number.isFinite(downloadCount) && downloadCount > 0
+    ? `<div class="modal-downloads modal-downloads-inline"><span class="ms">cloud_download</span>${esc(downloadCount.toLocaleString(getLang()))}</div>`
     : '';
 
   // pack contents (with per-session exclusions)
@@ -3261,7 +3279,6 @@ function drawModal() {
         ? `<img src="${esc(previewImageUrl || previewAction.url)}" alt="" loading="lazy">`
         : mediaHtml(mediaUrl, { autoplay: true })}
       ${modalBadge}
-      ${downloadOverlay}
       <button class="modal-close" id="modalCloseBtn" aria-label="Закрыть"><span class="ms">close</span></button>
       ${previewAction ? `
         <button class="preview-toggle" id="previewPlayBtn">
@@ -3320,6 +3337,7 @@ function drawModal() {
         ${!isPack && target ? (installedRec
           ? `<button class="btn btn-danger" id="uninstallBtn"><span class="ms">delete</span>${t('uninstall')}</button>`
           : `<button class="btn btn-primary" id="installBtn" ${busy ? 'disabled' : ''}><span class="ms">download</span>${busy ? t('installing') : t('install')}</button>`) : ''}
+        ${downloadBadge}
         ${!isPack && !target && downloadTarget ? `<button class="btn" id="openLinkBtn"><span class="ms">open_in_new</span>${t('openLink')}</button>` : ''}
       </div>
       ${otherLinks.length ? `
@@ -3575,80 +3593,108 @@ async function renderLibrary() {
   function updateLibraryList() {
     const query = (state.librarySearch || '').trim().toLowerCase();
     const currentSection = state.librarySection || 'all';
-    const sectionCategoryIds = new Set(getSectionCategoryIds(currentSection));
+    const sectionSequence = currentSection === 'all'
+      ? ['heroes', 'world', 'interface', 'effects', 'other']
+      : [currentSection];
+
     let filteredInstalled = installed.filter((rec) => {
       const matchesQuery = !query || rec.name.toLowerCase().includes(query);
-      const matchesSection = currentSection === 'all' || sectionCategoryIds.has(rec.categoryId);
-      return matchesQuery && matchesSection;
+      return matchesQuery;
     });
+
     filteredInstalled = sortLibraryMods(filteredInstalled);
     const libList = $('#libList');
     libList.innerHTML = '';
 
-    if (!filteredInstalled.length) {
+    const groups = sectionSequence
+      .map((sectionId) => {
+        const categoryIds = new Set(getSectionCategoryIds(sectionId));
+        const items = filteredInstalled.filter((rec) => categoryIds.has(rec.categoryId));
+        if (!items.length) return null;
+        return {
+          id: sectionId,
+          label: sectionId === 'all' ? t('all') : (librarySections.find((section) => section.id === sectionId)?.label || catName(sectionId)),
+          items,
+        };
+      })
+      .filter(Boolean);
+
+    if (!groups.length) {
       libList.innerHTML = `<div class="empty-note">${t('emptyLibrary')}</div>`;
       return;
     }
 
-    filteredInstalled.forEach((rec, i) => {
-      const row = document.createElement('div');
-      row.className = `lib-row ${rec.enabled ? '' : 'disabled'}`;
-      row.style.setProperty('--i', Math.min(i, 20));
-      const prev = previewUrl(rec.categoryId, rec.preview);
-      const fileNames = rec.files.filter((f) => f.root === 'lang').map((f) => f.relPath);
-      row.innerHTML = `
-        <div class="lib-select">
-          <input type="checkbox" class="lib-checkbox" data-id="${rec.id}" ${selectedLibrary.has(rec.id) ? 'checked' : ''}>
-        </div>
-        ${prev && !isVideo(prev) ? `<img class="lib-thumb" src="${esc(prev)}" loading="lazy" alt="">` : `<div class="lib-thumb"></div>`}
-        <div class="lib-info">
-          <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
-          <div class="lib-meta">
-            <span>${esc(catName(rec.categoryId))}</span>
-            ${fileNames.length ? `<span>${esc(fileNames.slice(0, 3).join(', '))}${fileNames.length > 3 ? '…' : ''}</span>` : ''}
-            <span>${new Date(rec.installedAt).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru')}</span>
-          </div>
-        </div>
-        <div class="lib-actions">
-          ${['fonts', 'cursors'].includes(rec.categoryId)
-            ? `<span style="font-size:11.5px;color:var(--text-muted)">${t('alwaysActive')}</span>`
-            : `<button class="toggle ${rec.enabled ? 'on' : ''}" data-id="${rec.id}" role="switch" aria-checked="${rec.enabled}" aria-label="${t('installed')}"></button>`}
-          <button class="btn btn-sm btn-danger" data-del="${rec.id}">${t('delete')}</button>
-        </div>
+    groups.forEach(({ label, items }) => {
+      const sectionWrap = document.createElement('div');
+      sectionWrap.className = 'lib-section';
+      sectionWrap.innerHTML = `
+        <div class="lib-section-head">${esc(label)}</div>
+        <div class="lib-section-list"></div>
       `;
+      const list = sectionWrap.querySelector('.lib-section-list');
 
-      row.querySelectorAll('.lib-checkbox').forEach((cb) => {
-        cb.addEventListener('change', () => {
-          const id = cb.dataset.id;
-          if (cb.checked) selectedLibrary.add(id);
-          else selectedLibrary.delete(id);
-          updateToolbarState();
+      items.forEach((rec, i) => {
+        const row = document.createElement('div');
+        row.className = `lib-row ${rec.enabled ? '' : 'disabled'}`;
+        row.style.setProperty('--i', Math.min(i, 20));
+        const prev = previewUrl(rec.categoryId, rec.preview);
+        const fileNames = rec.files.filter((f) => f.root === 'lang').map((f) => f.relPath);
+        row.innerHTML = `
+          <div class="lib-select">
+            <input type="checkbox" class="lib-checkbox" data-id="${rec.id}" ${selectedLibrary.has(rec.id) ? 'checked' : ''}>
+          </div>
+          ${prev && !isVideo(prev) ? `<img class="lib-thumb" src="${esc(prev)}" loading="lazy" alt="">` : `<div class="lib-thumb"></div>`}
+          <div class="lib-info">
+            <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
+            <div class="lib-meta">
+              <span>${esc(catName(rec.categoryId))}</span>
+              ${fileNames.length ? `<span>${esc(fileNames.slice(0, 3).join(', '))}${fileNames.length > 3 ? '…' : ''}</span>` : ''}
+              <span>${new Date(rec.installedAt).toLocaleDateString(getLang() === 'en' ? 'en-US' : 'ru')}</span>
+            </div>
+          </div>
+          <div class="lib-actions">
+            ${['fonts', 'cursors'].includes(rec.categoryId)
+              ? `<span style="font-size:11.5px;color:var(--text-muted)">${t('alwaysActive')}</span>`
+              : `<button class="toggle ${rec.enabled ? 'on' : ''}" data-id="${rec.id}" role="switch" aria-checked="${rec.enabled}" aria-label="${t('installed')}"></button>`}
+            <button class="btn btn-sm btn-danger" data-del="${rec.id}">${t('delete')}</button>
+          </div>
+        `;
+
+        row.querySelectorAll('.lib-checkbox').forEach((cb) => {
+          cb.addEventListener('change', () => {
+            const id = cb.dataset.id;
+            if (cb.checked) selectedLibrary.add(id);
+            else selectedLibrary.delete(id);
+            updateToolbarState();
+          });
         });
+
+        row.querySelectorAll('.toggle').forEach((t) => {
+          t.addEventListener('click', async () => {
+            const rec = installed.find((m) => m.id === t.dataset.id);
+            const r = await window.api.mods.setEnabled(rec.id, !rec.enabled);
+            if (r.error) toast(r.error, 'error');
+            renderLibrary();
+            refreshInstalledIndex();
+          });
+        });
+
+        row.querySelectorAll('[data-del]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const rec = installed.find((m) => m.id === b.dataset.del);
+            if (!await confirmDialog(t('removeConfirm').replace('{name}', rec.name))) return;
+            const r = await window.api.mods.remove(rec.id);
+            if (r.error) toast(r.error, 'error');
+            else toast(`${rec.name} ${t('removed')}`);
+            renderLibrary();
+            refreshInstalledIndex();
+          });
+        });
+
+        list.appendChild(row);
       });
 
-      row.querySelectorAll('.toggle').forEach((t) => {
-        t.addEventListener('click', async () => {
-          const rec = installed.find((m) => m.id === t.dataset.id);
-          const r = await window.api.mods.setEnabled(rec.id, !rec.enabled);
-          if (r.error) toast(r.error, 'error');
-          renderLibrary();
-          refreshInstalledIndex();
-        });
-      });
-
-      row.querySelectorAll('[data-del]').forEach((b) => {
-        b.addEventListener('click', async () => {
-          const rec = installed.find((m) => m.id === b.dataset.del);
-          if (!await confirmDialog(t('removeConfirm').replace('{name}', rec.name))) return;
-          const r = await window.api.mods.remove(rec.id);
-          if (r.error) toast(r.error, 'error');
-          else toast(`${rec.name} ${t('removed')}`);
-          renderLibrary();
-          refreshInstalledIndex();
-        });
-      });
-
-      libList.appendChild(row);
+      libList.appendChild(sectionWrap);
     });
   }
 
@@ -4023,29 +4069,122 @@ function renderAuthors() {
 
   // sort authors by mod count (descending)
   const sortedAuthors = [...authors].sort((a, b) => countAuthorMods(b) - countAuthorMods(a));
+  const authorSearch = (state.authors?.search || '').trim().toLowerCase();
+  const filteredAuthors = !authorSearch
+    ? sortedAuthors
+    : sortedAuthors.filter((author) => {
+        const haystack = `${author.displayName || ''} ${author.id || ''}`.toLowerCase();
+        return haystack.includes(authorSearch);
+      });
 
-  viewRoot.innerHTML = `
-    <div class="view-header"><h1 class="view-title">${t('authorsTitle')}</h1></div>
-    ${sortedAuthors.length ? `
-      <div class="tool-grid">
-        ${sortedAuthors.map((author, i) => {
+  const renderAuthorCards = () => {
+    const list = $('#authorListResults');
+    if (!list) return;
+    list.innerHTML = filteredAuthors.length
+      ? `<div class="tool-grid">${filteredAuthors.map((author, i) => {
           const count = countAuthorMods(author);
           return `
-          <div class="tool-card author-card" style="--i:${i}" data-author-id="${esc(author.id)}">
-            <div class="author-card-avatar">${author.avatarUrl ? `<img src="${esc(author.avatarUrl)}" alt="${esc(author.displayName)}">` : '<span class="ms">person</span>'}</div>
-            <div class="tool-name">${esc(author.displayName)}</div>
-            <div style="color:var(--text-muted);font-size:12px">${count} ${plural(count, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
-          </div>`;
-        }).join('')}
-      </div>` : `<div class="empty-note">${t('noAuthorsFound')}</div>`}
+            <div class="tool-card author-card" style="--i:${i}" data-author-id="${esc(author.id)}">
+              <div class="author-card-avatar">${author.avatarUrl ? `<img src="${esc(author.avatarUrl)}" alt="${esc(author.displayName)}">` : '<span class="ms">person</span>'}</div>
+              <div class="tool-name">${esc(author.displayName)}</div>
+              <div style="color:var(--text-muted);font-size:12px">${count} ${plural(count, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+            </div>`;
+        }).join('')}</div>`
+      : `<div class="empty-note">${t('noAuthorsFound')}</div>`;
+
+    list.querySelectorAll('.author-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        state.authors = { selected: card.dataset.authorId, search: state.authors?.search || '', sort: 'default' };
+        renderAuthors();
+      });
+    });
+  };
+
+  viewRoot.innerHTML = `
+    <div class="view-header author-list-header">
+      <h1 class="view-title">${t('authorsTitle')}</h1>
+      <label class="author-list-search" for="authorListSearchInput">
+        <span class="ms">search</span>
+        <input class="input" id="authorListSearchInput" type="search" value="${esc(state.authors?.search || '')}" placeholder="${getLang() === 'en' ? 'Search authors' : 'Поиск авторов'}">
+      </label>
+    </div>
+    <div id="authorListResults">
+      ${filteredAuthors.length ? `
+        <div class="tool-grid">
+          ${filteredAuthors.map((author, i) => {
+            const count = countAuthorMods(author);
+            return `
+            <div class="tool-card author-card" style="--i:${i}" data-author-id="${esc(author.id)}">
+              <div class="author-card-avatar">${author.avatarUrl ? `<img src="${esc(author.avatarUrl)}" alt="${esc(author.displayName)}">` : '<span class="ms">person</span>'}</div>
+              <div class="tool-name">${esc(author.displayName)}</div>
+              <div style="color:var(--text-muted);font-size:12px">${count} ${plural(count, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+            </div>`;
+          }).join('')}
+        </div>` : `<div class="empty-note">${t('noAuthorsFound')}</div>`}
+    </div>
   `;
 
-  viewRoot.querySelectorAll('.author-card').forEach((card) => {
-    card.addEventListener('click', () => {
-      state.authors = { selected: card.dataset.authorId, search: '', sort: 'default' };
-      renderAuthors();
+  const authorSearchInput = $('#authorListSearchInput');
+  if (authorSearchInput) {
+    authorSearchInput.addEventListener('focus', () => {
+      state.authors = { ...(state.authors || {}), search: authorSearchInput.value, sort: 'default' };
+      state.authorSearchKeepFocus = true;
     });
-  });
+    authorSearchInput.addEventListener('blur', () => {
+      state.authorSearchKeepFocus = false;
+    });
+    authorSearchInput.addEventListener('input', (e) => {
+      state.authors = { ...(state.authors || {}), selected: null, search: e.target.value, sort: 'default' };
+      state.authorSearchKeepFocus = true;
+      const query = (state.authors?.search || '').trim().toLowerCase();
+      const list = $('#authorListResults');
+      const next = !query
+        ? sortedAuthors
+        : sortedAuthors.filter((author) => {
+            const haystack = `${author.displayName || ''} ${author.id || ''}`.toLowerCase();
+            return haystack.includes(query);
+          });
+      if (list) {
+        list.innerHTML = next.length
+          ? `<div class="tool-grid">${next.map((author, i) => {
+              const count = countAuthorMods(author);
+              return `
+              <div class="tool-card author-card" style="--i:${i}" data-author-id="${esc(author.id)}">
+                <div class="author-card-avatar">${author.avatarUrl ? `<img src="${esc(author.avatarUrl)}" alt="${esc(author.displayName)}">` : '<span class="ms">person</span>'}</div>
+                <div class="tool-name">${esc(author.displayName)}</div>
+                <div style="color:var(--text-muted);font-size:12px">${count} ${plural(count, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
+              </div>`;
+            }).join('')}</div>`
+          : `<div class="empty-note">${t('noAuthorsFound')}</div>`;
+        list.querySelectorAll('.author-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            state.authors = { selected: card.dataset.authorId, search: state.authors?.search || '', sort: 'default' };
+            renderAuthors();
+          });
+        });
+      }
+      requestAnimationFrame(() => {
+        if (!state.authorSearchKeepFocus) return;
+        const input = $('#authorListSearchInput');
+        if (!input) return;
+        const end = input.value.length;
+        input.focus();
+        input.setSelectionRange(end, end);
+      });
+    });
+  }
+
+  if (state.authorSearchKeepFocus) {
+    requestAnimationFrame(() => {
+      const input = $('#authorListSearchInput');
+      if (!input) return;
+      const end = input.value.length;
+      input.focus();
+      input.setSelectionRange(end, end);
+    });
+  }
+
+  renderAuthorCards();
 }
 
 // ===== Tools =====
