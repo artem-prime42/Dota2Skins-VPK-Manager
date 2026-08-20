@@ -53,7 +53,7 @@ class Library {
     const id = crypto.randomUUID();
     const rec = {
       id,
-      name,
+      name: String(name || '').trim(),
       categoryId,
       styleLabel: styleLabel || null,
       fileRef,
@@ -78,11 +78,28 @@ class Library {
 
   removeRecord(id) {
     this.data.installed = this.data.installed.filter((m) => m.id !== id);
-    // drop the mod from presets too
     for (const p of this.data.presets) {
       p.modIds = p.modIds.filter((mid) => mid !== id);
     }
     this.save();
+  }
+
+  reorder(ids) {
+    const order = Array.isArray(ids) ? ids.filter(Boolean) : [];
+    if (!order.length) return this.data.installed;
+    const current = [...this.data.installed];
+    const seen = new Set(order);
+    const reordered = [];
+    for (const id of order) {
+      const rec = current.find((m) => m.id === id);
+      if (rec) reordered.push(rec);
+    }
+    for (const rec of current) {
+      if (!seen.has(rec.id)) reordered.push(rec);
+    }
+    this.data.installed = reordered;
+    this.save();
+    return this.data.installed;
   }
 
   knownLangRelPaths() {

@@ -153,6 +153,32 @@ test('Catalog can load data from a provided local file', async () => {
   assert.ok(typeof data.fetchedAt === 'number');
 });
 
+test('Catalog falls back to cache when remote fetch fails', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-cache-fallback-test-'));
+  const cacheDir = path.join(tmpDir, 'catalog-cache');
+  fs.mkdirSync(cacheDir, { recursive: true });
+  fs.writeFileSync(path.join(cacheDir, 'catalog.json'), JSON.stringify({
+    mods: { modsData: { heroes: [{ name: 'Cached mod', preview: 'https://example.com/cached.webp' }] } },
+    constants: { categories: [{ id: 'heroes', label: 'Heroes' }] },
+    guides: {},
+    fetchedAt: 1,
+  }));
+  fs.writeFileSync(path.join(cacheDir, 'meta.json'), JSON.stringify({ fetchedAt: 1 }));
+
+  const catalog = new Catalog(tmpDir, {
+    source: {
+      type: 'site',
+      repoRoot: 'https://github.com/example/catalog',
+      dataUrl: 'https://example.com/does-not-exist.json',
+    },
+  });
+
+  const data = await catalog.load();
+
+  assert.equal(data.mods.modsData.heroes[0].name, 'Cached mod');
+  assert.equal(data.fetchedAt, 1);
+});
+
 test('Catalog refreshes site source data even when cache exists', async () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'catalog-site-refresh-test-'));
   const cacheDir = path.join(tmpDir, 'catalog-cache');

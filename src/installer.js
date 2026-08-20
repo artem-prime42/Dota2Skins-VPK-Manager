@@ -457,6 +457,54 @@ class Installer {
     }
   }
 
+  reindexLangOrder(records) {
+    const lang = this.langFolder();
+    if (!fs.existsSync(lang)) return [];
+
+    const renamed = [];
+    const managed = [];
+    const seenSources = new Set();
+    for (const rec of records || []) {
+      for (const file of rec.files || []) {
+        if (file.root !== 'lang') continue;
+        const source = path.join(lang, file.relPath);
+        const sourceOff = source + '.off';
+        const existing = fs.existsSync(source) ? source : (fs.existsSync(sourceOff) ? sourceOff : null);
+        if (!existing) continue;
+        if (seenSources.has(existing)) continue;
+        seenSources.add(existing);
+        managed.push({ rec, file, source: existing, disabled: existing.endsWith('.off'), original: file.relPath });
+      }
+    }
+
+    const targetBySource = new Map();
+    for (let i = 0; i < managed.length; i += 1) {
+      const item = managed[i];
+      const targetName = `pak${String(i + 1).padStart(2, '0')}_dir.vpk${item.disabled ? '.off' : ''}`;
+      targetBySource.set(item.source, path.join(lang, targetName));
+    }
+
+    for (let i = 0; i < managed.length; i += 1) {
+      const item = managed[i];
+      const targetName = `pak${String(i + 1).padStart(2, '0')}_dir.vpk${item.disabled ? '.off' : ''}`;
+      const targetPath = path.join(lang, targetName);
+      const sourceExists = fs.existsSync(item.source);
+      if (!sourceExists) continue;
+      if (item.source !== targetPath) {
+        const destSibling = targetBySource.get(item.source);
+        if (destSibling && destSibling !== item.source && fs.existsSync(destSibling)) {
+          fs.rmSync(destSibling, { force: true });
+        }
+        if (fs.existsSync(targetPath)) fs.rmSync(targetPath, { force: true });
+        fs.renameSync(item.source, targetPath);
+      }
+      renamed.push({ from: item.original, to: targetName.replace(/\.off$/, '') });
+      item.file.relPath = targetName.replace(/\.off$/, '');
+    }
+
+    return renamed;
+  }
+
   remove(files) {
     for (const f of files) {
       const rootAbs = this.rootAbs(f.root);

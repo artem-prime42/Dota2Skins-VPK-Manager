@@ -352,6 +352,19 @@ function registerIpc() {
     }
   });
 
+  ipcMain.handle('mods:reorder', (e, ids) => {
+    try {
+      const all = library.list();
+      const order = (ids || []).filter((id) => all.some((rec) => rec.id === id));
+      if (!order.length) return { ok: true, records: all };
+      const records = library.reorder(order);
+      installer.reindexLangOrder(records);
+      return { ok: true, records };
+    } catch (err) {
+      return { error: String(err.message || err) };
+    }
+  });
+
   ipcMain.handle('mods:mergeSelected', (e, ids) => {
     const selected = (ids || []).map((id) => library.find(id)).filter(Boolean);
     if (selected.length < 2) return { error: 'Нужно выбрать минимум 2 мода' };

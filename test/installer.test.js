@@ -6,6 +6,7 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 const { VpkReader, VpkWriter } = require('vpk-tools');
 const { Installer, shouldUsePriorityPak } = require('../src/installer');
+const { Library } = require('../src/library');
 const { resolveGamePath, validateGamePath } = require('../src/steam');
 
 test('priority pak naming is disabled for trees and ranged-attack categories', () => {
@@ -132,3 +133,84 @@ test('install handles split VPK zip archives by remapping part prefixes', async 
   assert.equal(contentMap.get(records[0].relPath), records[0].relPath.endsWith('_dir.vpk') ? 'dir contents' : 'part contents');
   assert.equal(contentMap.get(records[1].relPath), records[1].relPath.endsWith('_dir.vpk') ? 'dir contents' : 'part contents');
 });
+
+test('reindexLangOrder renames VPK files in drag order', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'installer-reorder-'));
+  const gameRoot = path.join(tempRoot, 'game');
+  const langDir = path.join(gameRoot, 'dota_russian');
+  fs.mkdirSync(langDir, { recursive: true });
+
+  const aPath = path.join(langDir, 'pak09_dir.vpk');
+  const bPath = path.join(langDir, 'pak07_dir.vpk');
+  fs.writeFileSync(aPath, 'mod-a');
+  fs.writeFileSync(bPath, 'mod-b');
+
+  const installer = new Installer({ userDataDir: tempRoot, getGamePath: () => gameRoot, getLangSuffix: () => 'russian' });
+  installer.reindexLangOrder([
+    { id: 'a', files: [{ root: 'lang', relPath: 'pak09_dir.vpk' }] },
+    { id: 'b', files: [{ root: 'lang', relPath: 'pak07_dir.vpk' }] },
+  ]);
+
+  assert.equal(fs.existsSync(path.join(langDir, 'pak01_dir.vpk')), true);
+  assert.equal(fs.existsSync(path.join(langDir, 'pak02_dir.vpk')), true);
+  assert.equal(fs.existsSync(aPath), false);
+  assert.equal(fs.existsSync(bPath), false);
+  assert.equal(fs.readFileSync(path.join(langDir, 'pak01_dir.vpk'), 'utf8'), 'mod-a');
+  assert.equal(fs.readFileSync(path.join(langDir, 'pak02_dir.vpk'), 'utf8'), 'mod-b');
+});
+
+test('reindexLangOrder skips duplicate source paths instead of crashing on ENOENT', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'installer-reorder-dup-'));
+  const gameRoot = path.join(tempRoot, 'game');
+  const langDir = path.join(gameRoot, 'dota_russian');
+  fs.mkdirSync(langDir, { recursive: true });
+
+  const aPath = path.join(langDir, 'pak02_dir.vpk');
+  const bPath = path.join(langDir, 'pak04_dir.vpk');
+  fs.writeFileSync(aPath, 'mod-a');
+  fs.writeFileSync(bPath, 'mod-b');
+
+  const installer = new Installer({ userDataDir: tempRoot, getGamePath: () => gameRoot, getLangSuffix: () => 'russian' });
+  assert.doesNotThrow(() => {
+    installer.reindexLangOrder([
+      { id: 'a', files: [{ root: 'lang', relPath: 'pak02_dir.vpk' }] },
+      { id: 'b', files: [{ root: 'lang', relPath: 'pak02_dir.vpk' }] },
+      { id: 'c', files: [{ root: 'lang', relPath: 'pak04_dir.vpk' }] },
+    ]);
+  });
+
+  assert.equal(fs.existsSync(path.join(langDir, 'pak01_dir.vpk')), true);
+  assert.equal(fs.existsSync(path.join(langDir, 'pak02_dir.vpk')), true);
+  assert.equal(fs.existsSync(path.join(langDir, 'pak04_dir.vpk')), false);
+  assert.equal(fs.existsSync(aPath), true);
+  assert.equal(fs.existsSync(bPath), false);
+  assert.equal(fs.readFileSync(path.join(langDir, 'pak01_dir.vpk'), 'utf8'), 'mod-a');
+  assert.equal(fs.readFileSync(path.join(langDir, 'pak02_dir.vpk'), 'utf8'), 'mod-b');
+});
+
+test('library keeps the exact installed mod name as-is', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'library-exact-name-'));
+  const library = new Library(tempRoot);
+
+  const a = library.add({
+    name: 'Same Name',
+    categoryId: 'heroes',
+    styleLabel: null,
+    fileRef: 'one.zip',
+    preview: null,
+    files: [{ root: 'lang', relPath: 'pak01_dir.vpk' }],
+  });
+  const b = library.add({
+    name: 'Same Name',
+    categoryId: 'heroes',
+    styleLabel: null,
+    fileRef: 'two.zip',
+    preview: null,
+    files: [{ root: 'lang', relPath: 'pak02_dir.vpk' }],
+  });
+
+  assert.equal(a.name, 'Same Name');
+  assert.equal(b.name, 'Same Name');
+  assert.deepEqual(library.list().map((m) => m.name), ['Same Name', 'Same Name']);
+});
+

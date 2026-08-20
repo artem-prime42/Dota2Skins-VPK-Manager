@@ -1538,6 +1538,26 @@ input, select { font-family: inherit; }
   flex: 1;
   min-width: 0;
 }
+.hero-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.hero-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: var(--text-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
 .hero-download-btn {
   display: inline-flex;
   align-items: center;
@@ -1549,13 +1569,14 @@ input, select { font-family: inherit; }
   background: rgba(255, 255, 255, 0.04);
   color: var(--primary-soft);
   cursor: pointer;
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease);
+  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease), background 0.2s var(--ease), box-shadow 0.2s var(--ease);
   flex-shrink: 0;
 }
 .hero-download-btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-1px) scale(1.02);
   border-color: var(--border-strong);
   background: rgba(126, 155, 255, 0.12);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.16);
 }
 .hero-download-btn .ms {
   font-size: 16px;
@@ -1585,6 +1606,18 @@ input, select { font-family: inherit; }
   font-size: 13px;
   color: var(--text-muted);
   line-height: 1.5;
+}
+.hero-download-rank {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-weight: 700;
 }
 .hero-download-caption {
   font-size: 11.5px;
@@ -2127,12 +2160,29 @@ input, select { font-family: inherit; }
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
-  transition: all 0.2s var(--ease);
+  transition: transform 0.18s cubic-bezier(.2,.8,.2,1), box-shadow 0.18s var(--ease), border-color 0.18s var(--ease), background 0.18s var(--ease), opacity 0.18s var(--ease);
   animation: cardIn 0.35s var(--ease) both;
   animation-delay: calc(var(--i) * 18ms);
+  will-change: transform, box-shadow;
 }
 .lib-row:hover { border-color: var(--border-strong); background: var(--surface-hover); }
 .lib-row.disabled { opacity: 0.5; }
+.lib-row.dragging {
+  opacity: 0.78;
+  transform: scale(0.995);
+  box-shadow: 0 16px 34px rgba(17, 24, 39, 0.2);
+}
+.lib-row.drag-over {
+  border-color: var(--primary-soft);
+  transform: translateX(4px) scale(1.005);
+  box-shadow: 0 0 0 1px rgba(151, 132, 255, 0.32), 0 18px 40px rgba(99, 102, 241, 0.12);
+}
+.lib-row.drop-animate { animation: dropPulse 0.26s cubic-bezier(.22,1,.36,1); }
+@keyframes dropPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  45% { transform: scale(1.01); box-shadow: 0 18px 30px rgba(99, 102, 241, 0.14); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+}
 .lib-thumb {
   width: 76px; height: 47px;
   border-radius: var(--radius-xs);
@@ -2144,8 +2194,45 @@ input, select { font-family: inherit; }
 .lib-name { font-weight: 600; font-size: 14px; }
 .lib-meta { font-size: 11.5px; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap; }
 .lib-actions { display: flex; align-items: center; gap: 8px; }
+.lib-drag-handle {
+  display: grid;
+  grid-template-columns: repeat(2, 5px);
+  grid-template-rows: repeat(3, 5px);
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  width: 24px; height: 24px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: grab;
+  opacity: 0.9;
+  transition: transform 0.18s var(--ease), border-color 0.18s var(--ease), background 0.18s var(--ease);
+}
+.lib-drag-handle:hover { border-color: var(--primary-soft); background: rgba(255,255,255,0.08); }
+.lib-drag-handle span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.72);
+  display: block;
+}
+.lib-row.dragging { opacity: 0.8; transform: scale(0.99); }
+.lib-row.drag-over { border-color: var(--primary-soft); box-shadow: 0 0 0 1px rgba(168, 141, 255, 0.28), 0 12px 24px rgba(79, 70, 229, 0.18); }
+.lib-row.drop-animate { animation: dropPulse 0.24s var(--ease); }
+@keyframes dropPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
 .lib-select { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 12px; background: var(--surface-strong); border: 1px solid var(--border); transition: background 0.2s var(--ease), border-color 0.2s var(--ease); }
 .lib-select:hover { background: var(--surface-hover); border-color: var(--primary-soft); }
+.lib-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.slot-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  background: rgba(148, 163, 184, 0.14); color: var(--text); border: 1px solid rgba(148, 163, 184, 0.22);
+}
+.slot-badge-inline { white-space: nowrap; }
+.card-name-row { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
 .lib-checkbox {
   -webkit-appearance: none;
   appearance: none;

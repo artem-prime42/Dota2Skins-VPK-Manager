@@ -296,6 +296,16 @@ class Catalog {
     }
   }
 
+  readCache() {
+    const cacheFile = this.cachePath(DEFAULT_DATA_FILE);
+    if (!fs.existsSync(cacheFile)) return null;
+    try {
+      return JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+    } catch {
+      return null;
+    }
+  }
+
   hasCache() {
     return fs.existsSync(this.cachePath(DEFAULT_DATA_FILE));
   }
@@ -303,65 +313,69 @@ class Catalog {
   async refresh(forceRefresh = false) {
     let parsed;
     let text;
-    if (this.source.type === 'file') {
-      text = fs.readFileSync(this.source.filePath, 'utf-8');
-      parsed = JSON.parse(text);
-    } else if (this.source.type === 'site') {
-      const dataUrl = this.source.dataUrl || this.source.fileUrl;
-      if (dataUrl) {
-        try {
+    const previousCatalog = this.readCache();
+    try {
+      if (this.source.type === 'file') {
+        text = fs.readFileSync(this.source.filePath, 'utf-8');
+        parsed = JSON.parse(text);
+      } else if (this.source.type === 'site') {
+        const dataUrl = this.source.dataUrl || this.source.fileUrl;
+        if (dataUrl) {
           const res = await fetch(dataUrl);
           if (!res.ok) throw new Error(`HTTP ${res.status} while fetching catalog`);
           text = await res.text();
           parsed = JSON.parse(text);
-        } catch (err) {
-          if (this.source.fallbackSiteRoot) {
-            parsed = await loadSiteCatalog({ siteRoot: this.source.fallbackSiteRoot });
-            text = JSON.stringify(parsed);
-          } else {
-            throw err;
-          }
+        } else {
+          parsed = await loadSiteCatalog(this.source);
+          text = JSON.stringify(parsed);
         }
       } else {
-        parsed = await loadSiteCatalog(this.source);
-        text = JSON.stringify(parsed);
-      }
-    } else {
-      try {
         const res = await fetch(this.source.url || DEFAULT_CATALOG_URL);
         if (!res.ok) throw new Error(`HTTP ${res.status} while fetching catalog`);
         text = await res.text();
         parsed = JSON.parse(text);
-      } catch (err) {
-        if (this.source.fallbackSiteRoot) {
-          parsed = await loadSiteCatalog(this.source.fallbackSiteRoot);
+      }
+    } catch (err) {
+      if (previousCatalog) {
+        console.warn('Catalog fetch failed, using cached catalog:', err && err.message ? err.message : err);
+        const normalized = normalizeCatalogPayload(previousCatalog);
+        const meta = this.cacheInfo();
+        fs.writeFileSync(this.cachePath(DEFAULT_DATA_FILE), JSON.stringify(normalized));
+        fs.writeFileSync(this.cachePath('meta.json'), JSON.stringify({ fetchedAt: meta.fetchedAt || Date.now() }));
+        return normalized;
+      }
+      if (this.source.fallbackSiteRoot) {
+        try {
+          parsed = await loadSiteCatalog({ siteRoot: this.source.fallbackSiteRoot });
           text = JSON.stringify(parsed);
-        } else {
+        } catch (fallbackErr) {
           throw err;
         }
+      } else {
+        throw err;
       }
     }
 
     let normalized = normalizeCatalogPayload(parsed);
     const cachePath = this.cachePath(DEFAULT_DATA_FILE);
-    let previousCatalog = null;
-    if (fs.existsSync(cachePath)) {
+    let previousCatalogState = previousCatalog;
+    if (!previousCatalogState && fs.existsSync(cachePath)) {
       try {
-        previousCatalog = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
+        previousCatalogState = JSON.parse(fs.readFileSync(cachePath, 'utf-8'));
       } catch {
-        previousCatalog = null;
+        previousCatalogState = null;
       }
     }
 
-    const shouldUpdateDownloads = forceRefresh || !previousCatalog || !isSameCatalogPayload(previousCatalog, normalized) || !hasAnyDownloadCounts(previousCatalog) || !hasAnyDownloadCounts(normalized);
+    const shouldUpdateDownloads = forceRefresh || !previousCatalogState || !isSameCatalogPayload(previousCatalogState, normalized) || !hasAnyDownloadCounts(previousCatalogState) || !hasAnyDownloadCounts(normalized);
     if (shouldUpdateDownloads) {
       try {
         normalized = await enrichGithubDownloadCounts(normalized, this.cacheDir, forceRefresh);
       } catch (err) {
         console.error('Failed to enrich catalog with GitHub release download counts:', err.message || err);
       }
-    } else if (previousCatalog) {
-      mergeDownloadCounts(normalized, previousCatalog);
+    } else if (previousCatalogState) {
+      mergeDownloadCounts(normalized, previousCatalogState);
     }
 
     fs.writeFileSync(this.cachePath(DEFAULT_DATA_FILE), JSON.stringify(normalized));

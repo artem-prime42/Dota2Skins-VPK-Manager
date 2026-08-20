@@ -84,6 +84,7 @@ const HERO_PREVIEW_FALLBACKS = {
   necrophos: 'https://i.postimg.cc/d3JX9qw6/necrolyte-vert.jpg',
   leshrac: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/leshrac.png',
   windranger: 'https://i.postimg.cc/x1B44G9x/Windranger-icon.webp',
+  winter_wyvern: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/winter_wyvern.png',
 };
 
 const SORTS = [
@@ -274,6 +275,21 @@ function getHeroPopularity(hero) {
   }, 0);
 }
 
+function getHeroPopularityRanking() {
+  const heroes = getHeroCatalogEntries().filter((entry) => (entry.modsCount || 0) > 0);
+  return [...heroes].sort((a, b) => getHeroPopularity(b) - getHeroPopularity(a) || (a.name || '').localeCompare(b.name || '')).map((entry, index) => ({
+    slug: String(entry.slug || '').toLowerCase(),
+    rank: index + 1,
+  }));
+}
+
+function getHeroPopularityRank(hero) {
+  const slug = String(hero?.slug || '').toLowerCase();
+  const ranked = getHeroPopularityRanking();
+  const entry = ranked.find((item) => item.slug === slug);
+  return entry ? entry.rank : ranked.length + 1;
+}
+
 function openHeroDownloadsModal(hero) {
   if (!hero) return;
   closeModal();
@@ -286,6 +302,7 @@ function openHeroDownloadsModal(hero) {
     return sum + (Number.isFinite(downloads) ? downloads : 0);
   }, 0);
   const modsCount = heroMods.length;
+  const heroRank = getHeroPopularityRank(hero);
 
   const overlay = document.createElement('div');
   overlay.className = 'slot-modal-overlay hero-download-overlay';
@@ -299,6 +316,7 @@ function openHeroDownloadsModal(hero) {
         <div class="hero-download-modal-body">
           <div class="hero-download-pill"><span class="ms">cloud_download</span>${esc(totalDownloads.toLocaleString(getLang()))}</div>
           <div class="hero-download-text">${getLang() === 'en' ? 'Total downloads for hero mods:' : 'Общее количество скачиваний модов на героя:'}</div>
+          <div class="hero-download-rank">${getLang() === 'en' ? 'Popularity rank:' : 'Место по популярности:'} #${heroRank}</div>
         </div>
       </div>
     </div>`;
@@ -381,6 +399,7 @@ const UI_TEXT = {
     otherSection: 'Остальное',
     catalog: 'Каталог',
     library: 'Библиотека',
+    libraries: 'Библиотека',
     presets: 'Пресеты',
     authors: 'Авторы',
     tools: 'Инструменты',
@@ -573,6 +592,7 @@ const UI_TEXT = {
     otherSection: 'Other',
     catalog: 'Catalog',
     library: 'Library',
+    libraries: 'Library',
     presets: 'Presets',
     authors: 'Authors',
     tools: 'Tools',
@@ -2464,18 +2484,21 @@ const SLOT_LABELS = {
     legs: 'Ноги',
     boots: 'Ботинки',
     weapon: 'Оружие',
-    offhand: 'Левая рука',
+    offhand: 'Доп. оружие',
+    off_hand: 'Доп. оружие',
     arm: 'Рука',
     arms: 'Руки',
+    hands: 'Руки',
     body: 'Тело',
     chest: 'Грудь',
     waist: 'Пояс',
+    belt: 'Пояс',
+    armor: 'Броня',
     pet: 'Питомец',
     tail: 'Хвост',
     item: 'Предмет',
     voice: 'Голос',
     misc: 'Разное',
-    default: 'Набор',
   },
   en: {
     set: 'Set',
@@ -2490,11 +2513,15 @@ const SLOT_LABELS = {
     boots: 'Boots',
     weapon: 'Weapon',
     offhand: 'Off-hand',
+    off_hand: 'Off-hand',
     arm: 'Arm',
     arms: 'Arms',
+    hands: 'Hands',
     body: 'Body',
     chest: 'Chest',
     waist: 'Waist',
+    belt: 'Belt',
+    armor: 'Armor',
     pet: 'Pet',
     tail: 'Tail',
     item: 'Item',
@@ -2514,21 +2541,28 @@ const SLOT_ORDER = {
   body: 6,
   chest: 7,
   waist: 8,
+  belt: 8,
   legs: 9,
   boots: 10,
   weapon: 11,
   offhand: 12,
+  off_hand: 12,
   arm: 13,
   arms: 13,
-  tail: 14,
-  pet: 15,
-  item: 16,
-  voice: 17,
-  misc: 18,
+  hands: 13,
+  armor: 14,
+  tail: 15,
+  pet: 16,
+  item: 17,
+  voice: 18,
+  misc: 19,
 };
 function translateSlot(slot) {
-  const key = (slot || 'default').toString().trim().toLowerCase();
-  return SLOT_LABELS[getLang()]?.[key] || SLOT_LABELS.ru?.[key] || slot || (getLang() === 'en' ? 'Set' : 'Набор');
+  const key = (slot || 'default').toString().trim().toLowerCase().replace(/[_\s-]+/g, '');
+  const direct = SLOT_LABELS[getLang()]?.[key] || SLOT_LABELS.ru?.[key];
+  if (direct) return direct;
+  const rawKey = (slot || 'default').toString().trim().toLowerCase();
+  return SLOT_LABELS[getLang()]?.[rawKey] || SLOT_LABELS.ru?.[rawKey] || slot || (getLang() === 'en' ? 'Set' : 'Набор');
 }
 function sortSlots(slots) {
   return [...new Set(slots.map((slot) => slot || 'default'))].sort((a, b) => {
@@ -2638,7 +2672,6 @@ function renderCategory(categoryId) {
         const previewUrlValue = resolveHeroPreview(hero);
         const previewHtml = previewUrlValue ? `<div class="hero-card-media">${mediaHtml(previewUrl('heroes', previewUrlValue))}</div>` : '';
         const favActive = state.favorites.has((hero.slug || '').toLowerCase()) ? 'active' : '';
-        const totalHeroDownloads = getHeroPopularity(hero);
         return `
           <div class="card hero-card" data-hero="${esc(hero.slug)}">
             ${previewHtml}
@@ -2647,7 +2680,9 @@ function renderCategory(categoryId) {
               <div class="hero-card-title">${esc(hero.name)}</div>
               <div class="hero-card-bottom">
                 <div class="hero-card-meta">${hero.modsCount || 0} ${plural(hero.modsCount || 0, 'мод', 'мода', 'модов', 'mod', 'mods')}</div>
-                <button class="hero-download-btn" type="button" data-download-hero="${esc(hero.slug)}" aria-label="${getLang() === 'en' ? 'Hero downloads' : 'Скачивания героя'}"><span class="ms">cloud_download</span></button>
+                <div class="hero-card-actions">
+                  <button class="hero-download-btn" type="button" data-download-hero="${esc(hero.slug)}" aria-label="${getLang() === 'en' ? 'Hero downloads' : 'Скачивания героя'}"><span class="ms">cloud_download</span></button>
+                </div>
               </div>
             </div>
           </div>`;
@@ -3636,6 +3671,7 @@ async function renderLibrary() {
       items.forEach((rec, i) => {
         const row = document.createElement('div');
         row.className = `lib-row ${rec.enabled ? '' : 'disabled'}`;
+        row.dataset.libId = rec.id;
         row.style.setProperty('--i', Math.min(i, 20));
         const prev = previewUrl(rec.categoryId, rec.preview);
         const fileNames = rec.files.filter((f) => f.root === 'lang').map((f) => f.relPath);
@@ -3645,7 +3681,10 @@ async function renderLibrary() {
           </div>
           ${prev && !isVideo(prev) ? `<img class="lib-thumb" src="${esc(prev)}" loading="lazy" alt="">` : `<div class="lib-thumb"></div>`}
           <div class="lib-info">
-            <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
+            <div class="lib-name-row">
+              <div class="lib-name">${esc(rec.name)}${rec.styleLabel ? ` <span style="color:var(--primary-soft);font-size:12px">(${esc(rec.styleLabel)})</span>` : ''}</div>
+              ${rec.slot ? `<span class="slot-badge slot-badge-inline">${esc(translateSlot(rec.slot))}</span>` : ''}
+            </div>
             <div class="lib-meta">
               <span>${esc(catName(rec.categoryId))}</span>
               ${fileNames.length ? `<span>${esc(fileNames.slice(0, 3).join(', '))}${fileNames.length > 3 ? '…' : ''}</span>` : ''}
